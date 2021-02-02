@@ -1,17 +1,24 @@
+// Imports
 const express = require('express');
 const connectDB = require('./config/db');
 
+// Init express
 const app = express();
 
 // Connect Database
 connectDB();
 
-// Init Middleware
+// Init express json middleware
 app.use(express.json({ extended: false }));
 
-app.get('/', (req, res) => res.send('Acorn API running'));
+// Import route files
+const journalEntries = require('./routes/journalEntries');
 
-// Defined routes
+// Mount routers
+app.use('/api/v1/entries', journalEntries);
+
+// // API running message
+// app.get('/', (req, res) => res.send('Acorn API running'));
 
 // Port config
 const PORT = process.env.PORT || 5000;
