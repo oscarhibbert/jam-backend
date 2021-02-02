@@ -16,6 +16,7 @@ const {
 const router = express.Router();
 
 // Post Requests
+// Create new journal entry
 router.route('/:id')
     .post(validateNewEntry, createNewEntry);
 

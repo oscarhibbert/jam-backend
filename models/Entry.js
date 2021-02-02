@@ -15,14 +15,7 @@ const EntrySchema = new Schema({
         type: String,
         required: true
     },
-    tags: [
-        {
-            tag: {
-                type: String,
-                unique: true
-            }
-        }
-    ],
+    tags: [],
     date: {
         type: Date,
         default: Date.now
