@@ -8,12 +8,13 @@ const {
     validateEntry
 } = require('../middleware/validators');
 
-// Import controllers
+// Import controller methods
 const {
     createEntry,
     updateEntry,
     deleteEntry,
-    getAllEntries
+    getAllEntries,
+    getEntry
 } = require('../controllers/journalEntries');
 
 const router = express.Router();
@@ -37,5 +38,9 @@ router.route('/:id')
 // Get all journal entries by user ID
 router.route('/:id')
     .get(getAllEntries);
+
+// Get journal entry by entry ID
+router.route('/entry/:id')
+    .get(getEntry);
 
 module.exports = router;

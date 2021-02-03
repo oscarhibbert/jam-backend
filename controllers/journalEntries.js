@@ -200,3 +200,44 @@ exports.getAllEntries = async (req, res) => {
       res.status(500).send('Server Error'); 
   }
 }
+
+// @desc   Get single journal entry by entry ID
+// @route  GET api/v1/entries/entry/id
+// @access Public
+exports.getEntry = async (req, res) => {
+  try {
+    // Check if the journal entry exists in the database
+    let check = await Entry.countDocuments({ _id: req.params.id });
+
+    // If the journal entry is found
+    if (check === 1) {
+      // Get the journal entry
+      const entry = await Entry.findById(req.params.id);
+
+      // Response
+      const response = {
+        success: true,
+        msg: `Journal entry with ID ${req.params.id}`,
+        data: entry
+      };
+
+      console.log(response);
+      res.json(response);
+    }
+
+    // Else throw error
+    else {
+      throw new Error('Journal Entry not found');
+    }
+
+  } catch (err) {
+      console.error(err.message);
+      if (err.kind === 'ObjectId')
+        return res.status(500).json({ success: false, msg: 'Entry ID error' });
+      if (err.message === 'Journal Entry not found')
+        return res
+          .status(404)
+          .json({ success: false, msg: 'Journal Entry does not exist' });
+      res.status(500).send('Server Error');
+  }
+}
