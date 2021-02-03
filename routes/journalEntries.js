@@ -10,14 +10,20 @@ const {
 
 // Import controllers
 const {
-    createNewEntry
+    createNewEntry,
+    updateEntry
 } = require('../controllers/journalEntries');
 
 const router = express.Router();
 
-// Post Requests
+// POST Request
 // Create new journal entry
 router.route('/:id')
     .post(validateNewEntry, createNewEntry);
+
+// PUT Request
+// Update an existing journal entry
+router.route('/:id')
+    .patch(updateEntry);
 
 module.exports = router;

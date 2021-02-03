@@ -16,7 +16,10 @@ const EntrySchema = new Schema({
         required: true
     },
     tags: [],
-    date: {
+    dateUpdated: {
+        type: Date
+    },
+    dateCreated: {
         type: Date,
         default: Date.now
     }
