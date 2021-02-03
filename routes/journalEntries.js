@@ -11,19 +11,25 @@ const {
 // Import controllers
 const {
     createNewEntry,
-    updateEntry
+    updateEntry,
+    deleteEntry
 } = require('../controllers/journalEntries');
 
 const router = express.Router();
 
 // POST Request
-// Create new journal entry
+// Create new journal entry by user ID
 router.route('/:id')
     .post(validateNewEntry, createNewEntry);
 
 // PUT Request
-// Update an existing journal entry
+// Update a journal entry by entry ID
 router.route('/:id')
     .patch(updateEntry);
+
+// DELETE Request
+// Delete a journal entry by entry ID
+router.route('/:id')
+    .delete(deleteEntry);
 
 module.exports = router;

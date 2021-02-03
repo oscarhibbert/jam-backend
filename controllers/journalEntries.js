@@ -60,7 +60,7 @@ exports.createNewEntry = async (req, res) => {
     }
 };
 
-// @desc   Update an existing journal entry by entry ID
+// @desc   Update a journal entry by entry ID
 // @route  PATCH api/v1/entries/id
 // @access Public
 exports.updateEntry = async (req, res) => {
@@ -115,4 +115,40 @@ exports.updateEntry = async (req, res) => {
           return res.status(500).json({ success: false, msg: 'User ID error' });
         res.status(500).send('Server Error');       
     }
+}
+
+// @desc   Delete a journal entry by entry ID
+// @route  DELETE api/v1/entries/id
+// @access Public
+exports.deleteEntry = async (req, res) => {
+  try {
+    // Check if the journal entry exists in the database
+    let check = await Entry.countDocuments({ _id: req.params.id });
+
+    // If the journal entry is found
+    if (check === 1) {
+
+      // Delete the journal entry
+      await Entry.deleteOne({ _id: req.params.id });
+
+      // Response
+      const response = {
+        success: true,
+        msg: `Journal entry deleted with ID ${req.params.id}`
+      };
+
+      console.log(response);
+      res.json(response);
+    }
+
+    // Else throw error
+    else {
+      throw new Error('Journal Entry not found');
+    }
+  } catch (err) {
+      console.error(err.message);
+      if (err.kind === 'ObjectId' || err.message === 'Journal Entry not found')
+        return res.status(500).json({ success: false, msg: 'User ID error' });
+      res.status(500).send('Server Error');
+  }
 }
