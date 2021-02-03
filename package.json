@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server",
-    "server": "nodemon node server"
+    "dev": "nodemon node server"
   },
   "author": "Oscar Hibbert",
   "license": "ISC",

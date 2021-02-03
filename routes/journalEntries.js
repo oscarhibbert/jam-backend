@@ -5,14 +5,15 @@ const express = require('express');
 
 // Import middleware
 const {
-    validateNewEntry
+    validateEntry
 } = require('../middleware/validators');
 
 // Import controllers
 const {
-    createNewEntry,
+    createEntry,
     updateEntry,
-    deleteEntry
+    deleteEntry,
+    getAllEntries
 } = require('../controllers/journalEntries');
 
 const router = express.Router();
@@ -20,7 +21,7 @@ const router = express.Router();
 // POST Request
 // Create new journal entry by user ID
 router.route('/:id')
-    .post(validateNewEntry, createNewEntry);
+    .post(validateEntry, createEntry);
 
 // PUT Request
 // Update a journal entry by entry ID
@@ -31,5 +32,10 @@ router.route('/:id')
 // Delete a journal entry by entry ID
 router.route('/:id')
     .delete(deleteEntry);
+
+// GET Requests
+// Get all journal entries by user ID
+router.route('/:id')
+    .get(getAllEntries);
 
 module.exports = router;

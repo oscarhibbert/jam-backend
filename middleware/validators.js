@@ -4,7 +4,7 @@
 const { check, validationResult } = require('express-validator');
 
 // New journal entry validator
-exports.validateNewEntry = [
+exports.validateEntry = [
     // Checking configuration
     check('text', 'Text is required!').not().isEmpty(),
     check('mood', 'Please select your mood!').not().isEmpty(),

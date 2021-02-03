@@ -7,16 +7,16 @@ const Entry = require('../models/Entry');
 
 
 // Controller methods
-// @desc   Create a new journal entry by user ID
+// @desc   Create a journal entry by user ID
 // @route  POST api/v1/entries/id
 // @access Public
-exports.createNewEntry = async (req, res) => {
+exports.createEntry = async (req, res) => {
 
     try {
         // Check if user ID exists
         const check = await User.countDocuments({ _id: req.params.id });
         if (check !== 1)
-            return res.status(404).json({ success: false, msg: 'User ID error' });
+            return res.status(404).json({ success: false, msg: 'User not found' });
         
         // Else, continue
         // Destructure request body
@@ -111,8 +111,12 @@ exports.updateEntry = async (req, res) => {
         
     } catch (err) {
         console.error(err.message);
-        if (err.kind === 'ObjectId' || err.message === 'Journal Entry not found')
+        if (err.kind === 'ObjectId')
           return res.status(500).json({ success: false, msg: 'User ID error' });
+        if (err.message === 'Journal Entry not found')
+          return res
+            .status(404)
+            .json({ success: false, msg: 'Journal Entry does not exist' });
         res.status(500).send('Server Error');       
     }
 }
@@ -147,8 +151,52 @@ exports.deleteEntry = async (req, res) => {
     }
   } catch (err) {
       console.error(err.message);
-      if (err.kind === 'ObjectId' || err.message === 'Journal Entry not found')
+      if (err.kind === 'ObjectId')
         return res.status(500).json({ success: false, msg: 'User ID error' });
+      if (err.message === 'Journal Entry not found')
+        return res.status(404).json({ success: false, msg: 'Journal Entry does not exist' });
       res.status(500).send('Server Error');
+  }
+}
+
+// @desc   Get all journal entries by user ID
+// @route  GET api/v1/entries/id
+// @access Public
+exports.getAllEntries = async (req, res) => {
+  try {
+
+    // Check if the user ID exists in the database
+    let check = await User.countDocuments({ _id: req.params.id });
+
+    // If the user is found
+    if (check === 1) {
+      // Get all entries in the Entry collection by the user ID
+      // Sort by newest first. +1 would be oldest first
+      const entries = await Entry.find({ user: req.params.id }).sort({ date: -1 });
+
+      // Build response object
+      // Response
+      const response = {
+        success: true,
+        msg: `All journal entries for user with ID ${req.params.id}`,
+        data: entries,
+      };
+
+      console.log(response);
+      res.json(response);
+
+    } else {
+      throw new Error('User not found');
+    }
+    
+  } catch (err) {
+      console.error(err.message);
+      if (err.kind === 'ObjectId')
+        return res.status(500).json({ success: false, msg: 'User ID error' });
+      if (err.message === 'User not found')
+        return res
+          .status(404)
+          .json({ success: false, msg: 'User does not exist' });
+      res.status(500).send('Server Error'); 
   }
 }
