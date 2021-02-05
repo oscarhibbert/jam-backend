@@ -13,8 +13,10 @@ app.use(express.json({ extended: false }));
 
 // Import route files
 const journalEntries = require('./routes/journalEntries');
+const users = require('./routes/users');
 
 // Mount routers
+app.use('/api/v1/users', users);
 app.use('/api/v1/entries', journalEntries);
 
 // // API running message

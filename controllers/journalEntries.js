@@ -56,7 +56,7 @@ exports.createEntry = async (req, res) => {
         console.error(err.message);
         if (err.kind === 'ObjectId')
             return res.status(500).json({ success: false, msg: 'User ID error' });
-        res.status(500).send('Server Error');
+        res.status(500).json({ success: false, msg: 'Server Error' });
     }
 };
 
@@ -117,7 +117,7 @@ exports.updateEntry = async (req, res) => {
           return res
             .status(404)
             .json({ success: false, msg: 'Journal Entry does not exist' });
-        res.status(500).send('Server Error');       
+        res.status(500).json({ success: false, msg: 'Server Error' });    
     }
 }
 
@@ -155,7 +155,7 @@ exports.deleteEntry = async (req, res) => {
         return res.status(500).json({ success: false, msg: 'User ID error' });
       if (err.message === 'Journal Entry not found')
         return res.status(404).json({ success: false, msg: 'Journal Entry does not exist' });
-      res.status(500).send('Server Error');
+      res.status(500).json({ success: false, msg: 'Server Error' });
   }
 }
 
@@ -197,7 +197,7 @@ exports.getAllEntries = async (req, res) => {
         return res
           .status(404)
           .json({ success: false, msg: 'User does not exist' });
-      res.status(500).send('Server Error'); 
+      res.status(500).json({ success: false, msg: 'Server Error' });
   }
 }
 
@@ -238,6 +238,6 @@ exports.getEntry = async (req, res) => {
         return res
           .status(404)
           .json({ success: false, msg: 'Journal Entry does not exist' });
-      res.status(500).send('Server Error');
+      res.status(500).json({ success: false, msg: 'Server Error' });
   }
 }
