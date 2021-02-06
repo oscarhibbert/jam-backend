@@ -12,10 +12,12 @@ connectDB();
 app.use(express.json({ extended: false }));
 
 // Import route files
+const auth = require('./routes/auth');
 const journalEntries = require('./routes/journalEntries');
 const users = require('./routes/users');
 
 // Mount routers
+app.use('/api/v1/auth', auth);
 app.use('/api/v1/users', users);
 app.use('/api/v1/entries', journalEntries);
 

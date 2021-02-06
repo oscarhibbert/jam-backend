@@ -36,3 +36,18 @@ exports.validateUser = [
         next();
     }
 ];
+
+// Login user validator
+exports.validateLogin = [
+    // Checking configuration
+    check('email', 'Please include a valid email!').isEmail(),
+    check('password', 'Password is required!').exists(),
+
+    // Errors middleware function 
+    (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty())
+            return res.status(422).json({ success: false, errors: errors.array() });
+        next();
+    }
+]

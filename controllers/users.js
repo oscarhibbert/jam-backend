@@ -12,7 +12,7 @@ const User = require('../models/User');
 // @desc   Register a new user
 // @route  POST api/v1/users
 // @access Public
-exports.registerUser = async (req, res) => {
+exports.registerUser = async (req, res, next) => {
     try {
         // Destructure req.body
         const {
@@ -26,41 +26,51 @@ exports.registerUser = async (req, res) => {
 
         // If the user doesn't exist
         if (!user) {
-            // Update the user variable, create new instance of a user
-            user = new User({
-                firstName,
-                lastName,
-                email,
-                password
-            });
+          // Update the user variable, create new instance of a user
+          user = new User({
+            firstName,
+            lastName,
+            email,
+            password,
+          });
 
-            // Generate password salt
-            const salt = await bcrypt.genSalt(10);
+          // Generate password salt
+          const salt = await bcrypt.genSalt(10);
 
-            // Encrypt the password using bcryptjs
-            user.password = await bcrypt.hash(password, salt);
+          // Encrypt the password using bcryptjs
+          user.password = await bcrypt.hash(password, salt);
 
-            // Save the user to the database
-            await user.save();
+          // Save the user to the database
+          await user.save();
 
-            // Respond with the josnwebtoken
-            /* user.save() returns a promise allowing us to access the
-            record id using user.id. Mongoose abstracts ._id to .id */
-            const payload = {
-              user: {
-                id: user.id,
-              },
-            };
+          // Response
+          // Build response object
+          const response = {
+            success: true,
+            msg: `New user created successfully`
+          };
 
-            jwt.sign(
-                payload,
-                config.get('jwtSecret'),
-                { expiresIn: 360000 },
-                (err, token) => {
-                    if (err) throw err;
-                        res.json({ token });
-                }
-            );
+          console.log(response);
+          res.json(response);
+
+          // // Respond with the josnwebtoken
+          // /* user.save() returns a promise allowing us to access the
+          // record id using user.id. Mongoose abstracts ._id to .id */
+          // const payload = {
+          //   user: {
+          //     id: user.id,
+          //   },
+          // };
+
+          // jwt.sign(
+          //   payload,
+          //   config.get('jwtSecret'),
+          //   { expiresIn: config.get('jwtDuration') },
+          //   (err, token) => {
+          //     if (err) throw err;
+          //     res.json({ token });
+          //   }
+          // );
         }
         
         // Else respond the user already exists

@@ -23,14 +23,6 @@ const UserSchema = new Schema({
   avatar: {
       type: String
   },
-  journalTags: [
-    {
-      tag: {
-        type: String,
-        unique: true
-      }
-    }
-  ],
   date: {
     type: Date,
     default: Date.now

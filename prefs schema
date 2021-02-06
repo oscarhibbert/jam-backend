@@ -1,0 +1,8 @@
+  journalTags: [
+    {
+      tag: {
+        type: String,
+        unique: true
+      }
+    }
+  ],

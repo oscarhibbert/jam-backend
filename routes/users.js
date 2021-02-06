@@ -20,4 +20,4 @@ const router = express.Router();
 router.route('/')
     .post(validateUser, registerUser);
 
-module.exports = router;    
+module.exports = router;  
