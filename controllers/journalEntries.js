@@ -9,7 +9,7 @@ const Entry = require('../models/Entry');
 // Controller methods
 // @desc   Create a journal entry by user ID
 // @route  POST api/v1/entries/id
-// @access Public
+// @access Private
 exports.createEntry = async (req, res) => {
 
     try {

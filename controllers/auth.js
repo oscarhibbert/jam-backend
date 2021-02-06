@@ -65,8 +65,8 @@ exports.loginUser = async (req, res, next) => {
 
     } catch (err) {
         console.error(err.message);
-        if (err === 'Invalid Credentials') {
-            res.status(400).json({ success: false, msg: 'Invalid Credentials' });
+        if (err.message === 'Invalid Credentials') {
+            return res.status(400).json({ success: false, msg: 'Invalid Credentials' });
         }
         res.status(500).json({ success: false, msg: 'Server Error' });
     }

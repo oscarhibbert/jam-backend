@@ -8,6 +8,8 @@ const {
     validateEntry
 } = require('../middleware/validators');
 
+const { authorise } = require('../middleware/authorise');
+
 // Import controller methods
 const {
     createEntry,
@@ -19,10 +21,11 @@ const {
 
 const router = express.Router();
 
-// POST Request
-// Create new journal entry by user ID
+// @desc   Create a journal entry by user ID
+// @route  POST api/v1/entries/id
+// @access Private
 router.route('/:id')
-    .post(validateEntry, createEntry);
+    .post(authorise, validateEntry, createEntry);
 
 // PUT Request
 // Update a journal entry by entry ID
