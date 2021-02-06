@@ -15,6 +15,7 @@ exports.authorise = (req, res, next) => {
 
     // If there is a token
     try {
+        
         // Try to decode it
         const decoded = jwt.verify(token, config.get('jwtSecret'));
 
@@ -23,6 +24,7 @@ exports.authorise = (req, res, next) => {
         req.user = decoded.user;
 
         next();
+
     } catch (err) {
         res.status(401).json({ success: false, msg: 'Token is not valid, authorisation denied' });
     }

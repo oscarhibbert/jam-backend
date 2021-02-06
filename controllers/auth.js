@@ -38,7 +38,7 @@ exports.loginUser = async (req, res, next) => {
             // Construct JWT payload
             const payload = {
                 user: {
-                    id: user.id,
+                    id: user.id
                 },
             };
 

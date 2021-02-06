@@ -21,29 +21,34 @@ const {
 
 const router = express.Router();
 
-// @desc   Create a journal entry by user ID
-// @route  POST api/v1/entries/id
+// @desc   Create a journal entry
+// @route  POST api/v1/entries
 // @access Private
-router.route('/:id')
+router.route('/')
     .post(authorise, validateEntry, createEntry);
 
-// PUT Request
-// Update a journal entry by entry ID
+// @desc   Update a journal entry by entry ID
+// @route  PATCH api/v1/entries/id
+// @access Private
 router.route('/:id')
-    .patch(updateEntry);
+    .patch(authorise, updateEntry);
 
-// DELETE Request
-// Delete a journal entry by entry ID
+// @desc   Delete a journal entry by entry ID
+// @route  DELETE api/v1/entries/id
+// @access Private
 router.route('/:id')
-    .delete(deleteEntry);
+    .delete(authorise, deleteEntry);
 
-// GET Requests
-// Get all journal entries by user ID
+// @desc   Get all journal entries
+// @route  GET api/v1/entries
+// @access Private
+router.route('/')
+    .get(authorise, getAllEntries);
+
+// @desc   Get single journal entry by entry ID
+// @route  GET api/v1/entries/id
+// @access Private
 router.route('/:id')
-    .get(getAllEntries);
-
-// Get journal entry by entry ID
-router.route('/entry/:id')
-    .get(getEntry);
+    .get(authorise, getEntry);
 
 module.exports = router;

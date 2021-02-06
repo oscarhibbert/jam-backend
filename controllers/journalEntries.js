@@ -7,16 +7,17 @@ const Entry = require('../models/Entry');
 
 
 // Controller methods
-// @desc   Create a journal entry by user ID
-// @route  POST api/v1/entries/id
+// @desc   Create a journal entry
+// @route  POST api/v1/entries
 // @access Private
 exports.createEntry = async (req, res) => {
 
     try {
         // Check if user ID exists
-        const check = await User.countDocuments({ _id: req.params.id });
+        const check = await User.countDocuments({ _id: req.user.id });
         if (check !== 1)
-            return res.status(404).json({ success: false, msg: 'User not found' });
+            // Return a 401 authorisation denied
+            return res.status(401).json({ success: false, msg: 'Authorisation denied' });
         
         // Else, continue
         // Destructure request body
@@ -30,7 +31,7 @@ exports.createEntry = async (req, res) => {
         const newEntry = {};
 
         // Add objects to newEntry Object
-        newEntry.user = req.params.id;
+        newEntry.user = req.user.id;
         newEntry.text = text;
         newEntry.mood = mood;
         
@@ -41,12 +42,16 @@ exports.createEntry = async (req, res) => {
         let entry = new Entry(newEntry);
         await entry.save();
 
-        // Response
+        // Response      
         // Build response object
         const response = {
-            success: true,
-            msg: `New journal entry created for user ${req.params.id}`,
-            data: newEntry
+          success: true,
+          msg: `New journal entry created`,
+          data: {
+            text: newEntry.text,
+            mood: newEntry.mood,
+            tags: newEntry.tags,
+          }
         };
 
         console.log(response);
@@ -62,12 +67,19 @@ exports.createEntry = async (req, res) => {
 
 // @desc   Update a journal entry by entry ID
 // @route  PATCH api/v1/entries/id
-// @access Public
+// @access Private
 exports.updateEntry = async (req, res) => {
     try {
 
-        // Check if the journal entry exists in the database
-        let check = await Entry.countDocuments({ _id: req.params.id });
+      // Check if the journal entry exists in the database
+      // Check is for req.params.id AND req.user.id
+      let check = await Entry.countDocuments(
+        {
+          $and: [
+            { _id: req.params.id },
+            { user: req.user.id }
+          ]
+        });
 
         // If the journal entry is found
         if (check === 1) {
@@ -88,7 +100,11 @@ exports.updateEntry = async (req, res) => {
 
           // Update at the database
           await Entry.findOneAndUpdate(
-            { _id: req.params.id },
+            {
+              $and: [
+                { _id: req.params.id },
+                { user: req.user.id }],
+            },
             { $set: updatedEntry },
             { new: true }
           );
@@ -97,43 +113,58 @@ exports.updateEntry = async (req, res) => {
           const response = {
             success: true,
             msg: `Journal entry updated with ID ${req.params.id}`,
-            data: updatedEntry,
+            data: {
+              text: updatedEntry.text,
+              mood: updatedEntry.mood,
+              tags: updatedEntry.tags
+            }
           };
 
           console.log(response);
           res.json(response);
         }
         
-        // Else throw error
+        // Else return a 401 authorisation denied
         else {
-          throw new Error('Journal Entry not found');
+          return res
+            .status(401)
+            .json({ success: false, msg: 'Authorisation denied' });
         };
         
     } catch (err) {
         console.error(err.message);
         if (err.kind === 'ObjectId')
-          return res.status(500).json({ success: false, msg: 'User ID error' });
-        if (err.message === 'Journal Entry not found')
-          return res
-            .status(404)
-            .json({ success: false, msg: 'Journal Entry does not exist' });
+          return res.status(500).json({ success: false, msg: 'Journal entry ID error' });
         res.status(500).json({ success: false, msg: 'Server Error' });    
     }
 }
 
 // @desc   Delete a journal entry by entry ID
 // @route  DELETE api/v1/entries/id
-// @access Public
+// @access Private
 exports.deleteEntry = async (req, res) => {
   try {
     // Check if the journal entry exists in the database
-    let check = await Entry.countDocuments({ _id: req.params.id });
+    // Check is for req.params.id AND req.user.id
+    let check = await Entry.countDocuments(
+      {
+        $and: [
+          { _id: req.params.id },
+          { user: req.user.id }
+        ],
+    });
 
     // If the journal entry is found
     if (check === 1) {
 
       // Delete the journal entry
-      await Entry.deleteOne({ _id: req.params.id });
+      await Entry.deleteOne(
+        {
+          $and: [
+            { _id: req.params.id },
+            { user: req.user.id }
+          ],
+      });
 
       // Response
       const response = {
@@ -145,40 +176,41 @@ exports.deleteEntry = async (req, res) => {
       res.json(response);
     }
 
-    // Else throw error
+    // Else return a 401 authorisation denied
     else {
-      throw new Error('Journal Entry not found');
+      return res
+        .status(401)
+        .json({ success: false, msg: 'Authorisation denied' });
     }
   } catch (err) {
       console.error(err.message);
       if (err.kind === 'ObjectId')
-        return res.status(500).json({ success: false, msg: 'User ID error' });
-      if (err.message === 'Journal Entry not found')
-        return res.status(404).json({ success: false, msg: 'Journal Entry does not exist' });
+        return res.status(500).json({ success: false, msg: 'Journal ID error' });
       res.status(500).json({ success: false, msg: 'Server Error' });
   }
 }
 
 // @desc   Get all journal entries by user ID
-// @route  GET api/v1/entries/id
-// @access Public
+// @route  GET api/v1/entries
+// @access Private
 exports.getAllEntries = async (req, res) => {
   try {
 
-    // Check if the user ID exists in the database
-    let check = await User.countDocuments({ _id: req.params.id });
+    // Check if the journal entry exists in the database
+    // Check is for req.user.id
+    let check = await User.countDocuments({ _id: req.user.id });
 
     // If the user is found
     if (check === 1) {
-      // Get all entries in the Entry collection by the user ID
+      // Get all entries in the Entry collection from req.user.id
       // Sort by newest first. +1 would be oldest first
-      const entries = await Entry.find({ user: req.params.id }).sort({ date: -1 });
+      const entries = await Entry.find({ user: req.user.id }).sort({ date: -1 });
 
       // Build response object
       // Response
       const response = {
         success: true,
-        msg: `All journal entries for user with ID ${req.params.id}`,
+        msg: `All journal entries`,
         data: entries,
       };
 
@@ -186,39 +218,55 @@ exports.getAllEntries = async (req, res) => {
       res.json(response);
 
     } else {
-      throw new Error('User not found');
+      // Return a 401 authorisation denied
+      return res
+        .status(401)
+        .json({ success: false, msg: 'Authorisation denied' });
     }
     
   } catch (err) {
       console.error(err.message);
       if (err.kind === 'ObjectId')
         return res.status(500).json({ success: false, msg: 'User ID error' });
-      if (err.message === 'User not found')
-        return res
-          .status(404)
-          .json({ success: false, msg: 'User does not exist' });
       res.status(500).json({ success: false, msg: 'Server Error' });
   }
 }
 
 // @desc   Get single journal entry by entry ID
 // @route  GET api/v1/entries/entry/id
-// @access Public
+// @access Private
 exports.getEntry = async (req, res) => {
   try {
     // Check if the journal entry exists in the database
-    let check = await Entry.countDocuments({ _id: req.params.id });
+    // Check is for req.params.id AND req.user.id
+    let check = await Entry.countDocuments(
+      {
+        $and: [
+          { _id: req.params.id },
+          { user: req.user.id }
+        ],
+    });
 
     // If the journal entry is found
     if (check === 1) {
       // Get the journal entry
-      const entry = await Entry.findById(req.params.id);
+      const entry = await Entry.findOne(
+        {
+          $and: [
+            { _id: req.params.id },
+            { user: req.user.id }
+          ],
+      });
 
       // Response
       const response = {
         success: true,
         msg: `Journal entry with ID ${req.params.id}`,
-        data: entry
+        data: {
+          text: entry.text,
+          mood: entry.mood,
+          tags: entry.tags
+        }
       };
 
       console.log(response);
@@ -227,17 +275,15 @@ exports.getEntry = async (req, res) => {
 
     // Else throw error
     else {
-      throw new Error('Journal Entry not found');
+      // Return a 401 authorisation denied
+      return res
+        .status(401)
+        .json({ success: false, msg: 'Authorisation denied' });
     }
-
   } catch (err) {
       console.error(err.message);
       if (err.kind === 'ObjectId')
-        return res.status(500).json({ success: false, msg: 'Entry ID error' });
-      if (err.message === 'Journal Entry not found')
-        return res
-          .status(404)
-          .json({ success: false, msg: 'Journal Entry does not exist' });
+        return res.status(500).json({ success: false, msg: 'Journal entry ID error' });
       res.status(500).json({ success: false, msg: 'Server Error' });
   }
 }
