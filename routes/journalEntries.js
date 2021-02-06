@@ -4,11 +4,12 @@
 const express = require('express');
 
 // Import middleware
-const {
-    validateEntry
-} = require('../middleware/validators');
-
 const { authorise } = require('../middleware/authorise');
+
+const {
+    validateEntry,
+    validateUpdateEntry
+} = require('../middleware/validators');
 
 // Import controller methods
 const {
@@ -31,7 +32,7 @@ router.route('/')
 // @route  PATCH api/v1/entries/id
 // @access Private
 router.route('/:id')
-    .patch(authorise, updateEntry);
+    .patch(authorise, validateUpdateEntry, updateEntry);
 
 // @desc   Delete a journal entry by entry ID
 // @route  DELETE api/v1/entries/id

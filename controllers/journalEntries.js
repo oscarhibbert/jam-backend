@@ -92,10 +92,8 @@ exports.updateEntry = async (req, res) => {
           // Add objects to newEntry Object
           if (text) updatedEntry.text = text;
           if (mood) updatedEntry.mood = mood;
-          if (!tags) updatedEntry.tags = [];
-          else {
-            updatedEntry.tags = tags;
-          }
+          if (tags) updatedEntry.tags;
+
           updatedEntry.dateUpdated = Date.now();
 
           // Update at the database
