@@ -1,16 +1,8 @@
-// This controller contains all user methods
-
-// Imports
-const config = require('config');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-
-// Model imports
-const User = require('../models/User');
+// This controller contains all user controller methods
 
 // Service imports
 const UserService = require('../services/UserService');
-const userService = new UserService();
+const UserServiceInstance = new UserService();
 
 // Controller methods
 // @desc   Register a new user
@@ -20,7 +12,7 @@ exports.registerUser = async (req, res, next) => {
     try {
         const userInfo = req.body;
 
-        let response = await userService.RegisterUser(userInfo);
+        let response = await UserServiceInstance.RegisterUser(userInfo);
         console.log(response);
         res.json(response);
 

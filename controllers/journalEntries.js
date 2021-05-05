@@ -1,9 +1,8 @@
-// This controller contains all journal entry methods
+// This controller contains all journal entry controller methods
 
-
-// Model imports
-const User = require('../models/User');
-const Entry = require('../models/Entry');
+// Service imports
+const JournalService = require('../services/JournalService');
+const JournalServiceInstance = new JournalService();
 
 
 // Controller methods
@@ -12,57 +11,30 @@ const Entry = require('../models/Entry');
 // @access Private
 exports.createEntry = async (req, res) => {
 
-    try {
-        // Check if user ID exists
-        const check = await User.countDocuments({ _id: req.user.id });
-        if (check !== 1)
-            // Return a 401 authorisation denied
-            return res.status(401).json({ success: false, msg: 'Authorisation denied' });
-        
-        // Else, continue
-        // Destructure request body
-        const {
-            text,
-            mood,
-            tags
-        } = req.body;
+  try {
+    const userID = req.user.id;
+    const journalEntry = req.body;
 
-        // Create new object newEntry
-        const newEntry = {};
+    let response = await JournalServiceInstance.createEntry(userID, journalEntry);
 
-        // Add objects to newEntry Object
-        newEntry.user = req.user.id;
-        newEntry.text = text;
-        newEntry.mood = mood;
-        
-        // Only add tags object if present
-        if (tags) newEntry.tags = tags;
+    console.log(response);
 
-        // Create a new entry in the database
-        let entry = new Entry(newEntry);
-        await entry.save();
-
-        // Response      
-        // Build response object
-        const response = {
-          success: true,
-          msg: `New journal entry created`,
-          data: {
-            text: newEntry.text,
-            mood: newEntry.mood,
-            tags: newEntry.tags,
-          }
-        };
-
-        console.log(response);
-        res.json(response);
-
-    } catch (err) {
-        console.error(err.message);
-        if (err.kind === 'ObjectId')
-            return res.status(500).json({ success: false, msg: 'User ID error' });
-        res.status(500).json({ success: false, msg: 'Server Error' });
+    if (response.authorise === false) {
+      // Return a 401 authorisation denied
+      return res
+        .status(401)
+        .json({ success: false, msg: 'Authorisation denied' });
     }
+
+    // Remove authorise from response as not needed
+    delete response.authorise;
+
+    res.json(response);
+
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ success: false, msg: 'Server Error' });
+  };
 };
 
 // @desc   Update a journal entry by entry ID
