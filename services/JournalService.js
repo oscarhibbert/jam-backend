@@ -35,37 +35,36 @@ module.exports = class JournalService {
 
             // Else, continue
             else {
-                // Destructure journalEntry
-                const {
-                    text,
-                    mood,
-                    tags
-                } = journalEntry;
+              // Destructure journalEntry
+              const { text, mood, tags } = journalEntry;
 
-                // Create newEntry object
-                const newEntry = {};
+              // Create newEntry object
+              const newEntry = {};
 
-                // Add journal details to newEntry object
-                newEntry.user = userID;
-                newEntry.text = text;
-                newEntry.mood = mood;
+              // Add journal details to newEntry object
+              newEntry.user = userID;
+              newEntry.text = text;
+              newEntry.mood = mood;
 
-                // Only add tags object if tags present
-                if (tags) newEntry.tags = tags;
+              // Only add tags object if tags present
+              if (tags) newEntry.tags = tags;
 
-                // Add journal entry to the database
-                let entry = new Entry(newEntry);
-                await entry.save();
+              // Add journal entry to the database
+              let entry = new Entry(newEntry);
+              await entry.save();
 
-                // Set response
-                success = true;
-                authorise = true;
-                msg = 'New journal entry created successfully',
-                    data = {
-                        text: newEntry.text,
-                        mood: newEntry.mood,
-                        tags: newEntry.tags
-                    };
+              // Emit userCreated event
+              journalServiceEvents.emit('journalEntryCreated');
+
+              // Set response
+              success = true;
+              authorise = true;
+              (msg = 'New journal entry created successfully'),
+                (data = {
+                  text: newEntry.text,
+                  mood: newEntry.mood,
+                  tags: newEntry.tags,
+                });
             };
             
             // Build response
