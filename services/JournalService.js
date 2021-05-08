@@ -106,7 +106,7 @@ module.exports = class JournalService {
             let data;
 
             // Check if the journal entry exists in the database
-            // Checks userID, journal ID
+            // Checks against userID, journalID
             let check = await Entry.countDocuments(
                 {
                     $and: [
@@ -185,4 +185,75 @@ module.exports = class JournalService {
         };
     };
 
+    /**
+     * @desc                         Delete a journal entry method.
+     * @param {string} userID        String containing user ID.
+     * @param {string} journalID     String containing journal ID.
+     * @return                       Object containing response. If authorisation fails includes authorise: false.
+     */
+    async deleteEntry(journalID, userID) {
+        try {
+            // Create response obj
+            let response;
+            let authorise;
+            let success;
+            let msg;
+
+            // Check if the journal entry exists in the database
+            // Checks against userID, journalID
+            let check = await Entry.countDocuments(
+                {
+                    $and: [
+                        { _id: journalID },
+                        { user: userID }
+                    ]
+                }
+            );
+
+            // If journal entry is not found
+            if (check !== 1) {
+                success = false;
+                authorise = false;
+                msg = 'Journal entry not found'
+            }
+
+            // Else, continue
+            else {
+                // Delete journal entry from the database
+                await Entry.deleteOne(
+                    {
+                        $and: [
+                            { _id: journalID },
+                            { user: userID }
+                        ]
+                    }
+                );
+
+                // Emit journalDeleted event
+                journalServiceEvents.emit('journalEntryDeleted');
+
+                // Set response
+                success = true;
+                authorise = true;
+                msg = `Journal entry successfully deleted with ID ${journalID}`;
+            };
+
+            // Build response
+            response = {
+                success: success,
+                authorise: authorise,
+                msg: msg
+            };
+
+            // Return response object
+            return response;
+            
+        } catch (err) {
+            console.error(err.message);
+            return {
+                success: false,
+                msg: 'Server Error'
+            };
+        };
+    };
 };
