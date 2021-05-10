@@ -256,4 +256,63 @@ module.exports = class JournalService {
             };
         };
     };
+
+    /**
+     * @desc                         Get all journal entries method.
+     * @param {string} userID        String containing user ID.
+     * @return                       Object containing response. If authorisation fails includes authorise: false.
+     */
+    async getAllEntries(userID) {
+        try {
+            // Create response obj
+            let response;
+            let authorise;
+            let success;
+            let msg;
+            let data;
+
+            // Check if the user exists
+            let check = await User.countDocuments({ _id: userID });
+
+            // If the user is not found
+            if (check !== 1) {
+                success = false;
+                authorise = false;
+                msg = 'User not found';
+            }
+
+            // Else, continue
+            else {
+                // Get all entries in the Entry collection against userID
+                // Sort by newest first. +1 instead of -1 would be oldest first
+                const entries = await Entry
+                    .find({ user: userID })
+                    .sort({ date: -1, });
+                
+                // Set response
+                success = true;
+                authorise = true;
+                msg = 'All journal entries for requested user';
+                data = entries;
+            };
+
+            // Build response
+            response = {
+                success: success,
+                authorise: authorise,
+                msg: msg,
+                data: data
+            };
+
+            // Return response object
+            return response;
+
+        } catch (err) {
+            console.error(err.message);
+            return {
+                success: false,
+                msg: 'Server Error'
+            };
+        };
+    };
 };

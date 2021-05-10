@@ -65,6 +65,10 @@ exports.updateEntry = async (req, res) => {
     res.json(response);
   } catch (err) {
       console.error(err.message);
+      // if (err.kind === 'ObjectId')
+      //   return res
+      //     .status(500)
+      //     .json({ success: false, msg: 'Journal ID error' });
       res.status(500).json({ success: false, msg: 'Server Error' });
   };
 };
@@ -104,42 +108,29 @@ exports.deleteEntry = async (req, res) => {
 // @access Private
 exports.getAllEntries = async (req, res) => {
   try {
+    const userID = req.user.id;
+    
+    let response = await JournalServiceInstance.getAllEntries(userID);
 
-    // Check if the journal entry exists in the database
-    // Check is for req.user.id
-    let check = await User.countDocuments({ _id: req.user.id });
+    console.log(response);
 
-    // If the user is found
-    if (check === 1) {
-      // Get all entries in the Entry collection from req.user.id
-      // Sort by newest first. +1 would be oldest first
-      const entries = await Entry.find({ user: req.user.id }).sort({ date: -1 });
-
-      // Build response object
-      // Response
-      const response = {
-        success: true,
-        msg: `All journal entries`,
-        data: entries,
-      };
-
-      console.log(response);
-      res.json(response);
-
-    } else {
-      // Return a 401 authorisation denied
+    if (response.authorise === false) {
+      // Return 401 authorisation denied
       return res
         .status(401)
         .json({ success: false, msg: 'Authorisation denied' });
     }
-    
+
+    // Remove authorise from response as not needed
+    delete response.authorise;
+
+    res.json(response);
+
   } catch (err) {
-      console.error(err.message);
-      if (err.kind === 'ObjectId')
-        return res.status(500).json({ success: false, msg: 'User ID error' });
-      res.status(500).json({ success: false, msg: 'Server Error' });
-  }
-}
+    console.error(err.message);
+    res.status(500).json({ success: false, msg: 'Server Error' });
+  };
+};
 
 // @desc   Get single journal entry by entry ID
 // @route  GET api/v1/entries/entry/id
