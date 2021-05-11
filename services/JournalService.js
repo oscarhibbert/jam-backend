@@ -96,7 +96,7 @@ module.exports = class JournalService {
      * @param {Object} journalEntry  Object containing the journal entry.
      * @return                       Object containing response. If authorisation fails includes authorise: false.
      */
-    async updateEntry(journalID, userID, journalEntry) {
+    async updateEntry(userID, journalID, journalEntry) {
         try {
             // Create response obj
             let response;
@@ -191,7 +191,7 @@ module.exports = class JournalService {
      * @param {string} journalID     String containing journal ID.
      * @return                       Object containing response. If authorisation fails includes authorise: false.
      */
-    async deleteEntry(journalID, userID) {
+    async deleteEntry(userID, journalID) {
         try {
             // Create response obj
             let response;

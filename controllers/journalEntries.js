@@ -48,7 +48,7 @@ exports.updateEntry = async (req, res) => {
     const journalEntry = req.body;
 
     let response = await JournalServiceInstance.updateEntry(
-      journalID, userID, journalEntry);
+      userID, journalID, journalEntry);
 
     console.log(response);
 
@@ -81,7 +81,7 @@ exports.deleteEntry = async (req, res) => {
     const userID = req.user.id;
     const journalID = req.params.id;
 
-    let response = await JournalServiceInstance.deleteEntry(journalID, userID);
+    let response = await JournalServiceInstance.deleteEntry(userID, journalID);
 
     console.log(response);
 
