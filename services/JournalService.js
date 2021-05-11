@@ -278,7 +278,7 @@ module.exports = class JournalService {
             if (check !== 1) {
                 success = false;
                 authorise = false;
-                msg = 'User not found';
+                msg = 'Journal entries not found';
             }
 
             // Else, continue
@@ -289,11 +289,89 @@ module.exports = class JournalService {
                     .find({ user: userID })
                     .sort({ date: -1, });
                 
+                // Emit journalEntriesFetched event
+                journalServiceEvents.emit('journalEntriesFetched');
+                
                 // Set response
                 success = true;
                 authorise = true;
                 msg = 'All journal entries for requested user';
                 data = entries;
+            };
+
+            // Build response
+            response = {
+                success: success,
+                authorise: authorise,
+                msg: msg,
+                data: data
+            };
+
+            // Return response object
+            return response;
+
+        } catch (err) {
+            console.error(err.message);
+            return {
+                success: false,
+                msg: 'Server Error'
+            };
+        };
+    };
+
+    /**
+     * @desc                         Get single journal entry method.
+     * @param {string} userID        String containing user ID.
+     * @param {string} journalID     String containing journal ID.
+     * @return                       Object containing response. If authorisation fails includes authorise: false.
+     */
+    async getEntry(userID, journalID) {
+        try {
+            // Create response obj
+            let response;
+            let authorise;
+            let success;
+            let msg;
+            let data;
+
+            // Check if the journal entry exists in the database
+            // Check against userID, journalID
+            let check = await Entry.countDocuments(
+                {
+                    $and: [
+                        { _id: journalID },
+                        { user: userID }
+                    ]
+                }
+            );
+
+            // If journal entry not found
+            if (check !== 1) {
+                success = false;
+                authorise = false;
+                msg = 'Journal entry not found'
+            }
+
+            // Else, continue
+            else {
+                // Get the journal entry
+                const entry = await Entry.findOne(
+                    {
+                        $and: [
+                            { _id: journalID },
+                            { user: userID }
+                        ]
+                    }
+                );
+
+                // Emit journalEntryFetched event
+                journalServiceEvents.emit('journalEntryFetched');
+
+                // Set response
+                success = true;
+                authorise = true;
+                msg = 'Journal entry found'
+                data = entry;
             };
 
             // Build response
