@@ -30,7 +30,7 @@ module.exports = class AuthService {
             // Look for the user by email address
             let user = await User.findOne({ email: userEmail });
 
-            // If the user isn't found set invalid credentials
+            // If the user isn't found set msg - invalid credentials
             if (!user) {
               success = false;
               msg = 'Invalid Credentials';

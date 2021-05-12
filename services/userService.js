@@ -13,19 +13,19 @@ const User = require('../models/User');
  */
 module.exports = class UserService {
   /**
-   * @desc                         Attempt to register user with user info.
-   * @param  {Object}    userInfo  Object containing user info.
-   * @return                       Object with success boolean and message.
+   * @desc                            Attempt to register user with user info.
+   * @param  {string}    firstName    String containing user first name.
+   * @param  {string}    lastName     String containing user last name.
+   * @param  {string}    email        String containing user email address.
+   * @param  {string}    password     String containing user password.
+   * @return                          Object with success boolean and message.
    */
-  async RegisterUser(userInfo) {
+  async RegisterUser(firstName, lastName, email, password) {
     try {
       // Create response obj
       let response;
       let success;
       let msg;
-
-      // Destructure obj body
-      const { firstName, lastName, email, password } = userInfo;
 
       // Check if the user already exists
       let userExists = await this.CheckUser(email);
@@ -58,8 +58,8 @@ module.exports = class UserService {
 
       // Else set response new user failed
       else {
-        (success = false);
-        (msg = 'Create new user failed - user already exists');
+        success = false;
+        msg = 'Create new user failed - user already exists';
       }
 
       // Build response object

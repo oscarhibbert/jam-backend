@@ -10,9 +10,12 @@ const UserServiceInstance = new UserService();
 // @access Public
 exports.registerUser = async (req, res, next) => {
     try {
-        const userInfo = req.body;
+        // Destructure req.body
+        const { firstName, lastName, email, password } = req.body;
 
-        let response = await UserServiceInstance.RegisterUser(userInfo);
+        let response = await UserServiceInstance.RegisterUser(
+            firstName, lastName, email, password
+        );
         console.log(response);
         res.json(response);
 
