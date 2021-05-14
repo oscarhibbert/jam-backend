@@ -13,10 +13,12 @@ module.exports = class JournalService {
     /**
      * @desc                         Create a journal entry method.
      * @param {string} userID        String containing user ID.
-     * @param {Object} journalEntry  Object containing the journal entry.
+     * @param {string} entryText     String containing journal entry text.
+     * @param {string} entryMood     String containing journal entry mood.
+     * @param {Object[]} entryTags   Array containing journal entry tags.
      * @return                       Object containing response. If authorisation fails includes authorise: false.
      */
-    async createEntry(userID, journalEntry) {
+    async createEntry(userID, entryText, entryMood, entryTags) {
         try {
             // Create response obj
             let response;
@@ -37,19 +39,17 @@ module.exports = class JournalService {
 
             // Else, continue
             else {
-              // Destructure journalEntry
-              const { text, mood, tags } = journalEntry;
 
               // Create newEntry object
               const newEntry = {};
 
               // Add journal details to newEntry object
               newEntry.user = userID;
-              newEntry.text = text;
-              newEntry.mood = mood;
+              newEntry.text = entryText;
+              newEntry.mood = entryMood;
 
               // Only add tags object if tags present
-              if (tags) newEntry.tags = tags;
+              if (entryTags) newEntry.tags = entryTags;
 
               // Add journal entry to the database
               let entry = new Entry(newEntry);
@@ -65,7 +65,7 @@ module.exports = class JournalService {
                 (data = {
                   text: newEntry.text,
                   mood: newEntry.mood,
-                  tags: newEntry.tags,
+                  tags: newEntry.tags
                 });
             };
             
@@ -93,10 +93,12 @@ module.exports = class JournalService {
      * @desc                         Update a journal entry method.
      * @param {string} userID        String containing user ID.
      * @param {string} journalID     String containing journal ID.
-     * @param {Object} journalEntry  Object containing the journal entry.
+     * @param {string} entryText     String containing journal entry text.
+     * @param {string} entryMood     String containing journal entry mood.
+     * @param {Object[]} entryTags   Array containing journal entry tags.
      * @return                       Object containing response. If authorisation fails includes authorise: false.
      */
-    async updateEntry(userID, journalID, journalEntry) {
+    async updateEntry(userID, journalID, entryText, entryMood, entryTags) {
         try {
             // Create response obj
             let response;
@@ -125,16 +127,14 @@ module.exports = class JournalService {
             
             // Else, continue
             else {
-                // Destructure journalEntry
-                const { text, mood, tags } = journalEntry;
 
                 // Create new object updatedEntry
                 const updatedEntry = {};
 
                 // Add objects to newEntry object if found
-                if (text) updatedEntry.text = text;
-                if (mood) updatedEntry.mood = mood;
-                if (tags) updatedEntry.tags = tags;
+                if (entryText) updatedEntry.text = entryText;
+                if (entryMood) updatedEntry.mood = entryMood;
+                if (entryTags) updatedEntry.tags = entryTags;
 
                 // Populate the dateUpdated field of the journal entry
                 updatedEntry.dateUpdated = Date.now();

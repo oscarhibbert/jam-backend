@@ -13,10 +13,10 @@ exports.createEntry = async (req, res) => {
 
   try {
     const userID = req.user.id;
-    const journalEntry = req.body;
+    const {text, mood, tags} = req.body;
 
     let response = await JournalServiceInstance.createEntry(
-      userID, journalEntry);
+      userID, text, mood, tags);
 
     console.log(response);
 
@@ -45,10 +45,15 @@ exports.updateEntry = async (req, res) => {
   try {
     const userID = req.user.id;
     const journalID = req.params.id;
-    const journalEntry = req.body;
+    const { text, mood, tags } = req.body;
 
     let response = await JournalServiceInstance.updateEntry(
-      userID, journalID, journalEntry);
+      userID,
+      journalID,
+      text,
+      mood,
+      tags
+    );
 
     console.log(response);
 
@@ -63,6 +68,7 @@ exports.updateEntry = async (req, res) => {
     delete response.authorise;
 
     res.json(response);
+    
   } catch (err) {
       console.error(err.message);
       // if (err.kind === 'ObjectId')
