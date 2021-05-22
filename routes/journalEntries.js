@@ -5,6 +5,7 @@ const express = require('express');
 
 // Import middleware
 const { authorise } = require('../middleware/authorise');
+const { checkJwt } = require('../middleware/checkJwt');
 
 const {
     validateEntry,
@@ -26,7 +27,7 @@ const router = express.Router();
 // @route  POST api/v1/entries
 // @access Private
 router.route('/')
-    .post(authorise, validateEntry, createEntry);
+    .post(checkJwt, validateEntry, createEntry);
 
 // @desc   Update a journal entry by entry ID
 // @route  PATCH api/v1/entries/id

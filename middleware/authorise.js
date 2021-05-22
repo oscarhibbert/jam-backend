@@ -1,6 +1,5 @@
 // This file contains the auth middleware function
 
-// Old Code
 // Imports
 const config = require('config');
 const jwt = require('jsonwebtoken');
