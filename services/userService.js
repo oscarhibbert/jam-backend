@@ -7,7 +7,6 @@ const userServiceEvents = new EventEmitter;
 
 // Model imports
 const User = require('../models/User');
-const UserProfile = require('../models/UserProfile');
 
 /**
  * @description Create an instance of the UserService class.
