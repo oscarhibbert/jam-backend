@@ -4,8 +4,8 @@ const Schema = mongoose.Schema;
 
 const EntrySchema = new Schema({
     user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'user'
+        type: mongoose.Schema.Types.String,
+        ref: 'userProfile'
     },
     text: {
         type: String,

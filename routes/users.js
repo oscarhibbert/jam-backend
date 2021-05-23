@@ -7,11 +7,13 @@ const express = require('express');
 const {
     validateUser
 } = require('../middleware/validators');
+const { authorise } = require('../middleware/authorise');
+const { checkJwt } = require('../middleware/checkJwt');
+
 
 // Import controller methods
-const {
-    registerUser
-} = require('../controllers/users');
+const { registerUser } = require('../controllers/users');
+const { createUserProfile } = require('../controllers/users');
 
 const router = express.Router();
 
@@ -20,4 +22,9 @@ const router = express.Router();
 router.route('/')
     .post(validateUser, registerUser);
 
-module.exports = router;  
+// POST Request
+// Create user profile via profileID from Auth0
+router.route('/profile')
+    .post(checkJwt, createUserProfile);
+
+module.exports = router;

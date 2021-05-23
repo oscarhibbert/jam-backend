@@ -4,19 +4,22 @@
 const JournalService = require('../services/JournalService');
 const JournalServiceInstance = new JournalService();
 
-
 // Controller methods
 // @desc   Create a journal entry
 // @route  POST api/v1/entries
 // @access Private
 exports.createEntry = async (req, res) => {
-
+  console.log(req.user);
   try {
-    const userID = req.user.id;
-    const {text, mood, tags} = req.body;
+    const userID = req.user.sub;
+    const { text, mood, tags } = req.body;
 
     let response = await JournalServiceInstance.createEntry(
-      userID, text, mood, tags);
+      userID,
+      text,
+      mood,
+      tags
+    );
 
     console.log(response);
 
@@ -31,11 +34,10 @@ exports.createEntry = async (req, res) => {
     delete response.authorise;
 
     res.json(response);
-
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ success: false, msg: 'Server Error' });
-  };
+  }
 };
 
 // @desc   Update a journal entry by entry ID
@@ -68,15 +70,14 @@ exports.updateEntry = async (req, res) => {
     delete response.authorise;
 
     res.json(response);
-    
   } catch (err) {
-      console.error(err.message);
-      // if (err.kind === 'ObjectId')
-      //   return res
-      //     .status(500)
-      //     .json({ success: false, msg: 'Journal ID error' });
-      res.status(500).json({ success: false, msg: 'Server Error' });
-  };
+    console.error(err.message);
+    // if (err.kind === 'ObjectId')
+    //   return res
+    //     .status(500)
+    //     .json({ success: false, msg: 'Journal ID error' });
+    res.status(500).json({ success: false, msg: 'Server Error' });
+  }
 };
 
 // @desc   Delete a journal entry by entry ID
@@ -102,11 +103,10 @@ exports.deleteEntry = async (req, res) => {
     delete response.authorise;
 
     res.json(response);
-
   } catch (err) {
-      console.error(err.message);
-      res.status(500).json({ success: false, msg: 'Server Error' });
-  };
+    console.error(err.message);
+    res.status(500).json({ success: false, msg: 'Server Error' });
+  }
 };
 
 // @desc   Get all journal entries by user ID
@@ -115,7 +115,7 @@ exports.deleteEntry = async (req, res) => {
 exports.getAllEntries = async (req, res) => {
   try {
     const userID = req.user.id;
-    
+
     let response = await JournalServiceInstance.getAllEntries(userID);
 
     console.log(response);
@@ -131,11 +131,10 @@ exports.getAllEntries = async (req, res) => {
     delete response.authorise;
 
     res.json(response);
-
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ success: false, msg: 'Server Error' });
-  };
+  }
 };
 
 // @desc   Get single journal entry by entry ID
@@ -161,9 +160,8 @@ exports.getEntry = async (req, res) => {
     delete response.authorise;
 
     res.json(response);
-
   } catch (err) {
-      console.error(err.message);
-      res.status(500).json({ success: false, msg: 'Server Error' });
-  };
+    console.error(err.message);
+    res.status(500).json({ success: false, msg: 'Server Error' });
+  }
 };

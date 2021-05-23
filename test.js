@@ -1,6 +1,6 @@
 // Imports
 const express = require('express');
-const connectDB = require('./config/db');
+const connectDB = require('./loaders/dbLoader.js');
 
 // Init express
 const app = express();
@@ -34,9 +34,19 @@ app.listen(PORT, () => console.log(`Server started on port ${PORT}...`));
 
 
 /* CODE TO TEST */
-console.log('Running test code....................')
-const UserService = require('./services/UserService');
+console.log('Running test code....................');
 
-const userService = new UserService();
+async function createUserProfile() {
+    const UserProfile = require('./models/UserProfile');
 
-userService.CheckUser({ email: 'oscarhibbert1@gmail.com' });
+    const auth0Id = "auth0|60a39c8914b39a006aa330b1";
+
+    let newUserProfile = new UserProfile({
+        auth0Id
+    });
+
+    await newUserProfile.save();
+};
+
+createUserProfile();
+

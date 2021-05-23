@@ -30,4 +30,4 @@ app.use('/api/v1/entries', journalEntries);
 const PORT = process.env.PORT || 5000;
 
 // Listen config
-app.listen(PORT, () => console.log(`Server started on port ${PORT}...`));
+app.listen(PORT, () => console.log(`Acorn backend server started on port ${PORT}...`));

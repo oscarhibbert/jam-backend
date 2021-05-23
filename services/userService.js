@@ -7,6 +7,7 @@ const userServiceEvents = new EventEmitter;
 
 // Model imports
 const User = require('../models/User');
+const UserProfile = require('../models/UserProfile');
 
 /**
  * @description Create an instance of the UserService class.
@@ -80,13 +81,13 @@ module.exports = class UserService {
   }
 
   /**
-   * @desc                    Check whether user exists by email address.
-   * @param  {string} email   String containing user email address.
-   * @return {Object}         Object with success boolean and message.
+   * @desc                      Check whether user exists by userID.
+   * @param  {string} userID    String containing userID.
+   * @return {Object}           Object with success boolean and message.
    */
-  async CheckUser(email) {
+  async CheckUser(auth0Id) {
     // Check if user exists and save to user
-    let user = await User.findOne({ email });
+    let user = await UserProfile.findOne({ auth0Id });
 
     // Create result
     let result;
@@ -95,7 +96,7 @@ module.exports = class UserService {
     // Result logic
     if (!user) {
       result = false;
-      msg = 'New user created successfully';
+      msg = 'User does not exist';
     } else {
       result = true;
       msg = 'User exists';
@@ -109,5 +110,55 @@ module.exports = class UserService {
 
     // Return response object
     return response;
+  }
+
+  async CreateUserProfile(auth0Id) {
+    try {
+      // Create response obj
+      let response;
+      let success;
+      let msg;
+
+      // Check if the user profile already exists
+      let userProfileExists = await this.CheckUser(auth0Id);
+
+      // If the user doesn't exist
+      if (userProfileExists.success === false) {
+        // Create a new instance of the user profile saved to the newUserProfile variable
+        let newUserProfile = new UserProfile({
+          auth0Id
+        });
+
+        // Save the new user profile to the database
+        await newUserProfile.save();
+
+        // Set success
+        (success = true), (msg = 'New user profile created successfully');
+
+        // Emit userCreated event
+        userServiceEvents.emit('userProfileCreated');
+      }
+
+      // Else set response new user failed
+      else {
+        success = false;
+        msg = 'Create new user profile failed - user profile already exists';
+      }
+
+      // Build response object
+      response = {
+        success: success,
+        msg: msg,
+      };
+
+      // Return response obj
+      return response;
+    } catch (err) {
+      console.error(err.message);
+      return {
+        success: false,
+        msg: 'Server Error',
+      };
+    }
   }
 };
