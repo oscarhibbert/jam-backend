@@ -22,9 +22,4 @@ const router = express.Router();
 router.route('/')
     .post(validateUser, registerUser);
 
-// POST Request
-// Create user profile via profileID from Auth0
-router.route('/profile')
-    .post(checkJwt, createUserProfile);
-
 module.exports = router;

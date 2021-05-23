@@ -71,23 +71,3 @@ exports.registerUser = async (req, res, next) => {
         res.status(500).json({ success: false, msg: 'Server Error' });
     };
 };
-
-// @desc   Create user profile via profileID from Auth0
-// @route  POST api/v1/users/profile
-// @access Private
-exports.createUserProfile = async (req, res, next) => {
-    try {
-        console.log(req.body.auth0Id)
-        // Set auth0Id
-        const auth0Id = req.body.auth0Id;
-
-        let response = await UserServiceInstance.CreateUserProfile(auth0Id);
-
-        console.log(response);
-        res.json(response);
-
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).json({ success: false, msg: 'Server Error' });
-    };
-};

@@ -111,54 +111,5 @@ module.exports = class UserService {
     // Return response object
     return response;
   }
-
-  async CreateUserProfile(auth0Id) {
-    try {
-      // Create response obj
-      let response;
-      let success;
-      let msg;
-
-      // Check if the user profile already exists
-      let userProfileExists = await this.CheckUser(auth0Id);
-
-      // If the user doesn't exist
-      if (userProfileExists.success === false) {
-        // Create a new instance of the user profile saved to the newUserProfile variable
-        let newUserProfile = new UserProfile({
-          auth0Id
-        });
-
-        // Save the new user profile to the database
-        await newUserProfile.save();
-
-        // Set success
-        (success = true), (msg = 'New user profile created successfully');
-
-        // Emit userCreated event
-        userServiceEvents.emit('userProfileCreated');
-      }
-
-      // Else set response new user failed
-      else {
-        success = false;
-        msg = 'Create new user profile failed - user profile already exists';
-      }
-
-      // Build response object
-      response = {
-        success: success,
-        msg: msg,
-      };
-
-      // Return response obj
-      return response;
-    } catch (err) {
-      console.error(err.message);
-      return {
-        success: false,
-        msg: 'Server Error',
-      };
-    }
-  }
+  
 };
