@@ -28,7 +28,7 @@ module.exports = class JournalService {
             let data;
 
             // Check if user ID exists
-            const check = await User.countDocuments({ _id: userID });
+            const check = await User.countDocuments({ auth0UserId: userID });
 
             // If user is not found
             if (check !== 1) {
