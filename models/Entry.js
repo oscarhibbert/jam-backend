@@ -5,7 +5,7 @@ const Schema = mongoose.Schema;
 const EntrySchema = new Schema({
     user: {
         type: mongoose.Schema.Types.String,
-        ref: 'userProfile'
+        ref: 'user'
     },
     text: {
         type: String,
