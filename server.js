@@ -23,6 +23,15 @@ app.use('/api/v1/auth', auth);
 app.use('/api/v1/users', users);
 app.use('/api/v1/entries', journalEntries);
 
+// JWT authorization error handling
+app.use((err, req, res, next) => {
+    if (err.name === 'UnauthorizedError') {
+        console.log(err.name + err.message);
+        res.status(401).json({ error: err.name + ': ' + err.message });
+  }
+});
+
+
 // // API running message
 // app.get('/', (req, res) => res.send('Acorn API running'));
 
