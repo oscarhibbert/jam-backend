@@ -26,7 +26,7 @@ app.use('/api/v1/entries', journalEntries);
 // JWT authorization error handling
 app.use((err, req, res, next) => {
     if (err.name === 'UnauthorizedError') {
-        console.log(err.name + err.message);
+        console.log(err.name + " " + err.message);
         res.status(401).json({ error: err.name + ': ' + err.message });
   }
 });
