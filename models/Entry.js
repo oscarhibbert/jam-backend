@@ -7,15 +7,19 @@ const EntrySchema = new Schema({
         type: mongoose.Schema.Types.String,
         ref: 'user'
     },
-    text: {
-        type: String,
-        required: true
-    },
     mood: {
         type: String,
         required: true
     },
-    tags: [],
+    emotion: {
+        type: String,
+        required: true
+    },
+    tags: [],    
+    text: {
+        type: String,
+        required: true
+    },
     dateUpdated: {
         type: Date
     },

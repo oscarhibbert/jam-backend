@@ -12,13 +12,14 @@ exports.createEntry = async (req, res) => {
   console.log(req.user);
   try {
     const userID = req.user.sub;
-    const { text, mood, tags } = req.body;
+    const { mood, emotion, tags, text } = req.body;
 
     let response = await JournalServiceInstance.createEntry(
       userID,
-      text,
       mood,
-      tags
+      emotion,
+      tags,
+      text
     );
 
     console.log(response);

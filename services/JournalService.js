@@ -11,14 +11,15 @@ const journalServiceEvents = new EventEmitter;
  */
 module.exports = class JournalService {
     /**
-     * @desc                         Create a journal entry method.
-     * @param {string} userID        String containing user ID.
-     * @param {string} entryText     String containing journal entry text.
-     * @param {string} entryMood     String containing journal entry mood.
-     * @param {Object[]} entryTags   Array containing journal entry tags.
-     * @return                       Object containing response. If authorisation fails includes authorise: false.
+     * @desc                             Create a journal entry method.
+     * @param {string}    userID         String containing user ID.
+     * @param {string}    entryMood      String containing journal entry mood.
+     * @param {string}    entryEmotion   String containing journal entry text.
+     * @param {[object]}  entryTags      Array containing journal entry tags.
+     * @param {string}    entryText      String containing journal entry text.
+     * @return                           Object containing response. If authorisation fails includes authorise: false.
      */
-    async createEntry(userID, entryText, entryMood, entryTags) {
+    async createEntry(userID, entryMood, entryEmotion, entryTags, entryText) {
         try {
             // Create response obj
             let response;
@@ -45,8 +46,10 @@ module.exports = class JournalService {
 
               // Add journal details to newEntry object
               newEntry.user = userID;
-              newEntry.text = entryText;
               newEntry.mood = entryMood;
+              newEntry.emotion = entryEmotion;
+              newEntry.tags = entryTags;
+              newEntry.text = entryText;
 
               // Only add tags object if tags present
               if (entryTags) newEntry.tags = entryTags;
@@ -63,9 +66,10 @@ module.exports = class JournalService {
               authorise = true;
               (msg = 'New journal entry created successfully'),
                 (data = {
-                  text: newEntry.text,
                   mood: newEntry.mood,
-                  tags: newEntry.tags
+                  emotion: newEntry.emotion,
+                  tags: newEntry.tags,
+                  text: newEntry.text,
                 });
             };
             

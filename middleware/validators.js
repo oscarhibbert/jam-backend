@@ -40,10 +40,12 @@ exports.validateLogin = [
 // Journal entry validator
 exports.validateEntry = [
   // Checking configuration
+  check('mood', 'Please specifcy a mood type!').not().isEmpty(),
+  check('mood', 'Invalid mood type!').isIn(
+    ['Unpleasant, High Energy', 'Unpleasant, Low Energy',
+      'Pleasant, High Energy', 'Pleasant, Low Energy']),
+  check('emotion', 'Please select your emotion!').not().isEmpty(),
   check('text', 'Text is required!').not().isEmpty(),
-  check('mood', 'Please select your mood!')
-    .not()
-    .isEmpty(),
 
   // Errors middleware function
   (req, res, next) => {
