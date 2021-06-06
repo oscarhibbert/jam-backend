@@ -42,8 +42,8 @@ exports.validateEntry = [
   // Checking configuration
   check('mood', 'Please specifcy a mood type!').not().isEmpty(),
   check('mood', 'Invalid mood type!').isIn(
-    ['Unpleasant, High Energy', 'Unpleasant, Low Energy',
-      'Pleasant, High Energy', 'Pleasant, Low Energy']),
+    ['High Energy, Unpleasant', 'Low Energy, Unpleasant',
+    'High Energy, Pleasant', 'Low Energy, Pleasant']),
   check('emotion', 'Please select your emotion!').not().isEmpty(),
   check('text', 'Text is required!').not().isEmpty(),
 
