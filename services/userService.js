@@ -86,7 +86,7 @@ module.exports = class UserService {
    */
   async CheckUser(auth0Id) {
     // Check if user exists and save to user
-    let user = await UserProfile.findOne({ auth0Id });
+    let user = await User.findOne({ auth0Id });
 
     // Create result
     let result;

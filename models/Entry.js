@@ -5,7 +5,8 @@ const Schema = mongoose.Schema;
 const EntrySchema = new Schema({
     user: {
         type: mongoose.Schema.Types.String,
-        ref: 'user'
+        ref: 'user',
+        required: true
     },
     mood: {
         type: String,

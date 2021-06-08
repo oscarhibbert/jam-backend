@@ -6,6 +6,7 @@ const UserSchema = new Schema({
   auth0UserId: {
     type: String,
     required: true,
+    unique: true
   },
   profileSetupComplete: {
     type: Boolean,
