@@ -38,7 +38,7 @@ module.exports = class SettingsService {
             // If settings object for user not found throw error
             if (!settings) {
                 throw new Error('Add tags failed - settings object for user not found.')
-            }
+            };
 
             // Else, continue
             // Set existing tags
@@ -120,7 +120,7 @@ module.exports = class SettingsService {
 
             // If settings object for user not found throw error
             if (!settings) {
-                throw new Error('Settings object for user not found.')
+                throw new Error('Edit tags failed - settings object for user not found.')
             }
 
             // Set existing tags
@@ -213,10 +213,86 @@ module.exports = class SettingsService {
             return { success: false };
         }
 };
-    
-    async deleteTags() {
 
-    }
+/**
+   * @desc                                  Attempt to delete tags.
+   * @param  {string}              userId   String containing the UserId.
+   * @param  {[{_id:"123456"}]}    tags     Array of tag objects to be deleted. Each object must include _id.
+   * @return                                Object with success boolean.
+   */
+    async deleteTags(userId, tags) {
+        try {
+            // Check userId parameter exists
+            if (!userId) {
+                throw new Error('Delete tags failed - userId parameter empty. Must be supplied.');
+            };
+
+            // Check tags parameter exists
+            if (!tags) {
+                throw new Error('Delete tags failed - tags parameter empty. Must be supplied.');
+            };
+
+            // Set idsForDeletion array
+            const idsForDeletion = [];
+
+            // Check all tags supplied include the key _id, add _id to array
+            for (tag of tags) {
+                // Check _id key for tag exists
+                if (!tag._id) {
+                    throw new Error(`Delete tags failed - a tag object is missing required key '_id'.`);
+                };
+
+                // Else
+
+                // Add _id to idsForDeletion array
+                idsForDeletion.push(tag._id.toString());
+
+                continue;
+            };
+
+            // Check the settings object exists for this user
+            const settings = await Setting.findOne({ user: userId });
+
+            // If settings object for user not found throw error
+            if (!settings) {
+                throw new Error('Delete tags failed - settings object for user not found.');
+            };
+
+            // Get tags from settings
+            const getTags = settings.tags;
+
+            // Set existingTags array
+            const existingTags = [];
+
+            // Have to create this array b/c _id has to be converted to a string
+            for (tag of getTags) {
+                existingTags.push(tag._id.toString());
+            };
+
+            // If ID in parameter does not exist, throw error
+            for (id of idsForDeletion) {
+                // If ID is not included in existingTags, throw error
+                if (!existingTags.includes(id)) {
+                    throw new Error(`Delete tags failed - tag with ID '${id}' does not exist.`);
+                };
+
+                // Else, continue
+                continue;
+            };
+
+            // Delete tag objects from the user's tag array in the settings object
+            await Setting.updateOne(
+                { user: userId },
+                { $pull: {tags: {_id: idsForDeletion}} }
+            );
+
+            return { success: true };
+
+        } catch (err) {
+            console.error(err.message);
+            return { success: false };
+        };
+    };
     
     async setReflectionAlertTime() {
 
