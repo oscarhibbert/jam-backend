@@ -11,7 +11,7 @@ const SettingSchema = new Schema({
     },
     tags: [
         {
-            tag: {
+            name: {
                 type: String
             },
             type: {
