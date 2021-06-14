@@ -27,8 +27,14 @@ const SettingSchema = new Schema({
     },
     dailyReflectionAlertTime: {
         type: Number,
+        default: 21,
         required: true
-    }
+    },
+    settingsSetupComplete: {
+    type: Boolean,
+    default: false,
+    required: true,
+  }
 });
 
 module.exports = Setting = mongoose.model('setting', SettingSchema);

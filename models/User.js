@@ -8,11 +8,6 @@ const UserSchema = new Schema({
     required: true,
     unique: true
   },
-  profileSetupComplete: {
-    type: Boolean,
-    default: false,
-    required: true,
-  },
   dateCreated: {
     type: String,
     default: Date.now
