@@ -122,7 +122,7 @@ exports.validateEditTag = [
 ];
 
 /**
- * @desc     Edit tags validator
+ * @desc     Delete tags validator
  */
 exports.validateDeleteTags = [
   // Checking configuration
@@ -132,6 +132,27 @@ exports.validateDeleteTags = [
     .isEmpty(),
   check('tags', "'tags' value is not an array!")
     .isArray(),
+
+  // Errors middleware function
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+      return res.status(422).json({ success: false, errors: errors.array() });
+    next();
+  }
+];
+
+/**
+ * @desc     Edit tags validator
+ */
+exports.validateEditSettingsSetupStatus = [
+  // Checking configuration
+  check('status',
+    "Key 'status' and value is missing!")
+    .not()
+    .isEmpty(),
+  check('status', "Key 'status' value is not a boolean!")
+    .isBoolean(),
 
   // Errors middleware function
   (req, res, next) => {

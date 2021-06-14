@@ -330,6 +330,87 @@ module.exports = class SettingsService {
             throw err;
         };
     };
+
+    /**
+       * @desc                                  Attempt to check the settings setup status for the specified user.
+       * @param      {string}        userId     String containing the UserId.
+       * @return                                Object with success boolean and key called data with key status and boolean value.
+       */
+    async checkSettingsSetupStatus(userId) {
+        try {
+            // Check userId parameter exists
+            if (!userId) {
+                throw new Error('Check settings setup status - userId parameter empty. Must be supplied.');
+            };
+
+            // Check the settings object exists for this user
+            const settings = await Setting.findOne(
+                { user: userId }
+            );
+
+            // If settings object for user not found throw error
+            if (!settings) {
+                throw new Error('Check settings setup status - settings object for user not found.');
+            };
+
+            // Get status
+            const status = settings.settingsSetupComplete;
+
+            return {
+                success: true,
+                data: {
+                    status: status
+                }
+            };
+
+        } catch (err) {
+            console.error(err.message);
+            throw err;
+        };
+    };
+
+        /**
+       * @desc                                  Attempt to change the settings setup status for the specified user.
+       * @param      {string}        userId     String containing the UserId.
+       * @param      {boolean}       status     Boolean true or false.
+       * @return                                Object with success boolean.
+       */
+    async editSettingsSetupStatus(userId, status) {
+        try {
+            // Check userId parameter exists
+            if (!userId) {
+                throw new Error('Check settings setup status - userId parameter empty. Must be supplied.');
+            };
+
+            // Check status parameter is a boolean value
+            if (typeof status !== "boolean") {
+                throw new Error('Check settings setup status - status parameter must be a boolean value.');
+            };
+
+            // Check the settings object exists for this user
+            const settings = await Setting.findOne(
+                { user: userId }
+            );
+
+            // If settings object for user not found throw error
+            if (!settings) {
+                throw new Error('Check settings setup status - settings object for user not found.');
+            };
+
+            // Update status for profileSetupComplete in the user settings object.
+            await Setting.findOneAndUpdate(
+                { user: userId },
+                { settingsSetupComplete: status }
+            );
+
+            // Return response
+            return { success: true };
+
+        } catch (err) {
+            console.error(err.message);
+            throw err;
+        };
+    };
     
     async setReflectionAlertTime() {
 

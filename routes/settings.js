@@ -10,7 +10,8 @@ const { checkJwt } = require('../middleware/checkJwt');
 const {
     validateAddTags,
     validateEditTag,
-    validateDeleteTags
+    validateDeleteTags,
+    validateEditSettingsSetupStatus
 } = require('../middleware/validators');
 
 // Import controller methods
@@ -18,7 +19,9 @@ const {
     addTags,
     editTag,
     deleteTags,
-    getAllTags
+    getAllTags,
+    checkSettingsSetupStatus,
+    editSettingsSetupStatus
 } = require('../controllers/settings');
 
 // Set router
@@ -55,5 +58,21 @@ router.route('/tags')
  */
 router.route('/tags')
     .get(checkJwt, getAllTags);
+
+/**
+ * @desc                        Attempt to get status of settings setup for specified user.
+ * @route                       GET api/v1/settings/status
+ * @access                      Private.
+ */
+router.route('/status')
+    .get(checkJwt, checkSettingsSetupStatus);
+
+/**
+ * @desc                        Attempt to change the settings setup status for the specified user.
+ * @route                       PUT api/v1/settings/status
+ * @access                      Private.
+ */
+router.route('/status')
+    .put(checkJwt, validateEditSettingsSetupStatus, editSettingsSetupStatus);
 
 module.exports = router;
