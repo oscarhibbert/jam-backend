@@ -26,7 +26,7 @@ const SettingSchema = new Schema({
         default: true
     },
     dailyReflectionAlertTime: {
-        type: Date,
+        type: Number,
         required: true
     }
 });
