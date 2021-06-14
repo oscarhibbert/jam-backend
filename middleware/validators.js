@@ -77,3 +77,67 @@ exports.validateUpdateEntry = [
   },
 ];
 
+/**
+ * @desc     Add tags validator
+ */
+exports.validateAddTags = [
+  // Checking configuration
+  check('tags', 'Key tags is required. Value must be array of new tags!')
+    .not()
+    .isEmpty(),
+  
+  // Errors middleware function
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+      return res.status(422).json({ success: false, errors: errors.array() });
+    next();
+  }
+];
+
+/**
+ * @desc     Edit tag validator
+ */
+exports.validateEditTag = [
+  // Checking configuration
+  check('tagId', 'TagId key with a string value is required!')
+    .not()
+    .isEmpty(),
+  check('tagName', 'tagName key is required!')
+    .optional()
+    .not()
+    .isEmpty(),
+  check('tagType', 'tagType is required!')
+    .optional()
+    .not()
+    .isEmpty(),
+  
+  // Errors middleware function
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+      return res.status(422).json({ success: false, errors: errors.array() });
+    next();
+  }
+];
+
+/**
+ * @desc     Edit tags validator
+ */
+exports.validateDeleteTags = [
+  // Checking configuration
+  check('tags',
+    "'tags' key and value is missing!")
+    .not()
+    .isEmpty(),
+  check('tags', "'tags' value is not an array!")
+    .isArray(),
+
+  // Errors middleware function
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+      return res.status(422).json({ success: false, errors: errors.array() });
+    next();
+  }
+];

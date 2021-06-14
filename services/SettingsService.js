@@ -90,7 +90,7 @@ module.exports = class SettingsService {
 
         } catch (err) {
             console.error(err.message);
-            return { success: false };
+            throw err;
         };
     };
 
@@ -209,7 +209,7 @@ module.exports = class SettingsService {
 
         } catch (err) {
             console.error(err.message);
-            return { success: false };
+            throw err;
         };
     };
 
@@ -289,7 +289,7 @@ module.exports = class SettingsService {
 
         } catch (err) {
             console.error(err.message);
-            return { success: false };
+            throw err;
         };
     };
 
@@ -327,7 +327,7 @@ module.exports = class SettingsService {
 
         } catch (err) {
             console.error(err.message);
-            return { success: false };
+            throw err;
         };
     };
     
