@@ -3,6 +3,35 @@
 // Service imports
 const SettingsService = require('../services/SettingsService');
 const SettingsServiceInstance = new SettingsService();
+/**
+ * @desc                        Attempt to get settings object for the specified user.
+ * @route                       GET api/v1/settings
+ * @access                      Private.
+ */
+exports.getSettings = async (req, res) => {
+    try {
+        const userId = req.user.sub;
+
+        const response =
+            await SettingsServiceInstance.getSettings(
+                userId);
+        
+        console.log(response);
+
+        res.json(response);
+    } catch (err) {
+        res.status(500).json(
+            {
+                success: false,
+                errors: [
+                    {
+                        msg: err.message
+                    }
+                ]
+            }
+        );
+    };
+};
 
 /**
  * @desc                        Attempt to add tags to the user's settings.

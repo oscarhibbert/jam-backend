@@ -16,6 +16,7 @@ const {
 
 // Import controller methods
 const {
+    getSettings,
     addTags,
     editTag,
     deleteTags,
@@ -26,6 +27,14 @@ const {
 
 // Set router
 const router = express.Router();
+
+/**
+ * @desc                        Attempt to get settings object for specified user.
+ * @route                       GET api/v1/settings
+ * @access                      Private.
+ */
+router.route('/')
+    .get(checkJwt, getSettings);
 
 /**
  * @desc                        Attempt to add tags to the user's settings.

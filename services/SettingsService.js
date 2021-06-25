@@ -14,6 +14,38 @@ module.exports = class SettingsService {
         this.activityTypes = ["General Activity", "Soothing Activity"];
     };
     /**
+       * @desc                                  Attempt to get the settings object for the specified user.
+       * @param      {string}        userId     String containing the UserId.
+       * @return                                Settings object.
+       */
+    async getSettings(userId) {
+        try {
+            // Check userId parameter exists
+            if (!userId) {
+                throw new Error('Get settings failed - userId parameter empty. Must be supplied.');
+            };
+
+            // Check the settings object exists for this user
+            const settings = await Setting.findOne(
+                { user: userId }
+            );
+
+            // If settings object for user not found throw error
+            if (!settings) {
+                throw new Error('Get settings failed - settings object for user not found.');
+            };
+
+            // Return success and data
+            console.log(settings);
+            return settings;
+
+        } catch (err) {
+            console.error(err.message);
+            throw err;
+        };
+    };
+
+    /**
        * @desc                                                                  Attempt to add tags to the user's settings.
        * @param  {string}                                              userId   String containing the UserId.
        * @param  {[{"name":"Example Name","type":"General Activity"}]} tags     Array containing tags as objects.
@@ -302,7 +334,7 @@ module.exports = class SettingsService {
         try {
             // Check userId parameter exists
             if (!userId) {
-                throw new Error('Delete tags failed - userId parameter empty. Must be supplied.');
+                throw new Error('Get all tags failed - userId parameter empty. Must be supplied.');
             };
 
             // Check the settings object exists for this user
