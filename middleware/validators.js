@@ -82,7 +82,9 @@ exports.validateUpdateEntry = [
  */
 exports.validateAddTags = [
   // Checking configuration
-  check('tags', 'Key tags is required. Value must be array of new tags!')
+  check('tags', "'tags' value is not an array. Must be an array!")
+    .isArray(),
+  check('tags', 'Key tags is required. Value must be array of new tags as objects!')
     .not()
     .isEmpty(),
   
