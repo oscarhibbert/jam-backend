@@ -15,7 +15,7 @@ module.exports = class JournalService {
      * @param {string}    userID         String containing user ID.
      * @param {string}    entryMood      String containing journal entry mood.
      * @param {string}    entryEmotion   String containing journal entry text.
-     * @param {[object]}  entryTags      Array containing journal entry tags.
+     * @param {array}     entryTags      Array containing journal entry tags.
      * @param {string}    entryText      String containing journal entry text.
      * @return                           Object containing response. If authorisation fails includes authorise: false.
      */

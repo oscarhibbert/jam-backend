@@ -1,5 +1,6 @@
 // Model imports
 const Setting = require('../models/Setting');
+const Entry = require('../models/Entry');
 
 /**
  * @description Create an instance of the SettingsService class.
@@ -130,8 +131,8 @@ module.exports = class SettingsService {
        * @desc                                  Attempt to edit tag.
        * @param  {string}    userId             String containing the UserId.
        * @param  {string}    tagId              String containing the tagId to be updated.
-       * @param  {string}    TagName            String containing the new tagName. Can be null.
-       * @param  {string}    TagType            String containing the new tagType. Can be null.
+       * @param  {string}    tagName            String containing the new tagName. Can be null.
+       * @param  {string}    tagType            String containing the new tagType. Can be null.
        * @return                                Object with success boolean.
        */
     async editTag(userId, tagId, tagName, tagType) {
@@ -141,7 +142,7 @@ module.exports = class SettingsService {
                 throw new Error('Edit tags failed - userId parameter empty. Must be supplied.')
             };
 
-            // Check userId parameter exists
+            // Check tagId parameter exists
             if (!tagId) {
                 throw new Error('Edit tags failed - tagId parameter empty. Must be supplied.')
             };
@@ -355,6 +356,72 @@ module.exports = class SettingsService {
             return {
                 success: true,
                 data: tags
+            };
+
+        } catch (err) {
+            console.error(err.message);
+            throw err;
+        };
+    };
+
+        /**
+       * @desc                                  Attempt to check whether tag is in use.
+       * @param  {string}             userId    String containing the userId.
+       * @param  {string}             tagId     tagId to be checked as a string.
+       * @return                                Object with success boolean and exists boolean.
+       */
+    async checkTagInUse(userId, tagId) {
+        try {
+            // Check userId parameter exists
+            if (!userId) {
+                throw new Error('Check tag in use failed - userId parameter empty. Must be supplied.')
+            };
+
+            // Check tagId parameter exists
+            if (!tagId) {
+                throw new Error('Check tag in use failed - tagId parameter empty. Must be supplied.')
+            };
+
+            // Check the settings object exists for this user
+            const settings = await Setting.findOne({ user: userId });
+
+            // If settings object for user not found throw error
+            if (!settings) {
+                throw new Error('Check tag in use failed - settings object for user not found.')
+            };
+
+            // Try to get the specified tag from the user's settings
+            const tag = settings.tags.find(tag => tag.id === tagId);
+            
+            // If the specified tag does not exists throw error
+            if (!tag) {
+                throw new Error('Check tag in use failed - tag does not exist.');
+            };
+
+            // Count how many journal entries use this tag
+            const checkTag = await Entry.countDocuments(
+                {
+                    tags: {
+                        $elemMatch: {
+                            _id: tag.id
+                        }
+                    }
+                }
+            );
+
+            // Set exists variable
+            let inUse;
+
+            // If check tag exists set exists to true
+            if (checkTag > 0) inUse = true;
+
+            // if check tag does not exist set exists to false
+            if (checkTag === 0) inUse = false;
+
+            // Return response
+            return {
+                success: true,
+                inuse: inUse
             };
 
         } catch (err) {

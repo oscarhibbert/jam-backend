@@ -157,6 +157,37 @@ exports.getAllTags = async (req, res) => {
 };
 
 /**
+ * @desc                        Attempt to check if specified tag is in use for the specified user.
+ * @route                       GET api/v1/settings/tags/inuse/:id
+ * @access                      Private.
+ */
+exports.checkTagInUse = async (req, res) => {
+    try {
+        const userId = req.user.sub;
+        const tagId = req.params.id;
+
+        const response =
+            await SettingsServiceInstance.checkTagInUse(
+                userId, tagId);
+        
+        console.log(response);
+
+        res.json(response);
+    } catch (err) {
+        res.status(500).json(
+            {
+                success: false,
+                errors: [
+                    {
+                        msg: err.message
+                    }
+                ]
+            }
+        );
+    };
+};
+
+/**
  * @desc                        Attempt to check the settings setup status for the specified user.
  * @route                       GET api/v1/settings/status
  * @access                      Private.

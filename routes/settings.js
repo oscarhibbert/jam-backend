@@ -21,6 +21,7 @@ const {
     editTag,
     deleteTags,
     getAllTags,
+    checkTagInUse,
     checkSettingsSetupStatus,
     editSettingsSetupStatus
 } = require('../controllers/settings');
@@ -67,6 +68,14 @@ router.route('/tags')
  */
 router.route('/tags')
     .get(checkJwt, getAllTags);
+
+/**
+ * @desc                        Attempt to check whether the specified tag is in use.
+ * @route                       GET api/v1/settings/tags/inuse/:id
+ * @access                      Private.
+ */
+router.route('/tags/inuse/:id')
+    .get(checkJwt, checkTagInUse);
 
 /**
  * @desc                        Attempt to get status of settings setup for specified user.
