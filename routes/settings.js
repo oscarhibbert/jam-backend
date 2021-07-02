@@ -8,22 +8,24 @@ const { checkJwt } = require('../middleware/checkJwt');
 
 // Import validator middleware
 const {
+    validateEditSettingsSetupStatus,
     validateAddTags,
     validateEditTag,
     validateDeleteTags,
-    validateEditSettingsSetupStatus
+    validateAddActivities
 } = require('../middleware/validators');
 
 // Import controller methods
 const {
     getSettings,
+    checkSettingsSetupStatus,
+    editSettingsSetupStatus,
     addTags,
     editTag,
     deleteTags,
     getAllTags,
     checkTagInUse,
-    checkSettingsSetupStatus,
-    editSettingsSetupStatus
+    addActivities
 } = require('../controllers/settings');
 
 // Set router
@@ -36,6 +38,22 @@ const router = express.Router();
  */
 router.route('/')
     .get(checkJwt, getSettings);
+
+/**
+ * @desc                        Attempt to get status of settings setup for specified user.
+ * @route                       GET api/v1/settings/status
+ * @access                      Private.
+ */
+router.route('/status')
+    .get(checkJwt, checkSettingsSetupStatus);
+
+/**
+ * @desc                        Attempt to change the settings setup status for the specified user.
+ * @route                       PUT api/v1/settings/status
+ * @access                      Private.
+ */
+router.route('/status')
+    .put(checkJwt, validateEditSettingsSetupStatus, editSettingsSetupStatus);
 
 /**
  * @desc                        Attempt to add tags to the user's settings.
@@ -78,19 +96,11 @@ router.route('/tags/inuse/:id')
     .get(checkJwt, checkTagInUse);
 
 /**
- * @desc                        Attempt to get status of settings setup for specified user.
- * @route                       GET api/v1/settings/status
+ * @desc                        Attempt to add activities to the user's settings.
+ * @route                       POST api/v1/settings/activities
  * @access                      Private.
  */
-router.route('/status')
-    .get(checkJwt, checkSettingsSetupStatus);
-
-/**
- * @desc                        Attempt to change the settings setup status for the specified user.
- * @route                       PUT api/v1/settings/status
- * @access                      Private.
- */
-router.route('/status')
-    .put(checkJwt, validateEditSettingsSetupStatus, editSettingsSetupStatus);
+router.route('/activities')
+    .post(checkJwt, validateAddActivities, addActivities);
 
 module.exports = router;

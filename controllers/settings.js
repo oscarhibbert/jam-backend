@@ -34,6 +34,68 @@ exports.getSettings = async (req, res) => {
 };
 
 /**
+ * @desc                        Attempt to check the settings setup status for the specified user.
+ * @route                       GET api/v1/settings/status
+ * @access                      Private.
+ */
+exports.checkSettingsSetupStatus = async (req, res) => {
+    try {
+        const userId = req.user.sub;
+
+        const response =
+            await SettingsServiceInstance.checkSettingsSetupStatus(
+                userId);
+        
+        console.log(response);
+
+        res.json(response);
+    } catch (err) {
+        res.status(500).json(
+            {
+                success: false,
+                errors: [
+                    {
+                        msg: err.message
+                    }
+                ]
+            }
+        );
+    };
+};
+
+/**
+ * @desc                        Attempt to change the settings setup status for the specified user.
+ * @route                       PUT api/v1/settings/status
+ * @access                      Private.
+ */
+exports.editSettingsSetupStatus = async (req, res) => {
+    try {
+        const userId = req.user.sub;
+
+        const { status } = req.body;
+
+        const response =
+            await SettingsServiceInstance.editSettingsSetupStatus(
+                userId, status);
+        
+        console.log(response);
+
+        res.json(response);
+    } catch (err) {
+        res.status(500).json(
+            {
+                success: false,
+                errors: [
+                    {
+                        msg: err.message
+                    }
+                ]
+            }
+        );
+    };
+};
+
+/**
  * @desc                        Attempt to add tags to the user's settings.
  * @route                       POST api/v1/settings/tags
  * @access                      Private.
@@ -188,49 +250,18 @@ exports.checkTagInUse = async (req, res) => {
 };
 
 /**
- * @desc                        Attempt to check the settings setup status for the specified user.
- * @route                       GET api/v1/settings/status
+ * @desc                        Attempt to add activities to the user's settings.
+ * @route                       POST api/v1/settings/activities
  * @access                      Private.
  */
-exports.checkSettingsSetupStatus = async (req, res) => {
+exports.addActivities = async (req, res) => {
     try {
         const userId = req.user.sub;
+        const { activities } = req.body;
 
         const response =
-            await SettingsServiceInstance.checkSettingsSetupStatus(
-                userId);
-        
-        console.log(response);
-
-        res.json(response);
-    } catch (err) {
-        res.status(500).json(
-            {
-                success: false,
-                errors: [
-                    {
-                        msg: err.message
-                    }
-                ]
-            }
-        );
-    };
-};
-
-/**
- * @desc                        Attempt to change the settings setup status for the specified user.
- * @route                       PUT api/v1/settings/status
- * @access                      Private.
- */
-exports.editSettingsSetupStatus = async (req, res) => {
-    try {
-        const userId = req.user.sub;
-
-        const { status } = req.body;
-
-        const response =
-            await SettingsServiceInstance.editSettingsSetupStatus(
-                userId, status);
+            await SettingsServiceInstance.addActivities(
+                userId, activities);
         
         console.log(response);
 

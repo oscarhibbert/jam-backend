@@ -20,6 +20,17 @@ const SettingSchema = new Schema({
             }
         }
     ],
+    activities: [
+        {
+            name: {
+                type: String
+            },
+            type: {
+                type: String,
+                required: true
+            }
+        }
+    ],
     dailyReflectionAlert: {
         type: Boolean,
         required: true,

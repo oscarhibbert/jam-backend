@@ -78,6 +78,27 @@ exports.validateUpdateEntry = [
 ];
 
 /**
+ * @desc     Edit settings setup status validator
+ */
+exports.validateEditSettingsSetupStatus = [
+  // Checking configuration
+  check('status',
+    "Key 'status' and value is missing!")
+    .not()
+    .isEmpty(),
+  check('status', "Key 'status' value is not a boolean!")
+    .isBoolean(),
+
+  // Errors middleware function
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+      return res.status(422).json({ success: false, errors: errors.array() });
+    next();
+  }
+];
+
+/**
  * @desc     Add tags validator
  */
 exports.validateAddTags = [
@@ -145,17 +166,16 @@ exports.validateDeleteTags = [
 ];
 
 /**
- * @desc     Edit tags validator
+ * @desc     Add activities validator
  */
-exports.validateEditSettingsSetupStatus = [
+exports.validateAddActivities = [
   // Checking configuration
-  check('status',
-    "Key 'status' and value is missing!")
+  check('activities', "'activities' value is not an array. Must be an array!")
+    .isArray(),
+  check('activities', 'Key activities is required. Value must be array of new tags as objects!')
     .not()
     .isEmpty(),
-  check('status', "Key 'status' value is not a boolean!")
-    .isBoolean(),
-
+  
   // Errors middleware function
   (req, res, next) => {
     const errors = validationResult(req);

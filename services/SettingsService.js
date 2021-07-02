@@ -11,8 +11,10 @@ module.exports = class SettingsService {
      * @constructor
      */
     constructor() {
-        /** Set allowed activity types (tag types). */
-        this.activityTypes = ["General Activity", "Soothing Activity"];
+        /** Set allowed tag types. */
+        this.tagTypes = ["General Activity", "Soothing Activity"];
+        /** Set allowed activity types. */
+        this.activityTypes = ["Soothing"];
     };
     /**
        * @desc                                  Attempt to get the settings object for the specified user.
@@ -39,6 +41,87 @@ module.exports = class SettingsService {
             // Return success and data
             console.log(settings);
             return settings;
+
+        } catch (err) {
+            console.error(err.message);
+            throw err;
+        };
+    };
+
+        /**
+       * @desc                                  Attempt to check the settings setup status for the specified user.
+       * @param      {string}        userId     String containing the UserId.
+       * @return                                Object with success boolean and key called data with key status and boolean value.
+       */
+    async checkSettingsSetupStatus(userId) {
+        try {
+            // Check userId parameter exists
+            if (!userId) {
+                throw new Error('Check settings setup status - userId parameter empty. Must be supplied.');
+            };
+
+            // Check the settings object exists for this user
+            const settings = await Setting.findOne(
+                { user: userId }
+            );
+
+            // If settings object for user not found throw error
+            if (!settings) {
+                throw new Error('Check settings setup status - settings object for user not found.');
+            };
+
+            // Get status
+            const status = settings.settingsSetupComplete;
+
+            return {
+                success: true,
+                data: {
+                    status: status
+                }
+            };
+
+        } catch (err) {
+            console.error(err.message);
+            throw err;
+        };
+    };
+
+        /**
+       * @desc                                  Attempt to change the settings setup status for the specified user.
+       * @param      {string}        userId     String containing the UserId.
+       * @param      {boolean}       status     Boolean true or false.
+       * @return                                Object with success boolean.
+       */
+    async editSettingsSetupStatus(userId, status) {
+        try {
+            // Check userId parameter exists
+            if (!userId) {
+                throw new Error('Check settings setup status - userId parameter empty. Must be supplied.');
+            };
+
+            // Check status parameter is a boolean value
+            if (typeof status !== "boolean") {
+                throw new Error('Check settings setup status - status parameter must be a boolean value.');
+            };
+
+            // Check the settings object exists for this user
+            const settings = await Setting.findOne(
+                { user: userId }
+            );
+
+            // If settings object for user not found throw error
+            if (!settings) {
+                throw new Error('Check settings setup status - settings object for user not found.');
+            };
+
+            // Update status for profileSetupComplete in the user settings object.
+            await Setting.findOneAndUpdate(
+                { user: userId },
+                { settingsSetupComplete: status }
+            );
+
+            // Return response
+            return { success: true };
 
         } catch (err) {
             console.error(err.message);
@@ -93,9 +176,9 @@ module.exports = class SettingsService {
                 };
 
                 // Check activity type for newTag is valid
-                /* Check newTag.type is correct activity. If activityTypes
+                /* Check newTag.type is correct activity. If tagTypes
                     does not include newTag.type, throw error. */
-                if (!this.activityTypes.includes(newTag.type)) {
+                if (!this.tagTypes.includes(newTag.type)) {
                     throw new Error(`Add tags failed - type '${newTag.type}' for tag '${newTag.name}' is invalid.`);
                 };
                 continue;
@@ -212,8 +295,8 @@ module.exports = class SettingsService {
             };
 
             /* Check tagType is correct activity. If tagType exists
-            and activityTypes does not include tagType, throw error. */
-            if (tagType && !this.activityTypes.includes(tagType)) {
+            and tagTypes does not include tagType, throw error. */
+            if (tagType && !this.tagTypes.includes(tagType)) {
                 throw new Error(`Update tag failed - tag type '${tagType}' invalid. Check tagType parameter.`);
             };
 
@@ -364,12 +447,12 @@ module.exports = class SettingsService {
         };
     };
 
-        /**
+    /**
        * @desc                                  Attempt to check whether tag is in use.
        * @param  {string}             userId    String containing the userId.
        * @param  {string}             tagId     tagId to be checked as a string.
        * @return                                Object with success boolean and exists boolean.
-       */
+    */
     async checkTagInUse(userId, tagId) {
         try {
             // Check userId parameter exists
@@ -431,75 +514,75 @@ module.exports = class SettingsService {
     };
 
     /**
-       * @desc                                  Attempt to check the settings setup status for the specified user.
-       * @param      {string}        userId     String containing the UserId.
-       * @return                                Object with success boolean and key called data with key status and boolean value.
+       * @desc                                                                        Attempt to add activities to the user's settings.
+       * @param  {string}                                              userId         String containing the UserId.
+       * @param  {[{"name":"Example Name","type":"Soothing"}]}         activities     Array containing activities as objects.
+       * @return                                                                      Object with success boolean.
        */
-    async checkSettingsSetupStatus(userId) {
+    async addActivities(userId, activities) {
         try {
             // Check userId parameter exists
             if (!userId) {
-                throw new Error('Check settings setup status - userId parameter empty. Must be supplied.');
+                throw new Error('Add activities failed - userId parameter empty. Must be supplied.')
+            };
+
+            // Check tags parameter exists
+            if (!activities) {
+                throw new Error('Add activities failed - activities parameter empty. Must be supplied.');
             };
 
             // Check the settings object exists for this user
-            const settings = await Setting.findOne(
-                { user: userId }
-            );
+            const settings = await Setting.findOne({ user: userId });
 
             // If settings object for user not found throw error
             if (!settings) {
-                throw new Error('Check settings setup status - settings object for user not found.');
+                throw new Error('Add activities failed - settings object for user not found.')
             };
 
-            // Get status
-            const status = settings.settingsSetupComplete;
+            // Else, continue
+            // Get existing activities
+            const existingActivities = settings.activities;
 
-            return {
-                success: true,
-                data: {
-                    status: status
-                }
+            // Get new activities array and put them into newActivities variable
+            const newActivities = activities;
+                
+            /* Check newActivities array of activity objects for errors */
+            for (const newActivity of newActivities) {
+                
+                // Check activity name exists
+                if (!newActivity.name) {
+                    throw new Error(`Add activities failed - activity missing name. Must be supplied.`);
+                };
+
+                // Check activity type exists
+                if (!newActivity.type) {
+                    throw new Error(`Add activities failed - activity '${newActivity.name}' missing type. Must be supplied.`);
+                };
+
+                // Check type for newActivity is valid
+                /* Check newActivity.type is correct type. If activityTypes
+                    does not include newActivity.type, throw error. */
+                if (!this.activityTypes.includes(newActivity.type)) {
+                    throw new Error(`Add activities failed - type '${newActivity.type}' for activity '${newActivity.name}' is invalid.`);
+                };
+                continue;
             };
 
-        } catch (err) {
-            console.error(err.message);
-            throw err;
-        };
-    };
-
-        /**
-       * @desc                                  Attempt to change the settings setup status for the specified user.
-       * @param      {string}        userId     String containing the UserId.
-       * @param      {boolean}       status     Boolean true or false.
-       * @return                                Object with success boolean.
-       */
-    async editSettingsSetupStatus(userId, status) {
-        try {
-            // Check userId parameter exists
-            if (!userId) {
-                throw new Error('Check settings setup status - userId parameter empty. Must be supplied.');
+            // Check newActivity names for duplicate against existing tags
+            for (const existingActivity of existingActivities) {
+                for (const newActivity of newActivities) {
+                    if (existingActivity.name === newActivity.name) {
+                        throw new Error(`Add activity failed - activity name '${newActivity.name}' is already in use. Check value for key 'name'.`);
+                    };
+                    continue;
+                };
+                continue;
             };
-
-            // Check status parameter is a boolean value
-            if (typeof status !== "boolean") {
-                throw new Error('Check settings setup status - status parameter must be a boolean value.');
-            };
-
-            // Check the settings object exists for this user
-            const settings = await Setting.findOne(
-                { user: userId }
-            );
-
-            // If settings object for user not found throw error
-            if (!settings) {
-                throw new Error('Check settings setup status - settings object for user not found.');
-            };
-
-            // Update status for profileSetupComplete in the user settings object.
+            
+            // Add newActivities into the activities array in the user's settings object
             await Setting.findOneAndUpdate(
                 { user: userId },
-                { settingsSetupComplete: status }
+                { $push: { activities: newActivities } }
             );
 
             // Return response
