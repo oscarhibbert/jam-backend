@@ -371,3 +371,34 @@ exports.getAllActivities = async (req, res) => {
         );
     };
 };
+
+/**
+ * @desc                        Attempt to check if specified activity is in use for the specified user.
+ * @route                       GET api/v1/settings/activities/inuse/:id
+ * @access                      Private.
+ */
+exports.checkActivityInUse = async (req, res) => {
+    try {
+        const userId = req.user.sub;
+        const activityId = req.params.id;
+
+        const response =
+            await SettingsServiceInstance.checkActivityInUse(
+                userId, activityId);
+        
+        console.log(response);
+
+        res.json(response);
+    } catch (err) {
+        res.status(500).json(
+            {
+                success: false,
+                errors: [
+                    {
+                        msg: err.message
+                    }
+                ]
+            }
+        );
+    };
+};

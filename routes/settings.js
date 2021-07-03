@@ -30,7 +30,8 @@ const {
     addActivities,
     editActivity,
     deleteActivities,
-    getAllActivities
+    getAllActivities,
+    checkActivityInUse
 } = require('../controllers/settings');
 
 // Set router
@@ -131,5 +132,13 @@ router.route('/activities')
  */
 router.route('/activities')
     .get(checkJwt, getAllActivities);
+
+/**
+ * @desc                        Attempt to check whether the specified activity is in use.
+ * @route                       GET api/v1/settings/activities/inuse/:id
+ * @access                      Private.
+ */
+router.route('/activities/inuse/:id')
+    .get(checkJwt, checkActivityInUse);
 
 module.exports = router;

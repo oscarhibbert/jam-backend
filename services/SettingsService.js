@@ -843,4 +843,70 @@ module.exports = class SettingsService {
             throw err;
         };
     };
+
+    /**
+       * @desc                                       Attempt to check whether the specified activity is in use.
+       * @param  {string}             userId         String containing the userId.
+       * @param  {string}             activityId     tagId to be checked as a string.
+       * @return                                     Object with success boolean and exists boolean.
+    */
+    async checkActivityInUse(userId, activityId) {
+        try {
+            // Check userId parameter exists
+            if (!userId) {
+                throw new Error('Check activity in use failed - userId parameter empty. Must be supplied.')
+            };
+
+            // Check activityId parameter exists
+            if (!activityId) {
+                throw new Error('Check activity in use failed - activityId parameter empty. Must be supplied.')
+            };
+
+            // Check the settings object exists for this user
+            const settings = await Setting.findOne({ user: userId });
+
+            // If settings object for user not found throw error
+            if (!settings) {
+                throw new Error('Check activity in use failed - settings object for user not found.')
+            };
+
+            // Try to get the specified activity from the user's settings
+            const activity = settings.activities.find(activity => activity.id === activityId);
+            
+            // If the specified activity does not exists throw error
+            if (!activity) {
+                throw new Error('Check activity in use failed - activity does not exist.');
+            };
+
+            // Count how many journal entries use this activity
+            const checkActivity = await Entry.countDocuments(
+                {
+                    activities: {
+                        $elemMatch: {
+                            _id: activity.id
+                        }
+                    }
+                }
+            );
+
+            // Set exists variable
+            let inUse;
+
+            // If check activity count is more than 0 set exists to true
+            if (checkActivity > 0) inUse = true;
+
+            // if check activity count is equal to 0 set exists to false
+            if (checkActivity === 0) inUse = false;
+
+            // Return response
+            return {
+                success: true,
+                inuse: inUse
+            };
+
+        } catch (err) {
+            console.error(err.message);
+            throw err;
+        };
+    };
 };
