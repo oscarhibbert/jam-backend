@@ -129,6 +129,10 @@ module.exports = class SettingsService {
         };
     };
 
+    async setReflectionAlertTime() {
+
+    };
+
     /**
        * @desc                                                                  Attempt to add tags to the user's settings.
        * @param  {string}                                              userId   String containing the UserId.
@@ -222,12 +226,17 @@ module.exports = class SettingsService {
         try {
             // Check userId parameter exists
             if (!userId) {
-                throw new Error('Edit tags failed - userId parameter empty. Must be supplied.')
+                throw new Error('Edit tag failed - userId parameter empty. Must be supplied.')
             };
 
             // Check tagId parameter exists
             if (!tagId) {
-                throw new Error('Edit tags failed - tagId parameter empty. Must be supplied.')
+                throw new Error('Edit tag failed - tagId parameter empty. Must be supplied.')
+            };
+
+            // If at least tagName or tagType parameter is not provided
+            if (!tagName && !tagType) {
+                throw new Error('Edit tag failed - tagName & tagType empty. At least one must be supplied.');
             };
 
             // Check the settings object exists for this user
@@ -235,7 +244,7 @@ module.exports = class SettingsService {
 
             // If settings object for user not found throw error
             if (!settings) {
-                throw new Error('Edit tags failed - settings object for user not found.')
+                throw new Error('Edit tag failed - settings object for user not found.')
             }
 
             // Set existing tags
@@ -270,7 +279,7 @@ module.exports = class SettingsService {
 
             // If not found, throw error
             if (tagFound === false) {
-                throw new Error('Update tag failed - existing tag not found. Check tagId parameter.');
+                throw new Error('Edit tag failed - existing tag not found. Check tagId parameter.');
             };
                 
             /* Check the new tag name is not the same as any of the other tags 
@@ -286,7 +295,7 @@ module.exports = class SettingsService {
                     }
                     // Else, as they do not have the same ID throw error as duplicate cannot be created
                     else {
-                        throw new Error(`Update tag failed - tag name '${tagName}' already in use. Check tagName parameter.`);
+                        throw new Error(`Edit tag failed - tag name '${tagName}' already in use. Check tagName parameter.`);
                     };
                 };
 
@@ -297,7 +306,7 @@ module.exports = class SettingsService {
             /* Check tagType is correct activity. If tagType exists
             and tagTypes does not include tagType, throw error. */
             if (tagType && !this.tagTypes.includes(tagType)) {
-                throw new Error(`Update tag failed - tag type '${tagType}' invalid. Check tagType parameter.`);
+                throw new Error(`Edit tag failed - tag type '${tagType}' invalid. Check tagType parameter.`);
             };
 
             // Else, continue
@@ -593,8 +602,128 @@ module.exports = class SettingsService {
             throw err;
         };
     };
-    
-    async setReflectionAlertTime() {
 
+    /**
+       * @desc                                       Attempt to edit activity.
+       * @param  {string}    userId                  String containing the UserId.
+       * @param  {string}    activityId              String containing the activityId to be updated.
+       * @param  {string}    activityName            String containing the new activityName. Can be null.
+       * @param  {string}    activityType            String containing the new activityType. Can be null.
+       * @return                                     Object with success boolean.
+       */
+    async editActivity(userId, activityId, activityName, activityType) {
+        try {
+            // Check userId parameter exists
+            if (!userId) {
+                throw new Error('Edit activity failed - userId parameter empty. Must be supplied.');
+            };
+
+            // Check activityId parameter exists
+            if (!activityId) {
+                throw new Error('Edit activity failed - activityId parameter empty. Must be supplied.');
+            };
+
+            // If at least activityName or activityType parameter is not provided
+            if (!activityName && !activityType) {
+                throw new Error('Edit activity failed - activityName & ActivityType empty. At least one must be supplied.');
+            };
+
+            // Check the settings object exists for this user
+            const settings = await Setting.findOne({ user: userId });
+
+            // If settings object for user not found throw error
+            if (!settings) {
+                throw new Error('Edit activity failed - settings object for user not found.');
+            }
+
+            // Set existing activities
+            const existingActivities = settings.activities;
+
+            // Prepare original activity object
+            const originalActivity = {};
+
+            // Else, continue
+
+            /* Loop through each existing activity in settings and check the
+            specified activity exists. Then set originalActivity info. 
+            If it doesn't match, throw error.
+            */
+            let activityFound = false;
+
+            // Check for match
+            for (const existingActivity of existingActivities) {
+                if (existingActivity.id === activityId) {
+                    // Set activity found to true
+                    activityFound = true;
+
+                    // Set original activity object
+                    originalActivity.id = existingActivity.id;
+                    originalActivity.name = existingActivity.name;
+                    originalActivity.type = existingActivity.type;
+
+                    break;
+                };
+                continue;
+            }
+
+            // If not found, throw error
+            if (activityFound === false) {
+                throw new Error('Update activity failed - existing activity not found. Check activityId parameter.');
+            };
+                
+            /* Check the new activity name is not the same as any of the other activities 
+            except it's own name - that is ok. Otherwise, throw error.
+            */
+            // For each existing activity
+            for (const existingActivity of existingActivities) {
+                // If the existing activity name is equal to the new activity name
+                if (existingActivity.name === activityName) {
+                    // If existing activity name and new activity name match, continue (this is ok)
+                    if (existingActivity.id === activityId) {
+                        break;
+                    }
+                    // Else, as they do not have the same ID throw error as duplicate cannot be created
+                    else {
+                        throw new Error(`Update activity failed - activity name '${activityName}' already in use. Check activityName parameter.`);
+                    };
+                };
+
+                // Otherwise, continue
+                continue;
+            };
+
+            /* Check activityType is correct type. If activityType exists
+            and activitiesTypes does not include activityType, throw error. */
+            if (activityType && !this.activityTypes.includes(activityType)) {
+                throw new Error(`Update activity failed - activity type '${activityType}' invalid. Check activityType parameter.`);
+            };
+
+            // Else, continue
+
+            // Set updatedActivity object
+            const updatedActivity = {};
+
+            // Create updatedActivity object
+            // Set the _id otherwise it will be overwritten with null by Mongoose b/c of $set. Same with other fields.
+            updatedActivity._id = originalActivity.id;
+            // If activityName param is provided, set it into object. Else, keep existingActivity.name.
+            if (activityName) updatedActivity.name = activityName; else { updatedActivity.name = originalActivity.name };
+            // If activityType param is provided, set it into object. Else, keep the existingActivity.type.
+            if (activityType) updatedActivity.type = activityType; else { updatedActivity.type = originalActivity.type };
+         
+            // Add newActivity into the activities array in the user's settings object
+            await Setting.findOneAndUpdate(
+                { user: userId },
+                { $set: { "activities.$[el]": updatedActivity } },
+                { arrayFilters: [{ "el._id": activityId }] }
+            );
+
+            // Return response
+            return { success: true };
+
+        } catch (err) {
+            console.error(err.message);
+            throw err;
+        };
     };
 };

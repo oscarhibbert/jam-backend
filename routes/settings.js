@@ -12,7 +12,8 @@ const {
     validateAddTags,
     validateEditTag,
     validateDeleteTags,
-    validateAddActivities
+    validateAddActivities,
+    validateEditActivity
 } = require('../middleware/validators');
 
 // Import controller methods
@@ -25,7 +26,8 @@ const {
     deleteTags,
     getAllTags,
     checkTagInUse,
-    addActivities
+    addActivities,
+    editActivity
 } = require('../controllers/settings');
 
 // Set router
@@ -102,5 +104,13 @@ router.route('/tags/inuse/:id')
  */
 router.route('/activities')
     .post(checkJwt, validateAddActivities, addActivities);
+
+/**
+ * @desc                        Attempt to edit tag for user.
+ * @route                       PATCH api/v1/settings/activities
+ * @access                      Private.
+ */
+router.route('/activities')
+    .patch(checkJwt, validateEditActivity, editActivity);
 
 module.exports = router;

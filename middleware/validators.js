@@ -184,3 +184,29 @@ exports.validateAddActivities = [
     next();
   }
 ];
+
+/**
+ * @desc     Edit activity validator
+ */
+exports.validateEditActivity = [
+  // Checking configuration
+  check('activityId', 'activityId key with a string value is required!')
+    .not()
+    .isEmpty(),
+  check('activityName', 'activityName key is required!')
+    .optional()
+    .not()
+    .isEmpty(),
+  check('activityType', 'activityType is required!')
+    .optional()
+    .not()
+    .isEmpty(),
+  
+  // Errors middleware function
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+      return res.status(422).json({ success: false, errors: errors.array() });
+    next();
+  }
+];

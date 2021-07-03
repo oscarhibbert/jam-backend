@@ -279,3 +279,34 @@ exports.addActivities = async (req, res) => {
         );
     };
 };
+
+/**
+ * @desc                        Attempt to edit tag for user.
+ * @route                       PATCH api/v1/settings/activities
+ * @access                      Private.
+ */
+exports.editActivity = async (req, res) => {
+    try {
+        const userId = req.user.sub;
+        const { activityId, activityName, activityType } = req.body;
+
+        const response =
+            await SettingsServiceInstance.editActivity(
+                userId, activityId, activityName, activityType);
+        
+        console.log(response);
+
+        res.json(response);
+    } catch (err) {
+        res.status(500).json(
+            {
+                success: false,
+                errors: [
+                    {
+                        msg: err.message
+                    }
+                ]
+            }
+        );
+    };
+};
