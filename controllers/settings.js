@@ -310,3 +310,34 @@ exports.editActivity = async (req, res) => {
         );
     };
 };
+
+/**
+ * @desc                        Attempt to delete specified activities from the user's settings.
+ * @route                       DELETE api/v1/settings/activities
+ * @access                      Private.
+ */
+exports.deleteActivities = async (req, res) => {
+    try {
+        const userId = req.user.sub;
+        const { activities } = req.body;
+
+        const response =
+            await SettingsServiceInstance.deleteActivities(
+                userId, activities);
+        
+        console.log(response);
+
+        res.json(response);
+    } catch (err) {
+        res.status(500).json(
+            {
+                success: false,
+                errors: [
+                    {
+                        msg: err.message
+                    }
+                ]
+            }
+        );
+    };
+};

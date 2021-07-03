@@ -13,7 +13,8 @@ const {
     validateEditTag,
     validateDeleteTags,
     validateAddActivities,
-    validateEditActivity
+    validateEditActivity,
+    validateDeleteActivities
 } = require('../middleware/validators');
 
 // Import controller methods
@@ -27,7 +28,8 @@ const {
     getAllTags,
     checkTagInUse,
     addActivities,
-    editActivity
+    editActivity,
+    deleteActivities
 } = require('../controllers/settings');
 
 // Set router
@@ -112,5 +114,13 @@ router.route('/activities')
  */
 router.route('/activities')
     .patch(checkJwt, validateEditActivity, editActivity);
+
+/**
+ * @desc                        Attempt to delete specified activities for user.
+ * @route                       DELETE api/v1/settings/activities
+ * @access                      Private.
+ */
+router.route('/activities')
+    .delete(checkJwt, validateDeleteActivities, deleteActivities);
 
 module.exports = router;

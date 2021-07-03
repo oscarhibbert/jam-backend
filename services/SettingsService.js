@@ -130,7 +130,6 @@ module.exports = class SettingsService {
     };
 
     async setReflectionAlertTime() {
-
     };
 
     /**
@@ -719,6 +718,86 @@ module.exports = class SettingsService {
             );
 
             // Return response
+            return { success: true };
+
+        } catch (err) {
+            console.error(err.message);
+            throw err;
+        };
+    };
+
+    /**
+       * @desc                                        Attempt to delete activities.
+       * @param  {string}             userId          String containing the UserId.
+       * @param  {[{id:"123456"}]}    activities      Array of activity objects to be deleted. Each object must include _id.
+       * @return                                      Object with success boolean.
+       */
+    async deleteActivities(userId, activities) {
+        try {
+            // Check userId parameter exists
+            if (!userId) {
+                throw new Error('Delete activities failed - userId parameter empty. Must be supplied.');
+            };
+
+            // Check activities parameter exists
+            if (!activities) {
+                throw new Error('Delete activities failed - activities parameter empty. Must be supplied.');
+            };
+
+            // Set idsForDeletion array
+            const idsForDeletion = [];
+
+            // Check all activities supplied include the key _id, add _id to array
+            for (const activity of activities) {
+                // Check _id key for activity exists
+                if (!activity.id) {
+                    throw new Error(`Delete activities failed - an activity object is missing required key 'id'.`);
+                };
+
+                // Else
+
+                // Add id to idsForDeletion array
+                idsForDeletion.push(activity.id);
+
+                continue;
+            };
+
+            // Check the settings object exists for this user
+            const settings = await Setting.findOne({ user: userId });
+
+            // If settings object for user not found throw error
+            if (!settings) {
+                throw new Error('Delete activities failed - settings object for user not found.');
+            };
+
+            // Get activities from settings
+            const getActivities = settings.activities;
+
+            // Set existingActivities array
+            const existingActivities = [];
+
+            // Have to create this array b/c _id has to be converted to a string
+            for (const activity of getActivities) {
+                existingActivities.push(activity.id);
+            };
+
+            // If ID in parameter does not exist, throw error
+            for (const id of idsForDeletion) {
+                // If ID is not included in existingActivities, throw error
+                if (!existingActivities.includes(id)) {
+                    throw new Error(`Delete activities failed - activity with ID '${id}' does not exist.`);
+                };
+
+                // Else, continue
+                continue;
+            };
+
+            // Delete activity objects from the user's activity array in the settings object
+            await Setting.updateOne(
+                { user: userId },
+                { $pull: { activities: { _id: idsForDeletion } } }
+            );
+
             return { success: true };
 
         } catch (err) {

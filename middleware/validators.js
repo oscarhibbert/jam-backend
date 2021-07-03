@@ -210,3 +210,24 @@ exports.validateEditActivity = [
     next();
   }
 ];
+
+/**
+ * @desc     Delete activities validator
+ */
+exports.validateDeleteActivities = [
+  // Checking configuration
+  check('activities',
+    "'activities' key and value is missing!")
+    .not()
+    .isEmpty(),
+  check('activities', "'activities' value is not an array of tags to be deleted!")
+    .isArray(),
+
+  // Errors middleware function
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+      return res.status(422).json({ success: false, errors: errors.array() });
+    next();
+  }
+];
