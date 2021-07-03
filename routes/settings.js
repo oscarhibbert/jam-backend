@@ -29,7 +29,8 @@ const {
     checkTagInUse,
     addActivities,
     editActivity,
-    deleteActivities
+    deleteActivities,
+    getAllActivities
 } = require('../controllers/settings');
 
 // Set router
@@ -122,5 +123,13 @@ router.route('/activities')
  */
 router.route('/activities')
     .delete(checkJwt, validateDeleteActivities, deleteActivities);
+
+/**
+ * @desc                        Attempt to get all activities for specified user.
+ * @route                       GET api/v1/settings/activities
+ * @access                      Private.
+ */
+router.route('/activities')
+    .get(checkJwt, getAllActivities);
 
 module.exports = router;

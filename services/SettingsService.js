@@ -805,4 +805,42 @@ module.exports = class SettingsService {
             throw err;
         };
     };
+
+    /**
+       * @desc                                  Attempt to get all activities for the specified user.
+       * @param      {string}        userId     String containing the UserId.
+       * @return                                Object with success boolean and key called data with array of tags.
+       */
+    async getAllActivities(userId) {
+        try {
+            // Check userId parameter exists
+            if (!userId) {
+                throw new Error('Get all activities failed - userId parameter empty. Must be supplied.');
+            };
+
+            // Check the settings object exists for this user
+            const settings = await Setting.findOne(
+                { user: userId }
+            );
+
+            // If settings object for user not found throw error
+            if (!settings) {
+                throw new Error('Get all activities failed - settings object for user not found.');
+            };
+
+            // Get activities
+            const activities = settings.activities.toObject();
+
+            // Return success and data
+            console.log(activities);
+            return {
+                success: true,
+                data: activities
+            };
+
+        } catch (err) {
+            console.error(err.message);
+            throw err;
+        };
+    };
 };

@@ -341,3 +341,33 @@ exports.deleteActivities = async (req, res) => {
         );
     };
 };
+
+/**
+ * @desc                        Attempt to get all activities for the specified user.
+ * @route                       GET api/v1/settings/activities
+ * @access                      Private.
+ */
+exports.getAllActivities = async (req, res) => {
+    try {
+        const userId = req.user.sub;
+
+        const response =
+            await SettingsServiceInstance.getAllActivities(
+                userId);
+        
+        console.log(response);
+
+        res.json(response);
+    } catch (err) {
+        res.status(500).json(
+            {
+                success: false,
+                errors: [
+                    {
+                        msg: err.message
+                    }
+                ]
+            }
+        );
+    };
+};
