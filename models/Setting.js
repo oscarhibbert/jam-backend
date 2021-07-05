@@ -9,7 +9,7 @@ const SettingSchema = new Schema({
         required: true,
         unique: true
     },
-    tags: [
+    activities: [
         {
             name: {
                 type: String
@@ -20,7 +20,7 @@ const SettingSchema = new Schema({
             }
         }
     ],
-    activities: [
+    tags: [
         {
             name: {
                 type: String

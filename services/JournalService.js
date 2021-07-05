@@ -11,16 +11,37 @@ const journalServiceEvents = new EventEmitter;
  */
 module.exports = class JournalService {
     /**
-     * @desc                             Create a journal entry method.
-     * @param {string}    userID         String containing user ID.
-     * @param {string}    entryMood      String containing journal entry mood.
-     * @param {string}    entryEmotion   String containing journal entry text.
-     * @param {array}     entryTags      Array containing journal entry tags.
-     * @param {string}    entryText      String containing journal entry text.
-     * @return                           Object containing response. If authorisation fails includes authorise: false.
+     * @desc                                 Create a journal entry method.
+     * @param {string}    userId             String containing user ID.
+     * @param {string}    entryMood          String containing journal entry mood.
+     * @param {string}    entryEmotion       String containing journal entry text.
+     * @param {array}     entryActivities    Array containing journal entry activities. Can be null.
+     * @param {array}     entryTags          Array containing journal entry tags. Can be null.
+     * @param {string}    entryText          String containing journal entry text.
+     * @return                               Object containing response.
      */
-    async createEntry(userID, entryMood, entryEmotion, entryTags, entryText) {
+    async createEntry(userId, entryMood, entryEmotion, entryActivities, entryTags, entryText) {
         try {
+            // Check userId parameter exists
+            if (!userId) {
+                throw new Error('Add journal entry failed - userId parameter empty. Must be supplied.');
+            };
+
+            // Check entryMood parameter exists
+            if (!entryMood) {
+                throw new Error('Add journal entry failed - entryMood parameter empty. Must be supplied.');
+            };
+
+            // Check entryEmotion parameter exists
+            if (!entryEmotion) {
+                throw new Error('Add journal entry failed - entryEmotion parameter empty. Must be supplied.');
+            };
+
+            // Check entryText parameter exists
+            if (!entryText) {
+                throw new Error('Add journal entry failed - entryText parameter empty. Must be supplied.');
+            };
+
             // Create response obj
             let response;
             let authorise;
@@ -28,8 +49,8 @@ module.exports = class JournalService {
             let msg;
             let data;
 
-            // Check if user ID exists
-            const check = await User.countDocuments({ auth0UserId: userID });
+            // Check if specified user ID exists in the DB
+            const check = await User.countDocuments({ auth0UserId: userId });
 
             // If user is not found
             if (check !== 1) {
@@ -41,36 +62,41 @@ module.exports = class JournalService {
             // Else, continue
             else {
 
-              // Create newEntry object
-              const newEntry = {};
+                // Create newEntry object
+                const newEntry = {};
 
-              // Add journal details to newEntry object
-              newEntry.user = userID;
-              newEntry.mood = entryMood;
-              newEntry.emotion = entryEmotion;
-              newEntry.tags = entryTags;
-              newEntry.text = entryText;
+                // Add journal details to newEntry object
+                newEntry.user = userId;
+                newEntry.mood = entryMood;
+                newEntry.emotion = entryEmotion;
+                newEntry.activities = entryActivities;
+                newEntry.tags = entryTags;
+                newEntry.text = entryText;
 
-              // Only add tags object if tags present
-              if (entryTags) newEntry.tags = entryTags;
+                // Only add activities object if activities present
+                if (entryActivities) newEntry.activities = entryActivities;
 
-              // Add journal entry to the database
-              let entry = new Entry(newEntry);
-              await entry.save();
+                // Only add tags object if tags present
+                if (entryTags) newEntry.tags = entryTags;
 
-              // Emit journalCreated event
-              journalServiceEvents.emit('journalEntryCreated');
+                // Add journal entry to the database
+                let entry = new Entry(newEntry);
+                await entry.save();
 
-              // Set response
-              success = true;
-              authorise = true;
-              (msg = 'New journal entry created successfully'),
-                (data = {
-                  mood: newEntry.mood,
-                  emotion: newEntry.emotion,
-                  tags: newEntry.tags,
-                  text: newEntry.text,
-                });
+                // Emit journalCreated event
+                journalServiceEvents.emit('journalEntryCreated');
+
+                // Set response
+                success = true;
+                authorise = true;
+                (msg = 'New journal entry created successfully'),
+                    (data = {
+                    mood: newEntry.mood,
+                    emotion: newEntry.emotion,
+                    activities: newEntry.activities,
+                    tags: newEntry.tags,
+                    text: newEntry.text,
+                    });
             };
             
             // Build response
@@ -86,24 +112,33 @@ module.exports = class JournalService {
 
         } catch (err) {
             console.error(err.message);
-            return {
-                success: false,
-                msg: 'Server Error'
-            };
+            throw err;
         };
     };
 
     /**
-     * @desc                         Update a journal entry method.
-     * @param {string} userID        String containing user ID.
-     * @param {string} journalID     String containing journal ID.
-     * @param {string} entryText     String containing journal entry text.
-     * @param {string} entryMood     String containing journal entry mood.
-     * @param {Object[]} entryTags   Array containing journal entry tags.
-     * @return                       Object containing response. If authorisation fails includes authorise: false.
+     * @desc                                   Edit a journal entry method.
+     * @param {string}   userId                String containing user ID.
+     * @param {string}   journalId             String containing journal ID.
+     * @param {string}   entryMood             String containing journal entry mood. Can be null.
+     * @param {string}   entyEmotion           String containing journal entry mood. Can be null.
+     * @param {array}    entryActivities       Array containing journal entry activities. Can be null.
+     * @param {array}    entryTags             Array containing journal entry tags. Can be null.
+     * @param {string}   entryText             String containing journal entry text. Can be null.
+     * @return                                 Object containing response. If authorisation fails includes authorise: false.
      */
-    async updateEntry(userID, journalID, entryText, entryMood, entryTags) {
+    async editEntry(userId, journalId, entryMood, entryEmotion, entryActivities, entryTags, entryText) {
         try {
+            // Check userId parameter exists
+            if (!userId) {
+                throw new Error('Edit journal entry failed - userId parameter empty. Must be supplied.');
+            };
+
+            // Check journalId parameter exists
+            if (!journalId) {
+                throw new Error('Edit journal entry failed - journalId parameter empty. Must be supplied.');
+            };
+
             // Create response obj
             let response;
             let authorise;
@@ -112,12 +147,12 @@ module.exports = class JournalService {
             let data;
 
             // Check if the journal entry exists in the database
-            // Checks against userID, journalID
+            // Checks against userId, journalId
             let check = await Entry.countDocuments(
                 {
                     $and: [
-                        { _id: journalID },
-                        { user: userID }
+                        { _id: journalId },
+                        { user: userId }
                     ]
                 }
             );
@@ -136,9 +171,11 @@ module.exports = class JournalService {
                 const updatedEntry = {};
 
                 // Add objects to newEntry object if found
-                if (entryText) updatedEntry.text = entryText;
                 if (entryMood) updatedEntry.mood = entryMood;
+                if (entryEmotion) updatedEntry.emotion = entryEmotion;
+                if (entryActivities) updatedEntry.activities = entryActivities;
                 if (entryTags) updatedEntry.tags = entryTags;
+                if (entryText) updatedEntry.text = entryText;
 
                 // Populate the dateUpdated field of the journal entry
                 updatedEntry.dateUpdated = Date.now();
@@ -147,8 +184,8 @@ module.exports = class JournalService {
                 await Entry.findOneAndUpdate(
                     {
                         $and: [
-                            { _id: journalID },
-                            { user: userID }
+                            { _id: journalId },
+                            { user: userId }
                         ]
                     },
                     { $set: updatedEntry },
@@ -161,11 +198,13 @@ module.exports = class JournalService {
                 // Set response
                 success = true;
                 authorise = true;
-                msg = `Journal entry successfully updated with ID ${journalID}`;
+                msg = `Journal entry successfully updated with ID ${journalId}`;
                 data = {
-                    text: updatedEntry.text,
                     mood: updatedEntry.mood,
-                    tags: updatedEntry.tags
+                    emotion: updatedEntry.emotion,
+                    activities: updatedEntry.activities,
+                    tags: updatedEntry.tags,
+                    text: updatedEntry.text
                 };
             };
 
@@ -182,21 +221,28 @@ module.exports = class JournalService {
 
         } catch (err) {
             console.error(err.message);
-            return {
-                success: false,
-                msg: 'Server Error'
-            };
+            throw err;
         };
     };
 
     /**
      * @desc                         Delete a journal entry method.
-     * @param {string} userID        String containing user ID.
-     * @param {string} journalID     String containing journal ID.
+     * @param {string} userId        String containing user ID.
+     * @param {string} journalId     String containing journal ID.
      * @return                       Object containing response. If authorisation fails includes authorise: false.
      */
-    async deleteEntry(userID, journalID) {
+    async deleteEntry(userId, journalId) {
         try {
+            // Check userId parameter exists
+            if (!userId) {
+                throw new Error('Delete journal entry failed - userId parameter empty. Must be supplied.');
+            };
+
+            // Check journalId parameter exists
+            if (!journalId) {
+                throw new Error('Delete journal entry failed - journalId parameter empty. Must be supplied.');
+            };
+
             // Create response obj
             let response;
             let authorise;
@@ -204,12 +250,12 @@ module.exports = class JournalService {
             let msg;
 
             // Check if the journal entry exists in the database
-            // Checks against userID, journalID
+            // Checks against userId, journalId
             let check = await Entry.countDocuments(
                 {
                     $and: [
-                        { _id: journalID },
-                        { user: userID }
+                        { _id: journalId },
+                        { user: userId }
                     ]
                 }
             );
@@ -227,8 +273,8 @@ module.exports = class JournalService {
                 await Entry.deleteOne(
                     {
                         $and: [
-                            { _id: journalID },
-                            { user: userID }
+                            { _id: journalId },
+                            { user: userId }
                         ]
                     }
                 );
@@ -239,7 +285,7 @@ module.exports = class JournalService {
                 // Set response
                 success = true;
                 authorise = true;
-                msg = `Journal entry successfully deleted with ID ${journalID}`;
+                msg = `Journal entry successfully deleted with ID ${journalId}`;
             };
 
             // Build response
@@ -254,20 +300,22 @@ module.exports = class JournalService {
             
         } catch (err) {
             console.error(err.message);
-            return {
-                success: false,
-                msg: 'Server Error'
-            };
+            throw err;
         };
     };
 
     /**
      * @desc                         Get all journal entries method.
-     * @param {string} userID        String containing user ID.
+     * @param {string} userId        String containing user ID.
      * @return                       Object containing response. If authorisation fails includes authorise: false.
      */
-    async getAllEntries(userID) {
+    async getAllEntries(userId) {
         try {
+            // Check userId parameter exists
+            if (!userId) {
+                throw new Error('Get all journal entries failed - userId parameter empty. Must be supplied.');
+            };
+
             // Create response obj
             let response;
             let authorise;
@@ -276,7 +324,7 @@ module.exports = class JournalService {
             let data;
 
             // Check if the user exists
-            let check = await User.countDocuments({ _id: userID });
+            let check = await User.countDocuments({ auth0UserId: userId });
 
             // If the user is not found
             if (check !== 1) {
@@ -287,10 +335,10 @@ module.exports = class JournalService {
 
             // Else, continue
             else {
-                // Get all entries in the Entry collection against userID
+                // Get all entries in the Entry collection against userId
                 // Sort by newest first. +1 instead of -1 would be oldest first
                 const entries = await Entry
-                    .find({ user: userID })
+                    .find({ user: userId })
                     .sort({ date: -1, });
                 
                 // Emit journalEntriesFetched event
@@ -316,21 +364,28 @@ module.exports = class JournalService {
 
         } catch (err) {
             console.error(err.message);
-            return {
-                success: false,
-                msg: 'Server Error'
-            };
+            throw err;
         };
     };
 
     /**
      * @desc                         Get single journal entry method.
-     * @param {string} userID        String containing user ID.
-     * @param {string} journalID     String containing journal ID.
+     * @param {string} userId        String containing user ID.
+     * @param {string} journalId     String containing journal ID.
      * @return                       Object containing response. If authorisation fails includes authorise: false.
      */
-    async getEntry(userID, journalID) {
+    async getEntry(userId, journalId) {
         try {
+            // Check userId parameter exists
+            if (!userId) {
+                throw new Error('Get journal entry failed - userId parameter empty. Must be supplied.');
+            };
+
+            // Check journalId parameter exists
+            if (!journalId) {
+                throw new Error('Get journal entry failed - journalId parameter empty. Must be supplied.');
+            };
+
             // Create response obj
             let response;
             let authorise;
@@ -339,12 +394,12 @@ module.exports = class JournalService {
             let data;
 
             // Check if the journal entry exists in the database
-            // Check against userID, journalID
+            // Check against userId, journalId
             let check = await Entry.countDocuments(
                 {
                     $and: [
-                        { _id: journalID },
-                        { user: userID }
+                        { _id: journalId },
+                        { user: userId }
                     ]
                 }
             );
@@ -362,8 +417,8 @@ module.exports = class JournalService {
                 const entry = await Entry.findOne(
                     {
                         $and: [
-                            { _id: journalID },
-                            { user: userID }
+                            { _id: journalId },
+                            { user: userId }
                         ]
                     }
                 );
@@ -391,10 +446,7 @@ module.exports = class JournalService {
 
         } catch (err) {
             console.error(err.message);
-            return {
-                success: false,
-                msg: 'Server Error'
-            };
+            throw err;
         };
     };
 };

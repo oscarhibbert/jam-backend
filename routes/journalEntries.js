@@ -8,14 +8,13 @@ const { authorise } = require('../middleware/authorise');
 const { checkJwt } = require('../middleware/checkJwt');
 
 const {
-    validateEntry,
-    validateUpdateEntry
+    validateEntry
 } = require('../middleware/validators');
 
 // Import controller methods
 const {
     createEntry,
-    updateEntry,
+    editEntry,
     deleteEntry,
     getAllEntries,
     getEntry
@@ -29,28 +28,28 @@ const router = express.Router();
 router.route('/')
     .post(checkJwt, validateEntry, createEntry);
 
-// @desc   Update a journal entry by entry ID
-// @route  PATCH api/v1/entries/id
+// @desc   Edit a journal entry by entry ID
+// @route  PATCH api/v1/entries/:id
 // @access Private
 router.route('/:id')
-    .patch(authorise, validateUpdateEntry, updateEntry);
+    .patch(checkJwt, editEntry);
 
 // @desc   Delete a journal entry by entry ID
 // @route  DELETE api/v1/entries/id
 // @access Private
 router.route('/:id')
-    .delete(authorise, deleteEntry);
+    .delete(checkJwt, deleteEntry);
 
 // @desc   Get all journal entries
 // @route  GET api/v1/entries
 // @access Private
 router.route('/')
-    .get(authorise, getAllEntries);
+    .get(checkJwt, getAllEntries);
 
 // @desc   Get single journal entry by entry ID
 // @route  GET api/v1/entries/id
 // @access Private
 router.route('/:id')
-    .get(authorise, getEntry);
+    .get(checkJwt, getEntry);
 
 module.exports = router;

@@ -12,12 +12,13 @@ exports.createEntry = async (req, res) => {
   console.log(req.user);
   try {
     const userID = req.user.sub;
-    const { mood, emotion, tags, text } = req.body;
+    const { mood, emotion, activities, tags, text } = req.body;
 
     let response = await JournalServiceInstance.createEntry(
       userID,
       mood,
       emotion,
+      activities,
       tags,
       text
     );
@@ -34,6 +35,7 @@ exports.createEntry = async (req, res) => {
     // Remove authorise from response as not needed
     delete response.authorise;
 
+    // Respond
     res.json(response);
   } catch (err) {
     console.error(err.message);
@@ -41,21 +43,23 @@ exports.createEntry = async (req, res) => {
   }
 };
 
-// @desc   Update a journal entry by entry ID
-// @route  PATCH api/v1/entries/id
+// @desc   Edit a journal entry by entry ID
+// @route  PATCH api/v1/entries/:id
 // @access Private
-exports.updateEntry = async (req, res) => {
+exports.editEntry = async (req, res) => {
   try {
-    const userID = req.user.id;
-    const journalID = req.params.id;
-    const { text, mood, tags } = req.body;
+    const userId = req.user.sub;
+    const journalId = req.params.id;
+    const { mood, emotion, activities, tags, text } = req.body;
 
-    let response = await JournalServiceInstance.updateEntry(
-      userID,
-      journalID,
-      text,
+    let response = await JournalServiceInstance.editEntry(
+      userId,
+      journalId,
       mood,
-      tags
+      emotion,
+      activities,
+      tags,
+      text
     );
 
     console.log(response);
@@ -65,11 +69,12 @@ exports.updateEntry = async (req, res) => {
       return res
         .status(401)
         .json({ success: false, msg: 'Authorisation denied' });
-    }
+    };
 
     // Remove authorise from response as not needed
     delete response.authorise;
 
+    // Respond
     res.json(response);
   } catch (err) {
     console.error(err.message);
@@ -82,11 +87,11 @@ exports.updateEntry = async (req, res) => {
 };
 
 // @desc   Delete a journal entry by entry ID
-// @route  DELETE api/v1/entries/id
+// @route  DELETE api/v1/entries/:id
 // @access Private
 exports.deleteEntry = async (req, res) => {
   try {
-    const userID = req.user.id;
+    const userID = req.user.sub;
     const journalID = req.params.id;
 
     let response = await JournalServiceInstance.deleteEntry(userID, journalID);
@@ -103,6 +108,7 @@ exports.deleteEntry = async (req, res) => {
     // Remove authorise from response as not needed
     delete response.authorise;
 
+    // Respond
     res.json(response);
   } catch (err) {
     console.error(err.message);
@@ -115,7 +121,7 @@ exports.deleteEntry = async (req, res) => {
 // @access Private
 exports.getAllEntries = async (req, res) => {
   try {
-    const userID = req.user.id;
+    const userID = req.user.sub;
 
     let response = await JournalServiceInstance.getAllEntries(userID);
 
@@ -131,6 +137,7 @@ exports.getAllEntries = async (req, res) => {
     // Remove authorise from response as not needed
     delete response.authorise;
 
+    // Respond
     res.json(response);
   } catch (err) {
     console.error(err.message);
@@ -139,11 +146,11 @@ exports.getAllEntries = async (req, res) => {
 };
 
 // @desc   Get single journal entry by entry ID
-// @route  GET api/v1/entries/entry/id
+// @route  GET api/v1/entries/entry/:id
 // @access Private
 exports.getEntry = async (req, res) => {
   try {
-    const userID = req.user.id;
+    const userID = req.user.sub;
     const journalID = req.params.id;
 
     let response = await JournalServiceInstance.getEntry(userID, journalID);
@@ -159,7 +166,8 @@ exports.getEntry = async (req, res) => {
 
     // Remove authorise from response as not needed
     delete response.authorise;
-
+    
+    // Respond
     res.json(response);
   } catch (err) {
     console.error(err.message);
