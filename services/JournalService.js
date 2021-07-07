@@ -11,6 +11,30 @@ const journalServiceEvents = new EventEmitter;
  */
 module.exports = class JournalService {
     /**
+     * Represents the AcornService instance constructor.
+     * @constructor
+     */
+    constructor() {
+        /** Sets the only accepted mood types for the JournalService.
+         * As an array of moodType objects.
+         */
+        this.moodTypes = [
+            {
+                moodType: "High Energy, Unpleasant"
+            },
+            {
+                moodType: 'Low Energy, Unpleasant'
+            },
+            {
+                moodType: 'High Energy, Pleasant'
+            },
+            {
+                moodType: 'Low Energy, Pleasant'
+            }
+        ];
+    };
+
+    /**
      * @desc                                 Create a journal entry method.
      * @param {string}    userId             String containing user ID.
      * @param {string}    entryMood          String containing journal entry mood.
@@ -18,9 +42,10 @@ module.exports = class JournalService {
      * @param {array}     entryActivities    Array containing journal entry activities. Can be null.
      * @param {array}     entryTags          Array containing journal entry tags. Can be null.
      * @param {string}    entryText          String containing journal entry text.
+     * @param {string}    linkedEntry        String containing the linkedEntry ID. Only allowed for unpleasant mood type. Can be null.
      * @return                               Object containing response.
      */
-    async createEntry(userId, entryMood, entryEmotion, entryActivities, entryTags, entryText) {
+    async createEntry(userId, entryMood, entryEmotion, entryActivities, entryTags, entryText, linkedEntry) {
         try {
             // Check userId parameter exists
             if (!userId) {
@@ -40,6 +65,23 @@ module.exports = class JournalService {
             // Check entryText parameter exists
             if (!entryText) {
                 throw new Error('Add journal entry failed - entryText parameter empty. Must be supplied.');
+            };
+
+            // If linkedEntry exists and entry mood is pleasant
+            // Throw error
+            if (linkedEntry && entryMood.includes('Pleasant')) {
+                throw new Error('Add journal entry failed - cannot link an entry when current entry mood type is pleasant.');
+            };
+
+            // Fetch the linkedEntry if it's provided - can only be an entry with a pleasant mood
+            if (linkedEntry) {
+                // Fetch the linkedEntry from the DB
+                const fetchLinkedEntry = await Entry.findById(linkedEntry);
+
+                 // If the linkedEntry mood type contains unpleasant throw an error
+                if (fetchLinkedEntry.mood.includes('Unpleasant')) {
+                    throw new Error('Add journal entry failed - cannot link an entry when linked entry mood type is unpleasant.')
+                };
             };
 
             // Create response obj
@@ -69,8 +111,6 @@ module.exports = class JournalService {
                 newEntry.user = userId;
                 newEntry.mood = entryMood;
                 newEntry.emotion = entryEmotion;
-                newEntry.activities = entryActivities;
-                newEntry.tags = entryTags;
                 newEntry.text = entryText;
 
                 // Only add activities object if activities present
@@ -78,6 +118,9 @@ module.exports = class JournalService {
 
                 // Only add tags object if tags present
                 if (entryTags) newEntry.tags = entryTags;
+
+                // Only add linkedEntry if linkedEntry present
+                if (linkedEntry) newEntry.linkedEntry = linkedEntry;
 
                 // Add journal entry to the database
                 let entry = new Entry(newEntry);
@@ -96,6 +139,7 @@ module.exports = class JournalService {
                     activities: newEntry.activities,
                     tags: newEntry.tags,
                     text: newEntry.text,
+                    linkedEntry: newEntry.linkedEntry
                     });
             };
             
@@ -111,7 +155,6 @@ module.exports = class JournalService {
             return response;
 
         } catch (err) {
-            console.error(err.message);
             throw err;
         };
     };
@@ -125,9 +168,10 @@ module.exports = class JournalService {
      * @param {array}    entryActivities       Array containing journal entry activities. Can be null.
      * @param {array}    entryTags             Array containing journal entry tags. Can be null.
      * @param {string}   entryText             String containing journal entry text. Can be null.
+     * @param {string}    linkedEntry        String containing the linkedEntry ID. Only allowed for unpleasant mood type. Can be null.
      * @return                                 Object containing response. If authorisation fails includes authorise: false.
      */
-    async editEntry(userId, journalId, entryMood, entryEmotion, entryActivities, entryTags, entryText) {
+    async editEntry(userId, journalId, entryMood, entryEmotion, entryActivities, entryTags, entryText, linkedEntry) {
         try {
             // Check userId parameter exists
             if (!userId) {
@@ -137,6 +181,26 @@ module.exports = class JournalService {
             // Check journalId parameter exists
             if (!journalId) {
                 throw new Error('Edit journal entry failed - journalId parameter empty. Must be supplied.');
+            };
+
+            // Check the original entry
+            const originalEntry = await Entry.findById(journalId);
+
+            // If linkedEntry exists and entry mood is pleasant
+            // Throw error
+            if (linkedEntry && originalEntry.mood.includes('Pleasant')) {
+                throw new Error('Add journal entry failed - cannot link an entry when current entry mood type is pleasant.');
+            };
+
+            // Fetch the linkedEntry if it's provided - can only be an entry with a pleasant mood
+            if (linkedEntry) {
+                // Fetch the linkedEntry from the DB
+                const fetchLinkedEntry = await Entry.findById(linkedEntry);
+
+                 // If the linkedEntry mood type contains unpleasant throw an error
+                if (fetchLinkedEntry.mood.includes('Unpleasant')) {
+                    throw new Error('Add journal entry failed - cannot link an entry when linked entry mood type is unpleasant.')
+                };
             };
 
             // Create response obj
@@ -176,6 +240,7 @@ module.exports = class JournalService {
                 if (entryActivities) updatedEntry.activities = entryActivities;
                 if (entryTags) updatedEntry.tags = entryTags;
                 if (entryText) updatedEntry.text = entryText;
+                if (linkedEntry) updatedEntry.linkedEntry = linkedEntry;
 
                 // Populate the dateUpdated field of the journal entry
                 updatedEntry.dateUpdated = Date.now();
@@ -204,7 +269,8 @@ module.exports = class JournalService {
                     emotion: updatedEntry.emotion,
                     activities: updatedEntry.activities,
                     tags: updatedEntry.tags,
-                    text: updatedEntry.text
+                    text: updatedEntry.text,
+                    linkedEntry: updatedEntry.linkedEntry
                 };
             };
 
@@ -220,7 +286,6 @@ module.exports = class JournalService {
             return response;
 
         } catch (err) {
-            console.error(err.message);
             throw err;
         };
     };

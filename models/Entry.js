@@ -22,6 +22,10 @@ const EntrySchema = new Schema({
         type: String,
         required: true
     },
+    linkedEntry: {
+        type: mongoose.Schema.Types.String,
+        ref: 'entry'
+    },
     dateUpdated: {
         type: Date
     },

@@ -12,7 +12,7 @@ exports.createEntry = async (req, res) => {
   console.log(req.user);
   try {
     const userID = req.user.sub;
-    const { mood, emotion, activities, tags, text } = req.body;
+    const { mood, emotion, activities, tags, text, linkedEntry } = req.body;
 
     let response = await JournalServiceInstance.createEntry(
       userID,
@@ -20,7 +20,8 @@ exports.createEntry = async (req, res) => {
       emotion,
       activities,
       tags,
-      text
+      text,
+      linkedEntry
     );
 
     console.log(response);
@@ -50,7 +51,7 @@ exports.editEntry = async (req, res) => {
   try {
     const userId = req.user.sub;
     const journalId = req.params.id;
-    const { mood, emotion, activities, tags, text } = req.body;
+    const { mood, emotion, activities, tags, text, linkedEntry } = req.body;
 
     let response = await JournalServiceInstance.editEntry(
       userId,
@@ -59,7 +60,8 @@ exports.editEntry = async (req, res) => {
       emotion,
       activities,
       tags,
-      text
+      text,
+      linkedEntry
     );
 
     console.log(response);
