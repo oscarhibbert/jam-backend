@@ -4,7 +4,6 @@
 const express = require('express');
 
 // Import middleware
-const { authorise } = require('../middleware/authorise');
 const { checkJwt } = require('../middleware/checkJwt');
 
 const {
@@ -17,7 +16,8 @@ const {
     editEntry,
     deleteEntry,
     getAllEntries,
-    getEntry
+    getEntry,
+    getClosestEntry
 } = require('../controllers/journalEntries');
 
 const router = express.Router();
@@ -51,5 +51,11 @@ router.route('/')
 // @access Private
 router.route('/:id')
     .get(checkJwt, getEntry);
+
+// @desc   Get single journal entry by entry ID
+// @route  GET api/v1/entries/closestmatch/:id
+// @access Private
+router.route('/closestmatch/:id')
+    .get(checkJwt, getClosestEntry);
 
 module.exports = router;

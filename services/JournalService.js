@@ -510,7 +510,87 @@ module.exports = class JournalService {
             return response;
 
         } catch (err) {
-            console.error(err.message);
+            throw err;
+        };
+    };
+
+    /**
+     * @desc                                      Get the closest matching journal entry for the specified user to the specified entry.
+     * @param {string} userId                     String containing user ID.
+     * @param {string}  journalId                 String containing journal ID.
+     * @return                                    Returns closest matched journal entry.
+     */
+    async getClosestEntry(userId, journalId) {
+        try {
+            // Check userId parameter exists
+            if (!userId) {
+                throw new Error('Get closest journal entry failed - userId parameter empty. Must be supplied.');
+            };
+
+            // Check journalId parameter exists
+            if (!journalId) {
+                throw new Error('Get closest journal entry failed - journalId parameter empty. Must be supplied.');
+            };
+
+            // Get entry for checking
+            // Check if the journal entry exists in the database
+            // Check against userId, journalId
+            const checkEntry = await Entry.findOne(
+                {
+                    $and: [
+                        { _id: journalId },
+                        { user: userId }
+                    ]
+                }
+            );
+
+            // If journal entry not found
+            if (!checkEntry) {
+                throw new Error('Get closest journal entry failed - journal entry not found.');
+            };
+
+            // Get closestEntry to checkEntry
+            // Mood, emotion, tags activities. Priority high to low
+            // Get the newest match
+            const closestEntry = await Entry.aggregate(
+                [
+                    {
+                        $match: {
+                            $and: [
+                                { "mood": { $eq: checkEntry.mood } },
+                            ],
+                            $or: [
+                                { "emotion": { $eq: checkEntry.emotion } },
+                                { "tags": { $eq: checkEntry.tags } },
+                                { "activities": { $eq: checkEntry.activities } },
+                            ]
+                        }
+                    },
+                    {
+                        $addFields: {
+                            rank: {
+                                $sum: [
+                                    { $cond: [{ $eq: ["$mood", checkEntry.mood] }, 4, 0] },
+                                    { $cond: [{ $eq: ["$emotion", checkEntry.emotion] }, 3, 0] },
+                                    { $cond: [{ $eq: ["$tags", checkEntry.tags] }, 2, 0] },
+                                    { $cond: [{ $eq: ["$activities", checkEntry.tags] }, 1, 0] }
+                                ]
+                            }
+                        }
+                    },
+                    { $match: { rank: { $gt: 0 } } },
+                    { $sort: { rank: -1, datetime: -1 } }
+                ]
+            );
+
+            // If closestEntry doesn't have any results, throw error.
+            if (closestEntry.length === 0) {
+                throw new Error('Get closest journal entry failed - no results found.');
+            }
+
+            return closestEntry;
+
+        } catch (err) {
             throw err;
         };
     };

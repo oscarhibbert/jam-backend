@@ -176,3 +176,24 @@ exports.getEntry = async (req, res) => {
     res.status(500).json({ success: false, msg: 'Server Error' });
   }
 };
+
+// @desc   Get the closest matching journal entry for the specified user to the specified entry
+// @route  GET api/v1/entries/closestmatch/:id
+// @access Private
+exports.getClosestEntry = async (req, res) => {
+  try {
+    const userId = req.user.sub;
+    const journalId = req.params.id;
+
+    let response = await JournalServiceInstance.getClosestEntry(userId, journalId);
+
+    console.log(response);
+    
+    // Respond
+    res.json(response);
+    
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ success: false, msg: 'Server Error' });
+  };
+};
