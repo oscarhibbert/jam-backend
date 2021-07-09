@@ -35,4 +35,7 @@ const EntrySchema = new Schema({
     }
 });
 
+// Create a text index on the entry model field "mood"
+// EntrySchema.index({ mood: "text" });
+
 module.exports = Entry = mongoose.model('entry', EntrySchema);

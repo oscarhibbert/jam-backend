@@ -518,7 +518,7 @@ module.exports = class JournalService {
      * @desc                                      Get the closest matching journal entry for the specified user to the specified entry.
      * @param {string} userId                     String containing user ID.
      * @param {string}  journalId                 String containing journal ID.
-     * @return                                    Returns closest matched journal entry.
+     * @return                                    Returns array with closest matched journal entry. If no match, array will be empty.
      */
     async getClosestEntry(userId, journalId) {
         try {
@@ -554,18 +554,29 @@ module.exports = class JournalService {
             // Get the newest match
             const closestEntry = await Entry.aggregate(
                 [
+                    // Pipeline stage 1
+                    // Get records from the Entry model
+                    // That have the same mood as checkEntry
                     {
                         $match: {
+                            // $text: {
+                            //     $search: "unpleasant"
+                            // }
                             $and: [
                                 { "mood": { $eq: checkEntry.mood } },
                             ],
-                            $or: [
-                                { "emotion": { $eq: checkEntry.emotion } },
-                                { "tags": { $eq: checkEntry.tags } },
-                                { "activities": { $eq: checkEntry.activities } },
-                            ]
+                            // $or: [
+                            //     { "emotion": { $eq: checkEntry.emotion } },
+                            //     { "tags": { $eq: checkEntry.tags } },
+                            //     { "activities": { $eq: checkEntry.activities } },
+                            // ]
                         }
                     },
+
+                    // Pipeline stage 2
+                    // Add field to each record named rank
+                    // Where the the current record and checkEntry field are equal
+                    // Add to the rank for the current record
                     {
                         $addFields: {
                             rank: {
@@ -578,15 +589,29 @@ module.exports = class JournalService {
                             }
                         }
                     },
+
+                    // Pipeline stage 3
+                    // Match all records in the pipeline that have a rank greater than 0
                     { $match: { rank: { $gt: 0 } } },
-                    { $sort: { rank: -1, datetime: -1 } }
+
+                    // Pipeline stage 4
+                    // Match all records that don't have the same ID as checkEntry.id
+                    { $match: { _id: { $ne: checkEntry._id } } },
+
+                    // Pipeline stage 5
+                    // Sort the records highest to lowest rank and newest to oldest
+                    { $sort: { rank: -1, dateCreated: -1 } },
+
+                    // Pipeline stage 6
+                    // Return only the first record
+                    { $limit: 1 }
                 ]
             );
 
-            // If closestEntry doesn't have any results, throw error.
-            if (closestEntry.length === 0) {
-                throw new Error('Get closest journal entry failed - no results found.');
-            }
+            // // If closestEntry doesn't have any results, throw error.
+            // if (closestEntry.length === 0) {
+            //     throw new Error('Get closest journal entry failed - no results found.');
+            // }
 
             return closestEntry;
 
