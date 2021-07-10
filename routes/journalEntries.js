@@ -17,6 +17,7 @@ const {
     deleteEntry,
     getAllEntries,
     getEntry,
+    getMostRecentEntry,
     getClosestEntry
 } = require('../controllers/journalEntries');
 
@@ -51,6 +52,12 @@ router.route('/')
 // @access Private
 router.route('/:id')
     .get(checkJwt, getEntry);
+
+// @desc   Get the most recent entry for the specified user
+// @route  GET api/v1/entries/fetch/newest
+// @access Private
+router.route('/fetch/newest')
+    .get(checkJwt, getMostRecentEntry);
 
 // @desc   Get single journal entry by entry ID
 // @route  GET api/v1/entries/closestmatch/:id

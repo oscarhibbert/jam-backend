@@ -515,6 +515,31 @@ module.exports = class JournalService {
     };
 
     /**
+     * @desc                         Get the most recent journal entry for the specified user.
+     * @param {string}     userId    String containing user ID.
+     * @return                       Returns array with the most recent journal entry. If no entries, will be an empty array.
+     */
+    async getMostRecentEntry(userId) {
+        try {
+            // Check userId parameter exists
+            if (!userId) {
+                throw new Error('Get most recent journal entry failed - userId parameter empty. Must be supplied.');
+            };
+
+            // Get most recent journal entry
+            const mostRecentEntry = await Entry
+                .find({ user: userId })
+                .limit(1)
+                .sort({ dateCreated: -1 });
+
+            return mostRecentEntry;
+
+        } catch (err) {
+            throw err;
+        };
+    };
+
+    /**
      * @desc                                      Get the closest matching journal entry for the specified user to the specified entry.
      * @param {string} userId                     String containing user ID.
      * @param {string}  journalId                 String containing journal ID.

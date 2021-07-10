@@ -177,6 +177,26 @@ exports.getEntry = async (req, res) => {
   }
 };
 
+// @desc   Get the most recent entry for the specified user
+// @route  GET api/v1/entries/fetch/newest
+// @access Private
+exports.getMostRecentEntry = async (req, res) => {
+  try {
+    const userId = req.user.sub;
+
+    let response = await JournalServiceInstance.getMostRecentEntry(userId);
+
+    console.log(response);
+    
+    // Respond
+    res.json(response);
+    
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ success: false, msg: 'Server Error' });
+  };
+};
+
 // @desc   Get the closest matching journal entry for the specified user to the specified entry
 // @route  GET api/v1/entries/closestmatch/:id
 // @access Private
