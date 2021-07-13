@@ -114,7 +114,7 @@ module.exports = class JournalService {
                 // Add journal entry to the database
                 let entry = new Entry(newEntry);
                 await entry.save();
-
+                
                 // Emit journalCreated event
                 journalServiceEvents.emit('journalEntryCreated');
 
@@ -123,6 +123,7 @@ module.exports = class JournalService {
                 authorise = true;
                 (msg = 'New journal entry created successfully'),
                     (data = {
+                    _id: entry._id,
                     mood: newEntry.mood,
                     emotion: newEntry.emotion,
                     activities: newEntry.activities,
@@ -171,6 +172,12 @@ module.exports = class JournalService {
             if (!journalId) {
                 throw new Error('Edit journal entry failed - journalId parameter empty. Must be supplied.');
             };
+
+            // If linkedEntry exists and entryMood does not exists
+            // Throw error
+            if (linkedEntry && !entryMood) {
+                throw new Error('Add journal entry failed - cannot link an entry when current entry mood type parameter is empty.');
+            }
 
             // If linkedEntry parameter exists and entry mood parameter is pleasant
             // Throw error
