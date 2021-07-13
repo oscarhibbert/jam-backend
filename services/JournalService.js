@@ -571,6 +571,7 @@ module.exports = class JournalService {
                             // }
                             $and: [
                                 { "mood": { $eq: checkEntry.mood } },
+                                { "linkedEntry": { $exists: true } }
                             ],
                             // $or: [
                             //     { "emotion": { $eq: checkEntry.emotion } },
