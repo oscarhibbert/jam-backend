@@ -42,7 +42,7 @@ module.exports = class JournalService {
      * @param {array}     entryActivities    Array containing journal entry activities. Can be null.
      * @param {array}     entryTags          Array containing journal entry tags. Can be null.
      * @param {string}    entryText          String containing journal entry text.
-     * @param {string}    linkedEntry        String containing the linkedEntry ID. Only allowed for pleasant mood type. Can be null.
+     * @param {string}    linkedEntry        String containing the linkedEntry ID. Only allowed for unpleasant mood type. Can be null.
      * @return                               Object containing response.
      */
     async createEntry(userId, entryMood, entryEmotion, entryActivities, entryTags, entryText, linkedEntry) {
@@ -69,8 +69,8 @@ module.exports = class JournalService {
 
             // If linkedEntry parameter exists and entry mood parameter is unpleasant
             // Throw error
-            if (linkedEntry && entryMood.includes('Unpleasant')) {
-                throw new Error('Add journal entry failed - cannot link an entry when current entry mood type is unpleasant.');
+            if (linkedEntry && entryMood.includes('Pleasant')) {
+                throw new Error('Add journal entry failed - cannot link an entry when current entry mood type is pleasant.');
             };
 
             // Create response obj
@@ -157,7 +157,7 @@ module.exports = class JournalService {
      * @param {array}    entryActivities       Array containing journal entry activities. Can be null.
      * @param {array}    entryTags             Array containing journal entry tags. Can be null.
      * @param {string}   entryText             String containing journal entry text. Can be null.
-     * @param {string}   linkedEntry        String containing the linkedEntry ID. Only allowed for unpleasant mood type. Can be null.
+     * @param {string}   linkedEntry           String containing the linkedEntry ID. Only allowed for unpleasant mood type. Can be null.
      * @return                                 Object containing response. If authorisation fails includes authorise: false.
      */
     async editEntry(userId, journalId, entryMood, entryEmotion, entryActivities, entryTags, entryText, linkedEntry) {
@@ -172,10 +172,10 @@ module.exports = class JournalService {
                 throw new Error('Edit journal entry failed - journalId parameter empty. Must be supplied.');
             };
 
-            // If linkedEntry parameter exists and entry mood parameter is unpleasant
+            // If linkedEntry parameter exists and entry mood parameter is pleasant
             // Throw error
-            if (linkedEntry && entryMood.includes('Unpleasant')) {
-                throw new Error('Add journal entry failed - cannot link an entry when current entry mood type is unpleasant.');
+            if (linkedEntry && entryMood.includes('Pleasant')) {
+                throw new Error('Add journal entry failed - cannot link an entry when current entry mood type is pleasant.');
             };
 
             // Create response obj
