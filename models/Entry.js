@@ -16,8 +16,8 @@ const EntrySchema = new Schema({
         type: String,
         required: true
     },
-    activities: [],
-    tags: [],    
+    tags: [],
+    activities: [],    
     text: {
         type: String,
         required: true

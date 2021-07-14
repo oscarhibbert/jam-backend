@@ -14,7 +14,7 @@ module.exports = class SettingsService {
         /** Set allowed tag types. */
         this.tagTypes = ["General Activity", "Soothing Activity"];
         /** Set allowed activity types. */
-        this.activityTypes = ["Soothing"];
+        this.activityTypes = ["Coping"];
     };
     /**
        * @desc                                  Attempt to get the settings object for the specified user.
@@ -524,7 +524,7 @@ module.exports = class SettingsService {
     /**
        * @desc                                                                        Attempt to add activities to the user's settings.
        * @param  {string}                                              userId         String containing the UserId.
-       * @param  {[{"name":"Example Name","type":"Soothing"}]}         activities     Array containing activities as objects.
+       * @param  {[{"name":"Example Name","type":"Coping"}]}           activities     Array containing activities as objects.
        * @return                                                                      Object with success boolean.
        */
     async addActivities(userId, activities) {

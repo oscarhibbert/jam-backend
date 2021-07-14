@@ -39,13 +39,13 @@ module.exports = class JournalService {
      * @param {string}    userId             String containing user ID.
      * @param {string}    entryMood          String containing journal entry mood.
      * @param {string}    entryEmotion       String containing journal entry text.
-     * @param {array}     entryActivities    Array containing journal entry activities. Can be null.
      * @param {array}     entryTags          Array containing journal entry tags. Can be null.
+     * @param {array}     entryActivities    Array containing journal entry activities. Can be null.
      * @param {string}    entryText          String containing journal entry text.
      * @param {string}    linkedEntry        String containing the linkedEntry ID. Only allowed for unpleasant mood type. Can be null.
      * @return                               Object containing response.
      */
-    async createEntry(userId, entryMood, entryEmotion, entryActivities, entryTags, entryText, linkedEntry) {
+    async createEntry(userId, entryMood, entryEmotion, entryTags, entryActivities, entryText, linkedEntry) {
         try {
             // Check userId parameter exists
             if (!userId) {
@@ -100,13 +100,15 @@ module.exports = class JournalService {
                 newEntry.user = userId;
                 newEntry.mood = entryMood;
                 newEntry.emotion = entryEmotion;
-                newEntry.text = entryText;
+
+                // Only add tags object if tags present
+                if (entryTags) newEntry.tags = entryTags;
 
                 // Only add activities object if activities present
                 if (entryActivities) newEntry.activities = entryActivities;
 
-                // Only add tags object if tags present
-                if (entryTags) newEntry.tags = entryTags;
+                // Add journal details to newEntry object
+                newEntry.text = entryText;
 
                 // Only add linkedEntry if linkedEntry present
                 if (linkedEntry) newEntry.linkedEntry = linkedEntry;
@@ -126,8 +128,8 @@ module.exports = class JournalService {
                     _id: entry._id,
                     mood: newEntry.mood,
                     emotion: newEntry.emotion,
-                    activities: newEntry.activities,
                     tags: newEntry.tags,
+                    activities: newEntry.activities,
                     text: newEntry.text,
                     linkedEntry: newEntry.linkedEntry
                     });
@@ -155,13 +157,13 @@ module.exports = class JournalService {
      * @param {string}   journalId             String containing journal ID.
      * @param {string}   entryMood             String containing journal entry mood. Can be null.
      * @param {string}   entyEmotion           String containing journal entry mood. Can be null.
-     * @param {array}    entryActivities       Array containing journal entry activities. Can be null.
      * @param {array}    entryTags             Array containing journal entry tags. Can be null.
+     * @param {array}    entryActivities       Array containing journal entry activities. Can be null.
      * @param {string}   entryText             String containing journal entry text. Can be null.
      * @param {string}   linkedEntry           String containing the linkedEntry ID. Only allowed for unpleasant mood type. Can be null.
      * @return                                 Object containing response. If authorisation fails includes authorise: false.
      */
-    async editEntry(userId, journalId, entryMood, entryEmotion, entryActivities, entryTags, entryText, linkedEntry) {
+    async editEntry(userId, journalId, entryMood, entryEmotion, entryTags, entryActivities, entryText, linkedEntry) {
         try {
             // Check userId parameter exists
             if (!userId) {
@@ -219,8 +221,8 @@ module.exports = class JournalService {
                 // Add objects to newEntry object if found
                 if (entryMood) updatedEntry.mood = entryMood;
                 if (entryEmotion) updatedEntry.emotion = entryEmotion;
-                if (entryActivities) updatedEntry.activities = entryActivities;
                 if (entryTags) updatedEntry.tags = entryTags;
+                if (entryActivities) updatedEntry.activities = entryActivities;
                 if (entryText) updatedEntry.text = entryText;
                 if (linkedEntry) updatedEntry.linkedEntry = linkedEntry;
 
@@ -249,8 +251,8 @@ module.exports = class JournalService {
                 data = {
                     mood: updatedEntry.mood,
                     emotion: updatedEntry.emotion,
-                    activities: updatedEntry.activities,
                     tags: updatedEntry.tags,
+                    activities: updatedEntry.activities,
                     text: updatedEntry.text,
                     linkedEntry: updatedEntry.linkedEntry
                 };
