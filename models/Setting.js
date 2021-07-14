@@ -9,7 +9,7 @@ const SettingSchema = new Schema({
         required: true,
         unique: true
     },
-    tags: [
+    categories: [
         {
             name: {
                 type: String

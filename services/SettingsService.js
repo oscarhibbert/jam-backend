@@ -11,8 +11,8 @@ module.exports = class SettingsService {
      * @constructor
      */
     constructor() {
-        /** Set allowed tag types. */
-        this.tagTypes = ["General Activity", "Soothing Activity"];
+        /** Set allowed category types. */
+        this.categoryTypes = ["General"];
         /** Set allowed activity types. */
         this.activityTypes = ["Coping"];
     };
@@ -133,21 +133,21 @@ module.exports = class SettingsService {
     };
 
     /**
-       * @desc                                                                  Attempt to add tags to the user's settings.
-       * @param  {string}                                              userId   String containing the UserId.
-       * @param  {[{"name":"Example Name","type":"General Activity"}]} tags     Array containing tags as objects.
-       * @return                                                                Object with success boolean.
+       * @desc                                                                        Attempt to add categories to the user's settings.
+       * @param  {string}                                              userId         String containing the UserId.
+       * @param  {[{"name":"Example Name","type":"General"}]}          categories     Array containing categories as objects.
+       * @return                                                                      Object with success boolean.
        */
-    async addTags(userId, tags) {
+    async addCategories(userId, categories) {
         try {
             // Check userId parameter exists
             if (!userId) {
-                throw new Error('Add tags failed - userId parameter empty. Must be supplied.')
+                throw new Error('Add categories failed - userId parameter empty. Must be supplied.')
             };
 
-            // Check tags parameter exists
-            if (!tags) {
-                throw new Error('Add tags failed - tags parameter empty. Must be supplied.');
+            // Check categories parameter exists
+            if (!categories) {
+                throw new Error('Add categories failed - categories parameter empty. Must be supplied.');
             };
 
             // Check the settings object exists for this user
@@ -155,53 +155,53 @@ module.exports = class SettingsService {
 
             // If settings object for user not found throw error
             if (!settings) {
-                throw new Error('Add tags failed - settings object for user not found.')
+                throw new Error('Add categories failed - settings object for user not found.')
             };
 
             // Else, continue
-            // Get existing tags
-            const existingTags = settings.tags;
+            // Get existing categories
+            const existingCategories = settings.categories;
 
-            // Get new tags array and put them into newTags variable
-            const newTags = tags;
+            // Get new categories array and put them into the newCategories variable
+            const newCategories = categories;
                 
-            /* Check newTags array of tag objects for errors */
-            for (const newTag of newTags) {
+            /* Check newCategories array of category objects for errors */
+            for (const newCategory of newCategories) {
                 
-                // Check tag name exists
-                if (!newTag.name) {
-                    throw new Error(`Add tags failed - tag missing name. Must be supplied.`);
+                // Check category name exists
+                if (!newCategory.name) {
+                    throw new Error(`Add categories failed - category missing name. Must be supplied.`);
                 };
 
-                // Check tag type exists
-                if (!newTag.type) {
-                    throw new Error(`Add tags failed - tag '${newTag.name}' missing type. Must be supplied.`);
+                // Check category type exists
+                if (!newCategory.type) {
+                    throw new Error(`Add categories failed - category '${newCategory.name}' missing type. Must be supplied.`);
                 };
 
-                // Check activity type for newTag is valid
-                /* Check newTag.type is correct activity. If tagTypes
-                    does not include newTag.type, throw error. */
-                if (!this.tagTypes.includes(newTag.type)) {
-                    throw new Error(`Add tags failed - type '${newTag.type}' for tag '${newTag.name}' is invalid.`);
+                // Check activity type for newCategory is valid
+                /* Check newCategory.type is correct activity. If categoryTypes
+                    does not include newCategory.type, throw error. */
+                if (!this.categoryTypes.includes(newCategory.type)) {
+                    throw new Error(`Add categories failed - type '${newCategory.type}' for category '${newCategory.name}' is invalid.`);
                 };
                 continue;
             };
 
-            // Check newTag names for duplicate against existing tags
-            for (const existingTag of existingTags) {
-                for (const newTag of newTags) {
-                    if (existingTag.name === newTag.name) {
-                        throw new Error(`Add tags failed - tag name '${newTag.name}' is already in use. Check value for key 'name'.`);
+            // Check newCategory names for duplicate against existing categories
+            for (const existingCategory of existingCategories) {
+                for (const newCategory of newCategories) {
+                    if (existingCategory.name === newCategory.name) {
+                        throw new Error(`Add categories failed - category name '${newCategory.name}' is already in use. Check value for key 'name'.`);
                     };
                     continue;
                 };
                 continue;
             };
             
-            // Add newTags into the tags array in the user's settings object
+            // Add newCategories into the categories array in the user's settings object
             await Setting.findOneAndUpdate(
                 { user: userId },
-                { $push: { tags: newTags } }
+                { $push: { categories: newCategories } }
             );
 
             // Return response
@@ -214,28 +214,28 @@ module.exports = class SettingsService {
     };
 
     /**
-       * @desc                                  Attempt to edit tag.
-       * @param  {string}    userId             String containing the UserId.
-       * @param  {string}    tagId              String containing the tagId to be updated.
-       * @param  {string}    tagName            String containing the new tagName. Can be null.
-       * @param  {string}    tagType            String containing the new tagType. Can be null.
-       * @return                                Object with success boolean.
+       * @desc                                       Attempt to edit category.
+       * @param  {string}    userId                  String containing the UserId.
+       * @param  {string}    categoryId              String containing the categoryId to be updated.
+       * @param  {string}    categoryName            String containing the new categoryName. Can be null.
+       * @param  {string}    categoryType            String containing the new categoryType. Can be null.
+       * @return                                     Object with success boolean.
        */
-    async editTag(userId, tagId, tagName, tagType) {
+    async editCategory(userId, categoryId, categoryName, categoryType) {
         try {
             // Check userId parameter exists
             if (!userId) {
-                throw new Error('Edit tag failed - userId parameter empty. Must be supplied.')
+                throw new Error('Edit category failed - userId parameter empty. Must be supplied.')
             };
 
-            // Check tagId parameter exists
-            if (!tagId) {
-                throw new Error('Edit tag failed - tagId parameter empty. Must be supplied.')
+            // Check categoryId parameter exists
+            if (!categoryId) {
+                throw new Error('Edit category failed - categoryId parameter empty. Must be supplied.')
             };
 
-            // If at least tagName or tagType parameter is not provided
-            if (!tagName && !tagType) {
-                throw new Error('Edit tag failed - tagName & tagType empty. At least one must be supplied.');
+            // If at least categoryName or categoryType parameter is not provided
+            if (!categoryName || !categoryType) {
+                throw new Error('Edit category failed - categoryName & categoryType empty. At least one must be supplied.');
             };
 
             // Check the settings object exists for this user
@@ -243,33 +243,33 @@ module.exports = class SettingsService {
 
             // If settings object for user not found throw error
             if (!settings) {
-                throw new Error('Edit tag failed - settings object for user not found.')
+                throw new Error('Edit category failed - settings object for user not found.');
             }
 
-            // Set existing tags
-            const existingTags = settings.tags;
+            // Set existing categories
+            const existingCategories = settings.categories;
 
-            // Prepare original tag object
-            const originalTag = {};
+            // Prepare original category object
+            const originalCategory = {};
 
             // Else, continue
 
-            /* Loop through each existing tag in settings and check the
-            specified tag exists. Then set originalTag info. 
+            /* Loop through each existing category in settings and check the
+            specified category exists. Then set originalCategory info. 
             If it doesn't match, throw error.
             */
-            let tagFound = false;
+            let categoryFound = false;
 
             // Check for match
-            for (const existingTag of existingTags) {
-                if (existingTag.id === tagId) {
-                    // Set tag found to true
-                    tagFound = true;
+            for (const existingCategory of existingCategories) {
+                if (existingCategory.id === categoryId) {
+                    // Set category found to true
+                    categoryFound = true;
 
-                    // Set original tag object
-                    originalTag.id = existingTag.id;
-                    originalTag.name = existingTag.name;
-                    originalTag.type = existingTag.type;
+                    // Set original category object
+                    originalCategory.id = existingCategory.id;
+                    originalCategory.name = existingCategory.name;
+                    originalCategory.type = existingCategory.type;
 
                     break;
                 };
@@ -277,24 +277,24 @@ module.exports = class SettingsService {
             }
 
             // If not found, throw error
-            if (tagFound === false) {
-                throw new Error('Edit tag failed - existing tag not found. Check tagId parameter.');
+            if (categoryFound === false) {
+                throw new Error('Edit category failed - existing category not found. Check categoryId parameter.');
             };
                 
-            /* Check the new tag name is not the same as any of the other tags 
+            /* Check the new category name is not the same as any of the other categories 
             except it's own name - that is ok. Otherwise, throw error.
             */
-            // For each existing tag
-            for (const existingTag of existingTags) {
-                // If the existing tag name is equal to the new tag name
-                if (existingTag.name === tagName) {
-                    // If existing tag name and new tag name match, continue (this is ok)
-                    if (existingTag.id === tagId) {
+            // For each existing category
+            for (const existingCategory of existingCategories) {
+                // If the existing category name is equal to the new category name
+                if (existingCategory.name === categoryName) {
+                    // If existing category name and new category name match, continue (this is ok)
+                    if (existingCategory.id === categoryId) {
                         break;
                     }
                     // Else, as they do not have the same ID throw error as duplicate cannot be created
                     else {
-                        throw new Error(`Edit tag failed - tag name '${tagName}' already in use. Check tagName parameter.`);
+                        throw new Error(`Edit category failed - category name '${categoryName}' already in use. Check categoryName parameter.`);
                     };
                 };
 
@@ -302,30 +302,30 @@ module.exports = class SettingsService {
                 continue;
             };
 
-            /* Check tagType is correct activity. If tagType exists
-            and tagTypes does not include tagType, throw error. */
-            if (tagType && !this.tagTypes.includes(tagType)) {
-                throw new Error(`Edit tag failed - tag type '${tagType}' invalid. Check tagType parameter.`);
+            /* Check categoryType is correct activity. If categoryType exists
+            and categoryTypes does not include categoryType, throw error. */
+            if (categoryType && !this.categoryTypes.includes(categoryType)) {
+                throw new Error(`Edit category failed - category type '${categoryType}' invalid. Check categoryType parameter.`);
             };
 
             // Else, continue
 
-            // Set updatedTag object
-            const updatedTag = {};
+            // Set updatedCategory object
+            const updatedCategory = {};
 
-            // Create updatedTag object
+            // Create updatedCategory object
             // Set the _id otherwise it will be overwritten with null by Mongoose b/c of $set. Same with other fields.
-            updatedTag._id = originalTag.id;
-            // If tagName param is provided, set it into object. Else, keep existingTag.name.
-            if (tagName) updatedTag.name = tagName; else { updatedTag.name = originalTag.name };
-            // If tagType param is provided, set it into object. Else, keep the existingTag.type.
-            if (tagType) updatedTag.type = tagType; else { updatedTag.type = originalTag.type };
+            updatedCategory._id = originalCategory.id;
+            // If categoryName param is provided, set it into object. Else, keep existingCategory.name.
+            if (categoryName) updatedCategory.name = categoryName; else { updatedCategory.name = originalCategory.name };
+            // If categoryType param is provided, set it into object. Else, keep the existingCategory.type.
+            if (categoryType) updatedCategory.type = categoryType; else { updatedCategory.type = originalCategory.type };
          
-            // Add newTags into the tags array in the user's settings object
+            // Add updatedCategory into the categories array overwriting the original in the user's settings object
             await Setting.findOneAndUpdate(
                 { user: userId },
-                { $set: { "tags.$[el]": updatedTag } },
-                { arrayFilters: [{ "el._id": tagId }] }
+                { $set: { "categories.$[el]": updatedCategory } },
+                { arrayFilters: [{ "el._id": categoryId }] }
             );
 
             // Return response
@@ -338,37 +338,37 @@ module.exports = class SettingsService {
     };
 
     /**
-       * @desc                                  Attempt to delete tags.
-       * @param  {string}             userId    String containing the UserId.
-       * @param  {[{id:"123456"}]}    tags      Array of tag objects to be deleted. Each object must include _id.
-       * @return                                Object with success boolean.
+       * @desc                                        Attempt to delete categories.
+       * @param  {string}             userId          String containing the UserId.
+       * @param  {[{id:"123456"}]}    categories      Array of category objects to be deleted. Each object must include _id.
+       * @return                                      Object with success boolean.
        */
-    async deleteTags(userId, tags) {
+    async deleteCategories(userId, categories) {
         try {
             // Check userId parameter exists
             if (!userId) {
-                throw new Error('Delete tags failed - userId parameter empty. Must be supplied.');
+                throw new Error('Delete categories failed - userId parameter empty. Must be supplied.');
             };
 
-            // Check tags parameter exists
-            if (!tags) {
-                throw new Error('Delete tags failed - tags parameter empty. Must be supplied.');
+            // Check categories parameter exists
+            if (!categories) {
+                throw new Error('Delete categories failed - categories parameter empty. Must be supplied.');
             };
 
             // Set idsForDeletion array
             const idsForDeletion = [];
 
-            // Check all tags supplied include the key _id, add _id to array
-            for (const tag of tags) {
-                // Check _id key for tag exists
-                if (!tag.id) {
-                    throw new Error(`Delete tags failed - a tag object is missing required key 'id'.`);
+            // Check all categories supplied include the key _id, add _id to array
+            for (const category of categories) {
+                // Check _id key for category exists
+                if (!category.id) {
+                    throw new Error(`Delete categories failed - a category object is missing required key 'id'.`);
                 };
 
                 // Else
 
                 // Add id to idsForDeletion array
-                idsForDeletion.push(tag.id);
+                idsForDeletion.push(category.id);
 
                 continue;
             };
@@ -378,35 +378,35 @@ module.exports = class SettingsService {
 
             // If settings object for user not found throw error
             if (!settings) {
-                throw new Error('Delete tags failed - settings object for user not found.');
+                throw new Error('Delete categories failed - settings object for user not found.');
             };
 
-            // Get tags from settings
-            const getTags = settings.tags;
+            // Get categories from settings
+            const getCategories = settings.categories;
 
-            // Set existingTags array
-            const existingTags = [];
+            // Set existingCategories array
+            const existingCategories = [];
 
             // Have to create this array b/c _id has to be converted to a string
-            for (const tag of getTags) {
-                existingTags.push(tag.id);
+            for (const category of getCategories) {
+                existingCategories.push(category.id);
             };
 
             // If ID in parameter does not exist, throw error
             for (const id of idsForDeletion) {
-                // If ID is not included in existingTags, throw error
-                if (!existingTags.includes(id)) {
-                    throw new Error(`Delete tags failed - tag with ID '${id}' does not exist.`);
+                // If ID is not included in existingCategories, throw error
+                if (!existingCategories.includes(id)) {
+                    throw new Error(`Delete categories failed - category with ID '${id}' does not exist.`);
                 };
 
                 // Else, continue
                 continue;
             };
 
-            // Delete tag objects from the user's tag array in the settings object
+            // Delete category objects from the user's category array in the settings object
             await Setting.updateOne(
                 { user: userId },
-                { $pull: { tags: { _id: idsForDeletion } } }
+                { $pull: { categories: { _id: idsForDeletion } } }
             );
 
             return { success: true };
@@ -418,15 +418,15 @@ module.exports = class SettingsService {
     };
 
     /**
-       * @desc                                  Attempt to get all tags for specified user.
+       * @desc                                  Attempt to get all categories for specified user.
        * @param      {string}        userId     String containing the UserId.
-       * @return                                Object with success boolean and key called data with array of tags.
+       * @return                                Object with success boolean and key called data with array of categories.
        */
-    async getAllTags(userId) {
+    async getAllCategories(userId) {
         try {
             // Check userId parameter exists
             if (!userId) {
-                throw new Error('Get all tags failed - userId parameter empty. Must be supplied.');
+                throw new Error('Get all categories failed - userId parameter empty. Must be supplied.');
             };
 
             // Check the settings object exists for this user
@@ -436,17 +436,17 @@ module.exports = class SettingsService {
 
             // If settings object for user not found throw error
             if (!settings) {
-                throw new Error('Get all tags failed - settings object for user not found.');
+                throw new Error('Get all categories failed - settings object for user not found.');
             };
 
-            // Get tags
-            const tags = settings.tags.toObject();
+            // Get categories
+            const categories = settings.categories.toObject();
 
             // Return success and data
-            console.log(tags);
+            console.log(categories);
             return {
                 success: true,
-                data: tags
+                data: categories
             };
 
         } catch (err) {
@@ -456,21 +456,21 @@ module.exports = class SettingsService {
     };
 
     /**
-       * @desc                                  Attempt to check whether tag is in use.
-       * @param  {string}             userId    String containing the userId.
-       * @param  {string}             tagId     tagId to be checked as a string.
-       * @return                                Object with success boolean and exists boolean.
+       * @desc                                       Attempt to check whether category is in use.
+       * @param  {string}             userId         String containing the userId.
+       * @param  {string}             categoryId     categoryId to be checked as a string.
+       * @return                                     Object with success boolean and exists boolean.
     */
-    async checkTagInUse(userId, tagId) {
+    async checkCategoryInUse(userId, categoryId) {
         try {
             // Check userId parameter exists
             if (!userId) {
-                throw new Error('Check tag in use failed - userId parameter empty. Must be supplied.')
+                throw new Error('Check category in use failed - userId parameter empty. Must be supplied.')
             };
 
-            // Check tagId parameter exists
-            if (!tagId) {
-                throw new Error('Check tag in use failed - tagId parameter empty. Must be supplied.')
+            // Check categoryId parameter exists
+            if (!categoryId) {
+                throw new Error('Check category in use failed - categoryId parameter empty. Must be supplied.')
             };
 
             // Check the settings object exists for this user
@@ -478,23 +478,23 @@ module.exports = class SettingsService {
 
             // If settings object for user not found throw error
             if (!settings) {
-                throw new Error('Check tag in use failed - settings object for user not found.')
+                throw new Error('Check category in use failed - settings object for user not found.')
             };
 
-            // Try to get the specified tag from the user's settings
-            const tag = settings.tags.find(tag => tag.id === tagId);
+            // Try to get the specified category from the user's settings
+            const category = settings.categories.find(category => category.id === categoryId);
             
-            // If the specified tag does not exists throw error
-            if (!tag) {
-                throw new Error('Check tag in use failed - tag does not exist.');
+            // If the specified category does not exists throw error
+            if (!category) {
+                throw new Error('Check category in use failed - category does not exist.');
             };
 
-            // Count how many journal entries use this tag
-            const checkTag = await Entry.countDocuments(
+            // Count how many journal entries use this category
+            const checkCategory = await Entry.countDocuments(
                 {
-                    tags: {
+                    categories: {
                         $elemMatch: {
-                            _id: tag.id
+                            _id: category.id
                         }
                     }
                 }
@@ -503,11 +503,11 @@ module.exports = class SettingsService {
             // Set exists variable
             let inUse;
 
-            // If check tag exists set exists to true
-            if (checkTag > 0) inUse = true;
+            // If check category exists set exists to true
+            if (checkCategory > 0) inUse = true;
 
-            // if check tag does not exist set exists to false
-            if (checkTag === 0) inUse = false;
+            // if check category does not exist set exists to false
+            if (checkCategory === 0) inUse = false;
 
             // Return response
             return {
@@ -534,7 +534,7 @@ module.exports = class SettingsService {
                 throw new Error('Add activities failed - userId parameter empty. Must be supplied.')
             };
 
-            // Check tags parameter exists
+            // Check activities parameter exists
             if (!activities) {
                 throw new Error('Add activities failed - activities parameter empty. Must be supplied.');
             };
@@ -576,7 +576,7 @@ module.exports = class SettingsService {
                 continue;
             };
 
-            // Check newActivity names for duplicate against existing tags
+            // Check newActivity names for duplicate against existing categories
             for (const existingActivity of existingActivities) {
                 for (const newActivity of newActivities) {
                     if (existingActivity.name === newActivity.name) {
@@ -809,7 +809,7 @@ module.exports = class SettingsService {
     /**
        * @desc                                  Attempt to get all activities for the specified user.
        * @param      {string}        userId     String containing the UserId.
-       * @return                                Object with success boolean and key called data with array of tags.
+       * @return                                Object with success boolean and key called data with array of activities.
        */
     async getAllActivities(userId) {
         try {
@@ -847,7 +847,7 @@ module.exports = class SettingsService {
     /**
        * @desc                                       Attempt to check whether the specified activity is in use.
        * @param  {string}             userId         String containing the userId.
-       * @param  {string}             activityId     tagId to be checked as a string.
+       * @param  {string}             activityId     activityId to be checked as a string.
        * @return                                     Object with success boolean and exists boolean.
     */
     async checkActivityInUse(userId, activityId) {

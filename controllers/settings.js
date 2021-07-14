@@ -96,18 +96,18 @@ exports.editSettingsSetupStatus = async (req, res) => {
 };
 
 /**
- * @desc                        Attempt to add tags to the user's settings.
- * @route                       POST api/v1/settings/tags
+ * @desc                        Attempt to add categories to the user's settings.
+ * @route                       POST api/v1/settings/categories
  * @access                      Private.
  */
-exports.addTags = async (req, res) => {
+exports.addCategories = async (req, res) => {
     try {
         const userId = req.user.sub;
-        const { tags } = req.body;
+        const { categories } = req.body;
 
         const response =
-            await SettingsServiceInstance.addTags(
-                userId, tags);
+            await SettingsServiceInstance.addCategories(
+                userId, categories);
         
         console.log(response);
 
@@ -127,18 +127,18 @@ exports.addTags = async (req, res) => {
 };
 
 /**
- * @desc                        Attempt to edit tag for user.
- * @route                       PATCH api/v1/settings/tags
+ * @desc                        Attempt to edit category for user.
+ * @route                       PATCH api/v1/settings/categories
  * @access                      Private.
  */
-exports.editTag = async (req, res) => {
+exports.editCategory = async (req, res) => {
     try {
         const userId = req.user.sub;
-        const { tagId, tagName, tagType } = req.body;
+        const { categoryId, categoryName, categoryType } = req.body;
 
         const response =
-            await SettingsServiceInstance.editTag(
-                userId, tagId, tagName, tagType);
+            await SettingsServiceInstance.editCategory(
+                userId, categoryId, categoryName, categoryType);
         
         console.log(response);
 
@@ -158,18 +158,18 @@ exports.editTag = async (req, res) => {
 };
 
 /**
- * @desc                        Attempt to delete specified tags from the user's settings.
- * @route                       DELETE api/v1/settings/tags
+ * @desc                        Attempt to delete specified categories from the user's settings.
+ * @route                       DELETE api/v1/settings/categories
  * @access                      Private.
  */
-exports.deleteTags = async (req, res) => {
+exports.deleteCategories = async (req, res) => {
     try {
         const userId = req.user.sub;
-        const { tags } = req.body;
+        const { categories } = req.body;
 
         const response =
-            await SettingsServiceInstance.deleteTags(
-                userId, tags);
+            await SettingsServiceInstance.deleteCategories(
+                userId, categories);
         
         console.log(response);
 
@@ -189,16 +189,16 @@ exports.deleteTags = async (req, res) => {
 };
 
 /**
- * @desc                        Attempt to get all tags for the specified user.
- * @route                       GET api/v1/settings/tags
+ * @desc                        Attempt to get all categories for the specified user.
+ * @route                       GET api/v1/settings/categories
  * @access                      Private.
  */
-exports.getAllTags = async (req, res) => {
+exports.getAllCategories = async (req, res) => {
     try {
         const userId = req.user.sub;
 
         const response =
-            await SettingsServiceInstance.getAllTags(
+            await SettingsServiceInstance.getAllCategories(
                 userId);
         
         console.log(response);
@@ -219,18 +219,18 @@ exports.getAllTags = async (req, res) => {
 };
 
 /**
- * @desc                        Attempt to check if specified tag is in use for the specified user.
- * @route                       GET api/v1/settings/tags/inuse/:id
+ * @desc                        Attempt to check if specified category is in use for the specified user.
+ * @route                       GET api/v1/settings/categories/inuse/:id
  * @access                      Private.
  */
-exports.checkTagInUse = async (req, res) => {
+exports.checkCategoryInUse = async (req, res) => {
     try {
         const userId = req.user.sub;
-        const tagId = req.params.id;
+        const categoryId = req.params.id;
 
         const response =
-            await SettingsServiceInstance.checkTagInUse(
-                userId, tagId);
+            await SettingsServiceInstance.checkCategoryInUse(
+                userId, categoryId);
         
         console.log(response);
 
@@ -281,7 +281,7 @@ exports.addActivities = async (req, res) => {
 };
 
 /**
- * @desc                        Attempt to edit tag for user.
+ * @desc                        Attempt to edit activity for user.
  * @route                       PATCH api/v1/settings/activities
  * @access                      Private.
  */

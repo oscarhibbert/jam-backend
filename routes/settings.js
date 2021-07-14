@@ -9,9 +9,9 @@ const { checkJwt } = require('../middleware/checkJwt');
 // Import validator middleware
 const {
     validateEditSettingsSetupStatus,
-    validateAddTags,
-    validateEditTag,
-    validateDeleteTags,
+    validateAddCategories,
+    validateEditCategory,
+    validateDeleteCategories,
     validateAddActivities,
     validateEditActivity,
     validateDeleteActivities
@@ -22,11 +22,11 @@ const {
     getSettings,
     checkSettingsSetupStatus,
     editSettingsSetupStatus,
-    addTags,
-    editTag,
-    deleteTags,
-    getAllTags,
-    checkTagInUse,
+    addCategories,
+    editCategory,
+    deleteCategories,
+    getAllCategories,
+    checkCategoryInUse,
     addActivities,
     editActivity,
     deleteActivities,
@@ -62,44 +62,44 @@ router.route('/status')
     .put(checkJwt, validateEditSettingsSetupStatus, editSettingsSetupStatus);
 
 /**
- * @desc                        Attempt to add tags to the user's settings.
- * @route                       POST api/v1/settings/tags
+ * @desc                        Attempt to add categories for the specified user.
+ * @route                       POST api/v1/settings/categories
  * @access                      Private.
  */
-router.route('/tags')
-    .post(checkJwt, validateAddTags, addTags);
+router.route('/categories')
+    .post(checkJwt, validateAddCategories, addCategories);
 
 /**
- * @desc                        Attempt to edit tag for user.
- * @route                       PATCH api/v1/settings/tags
+ * @desc                        Attempt to edit caetgory for the specified user.
+ * @route                       PATCH api/v1/settings/categories
  * @access                      Private.
  */
-router.route('/tags')
-    .patch(checkJwt, validateEditTag, editTag);
+router.route('/categories')
+    .patch(checkJwt, validateEditCategory, editCategory);
 
 /**
- * @desc                        Attempt to delete specified tags for user.
- * @route                       DELETE api/v1/settings/tags
+ * @desc                        Attempt to delete specified categories for specified user.
+ * @route                       DELETE api/v1/settings/categories
  * @access                      Private.
  */
-router.route('/tags')
-    .delete(checkJwt, validateDeleteTags, deleteTags);
+router.route('/categories')
+    .delete(checkJwt, validateDeleteCategories, deleteCategories);
 
 /**
- * @desc                        Attempt to get all tags for specified user.
- * @route                       GET api/v1/settings/tags
+ * @desc                        Attempt to get all categories for specified user.
+ * @route                       GET api/v1/settings/categories
  * @access                      Private.
  */
-router.route('/tags')
-    .get(checkJwt, getAllTags);
+router.route('/categories')
+    .get(checkJwt, getAllCategories);
 
 /**
- * @desc                        Attempt to check whether the specified tag is in use.
- * @route                       GET api/v1/settings/tags/inuse/:id
+ * @desc                        Attempt to check whether the specified category is in use.
+ * @route                       GET api/v1/settings/categories/inuse/:id
  * @access                      Private.
  */
-router.route('/tags/inuse/:id')
-    .get(checkJwt, checkTagInUse);
+router.route('/categories/inuse/:id')
+    .get(checkJwt, checkCategoryInUse);
 
 /**
  * @desc                        Attempt to add activities to the user's settings.
@@ -110,7 +110,7 @@ router.route('/activities')
     .post(checkJwt, validateAddActivities, addActivities);
 
 /**
- * @desc                        Attempt to edit tag for user.
+ * @desc                        Attempt to edit activity for user.
  * @route                       PATCH api/v1/settings/activities
  * @access                      Private.
  */

@@ -35,17 +35,17 @@ module.exports = class JournalService {
     };
 
     /**
-     * @desc                                 Create a journal entry method.
-     * @param {string}    userId             String containing user ID.
-     * @param {string}    entryMood          String containing journal entry mood.
-     * @param {string}    entryEmotion       String containing journal entry text.
-     * @param {array}     entryTags          Array containing journal entry tags. Can be null.
-     * @param {array}     entryActivities    Array containing journal entry activities. Can be null.
-     * @param {string}    entryText          String containing journal entry text.
-     * @param {string}    linkedEntry        String containing the linkedEntry ID. Only allowed for unpleasant mood type. Can be null.
-     * @return                               Object containing response.
+     * @desc                                       Create a journal entry method.
+     * @param {string}    userId                   String containing user ID.
+     * @param {string}    entryMood                String containing journal entry mood.
+     * @param {string}    entryEmotion             String containing journal entry text.
+     * @param {array}     entryCategories          Array containing journal entry categories. Can be null.
+     * @param {array}     entryActivities          Array containing journal entry activities. Can be null.
+     * @param {string}    entryText                String containing journal entry text.
+     * @param {string}    linkedEntry              String containing the linkedEntry ID. Only allowed for unpleasant mood type. Can be null.
+     * @return                                     Object containing response.
      */
-    async createEntry(userId, entryMood, entryEmotion, entryTags, entryActivities, entryText, linkedEntry) {
+    async createEntry(userId, entryMood, entryEmotion, entryCategories, entryActivities, entryText, linkedEntry) {
         try {
             // Check userId parameter exists
             if (!userId) {
@@ -101,8 +101,8 @@ module.exports = class JournalService {
                 newEntry.mood = entryMood;
                 newEntry.emotion = entryEmotion;
 
-                // Only add tags object if tags present
-                if (entryTags) newEntry.tags = entryTags;
+                // Only add categories object if categories present
+                if (entryCategories) newEntry.categories = entryCategories;
 
                 // Only add activities object if activities present
                 if (entryActivities) newEntry.activities = entryActivities;
@@ -128,7 +128,7 @@ module.exports = class JournalService {
                     _id: entry._id,
                     mood: newEntry.mood,
                     emotion: newEntry.emotion,
-                    tags: newEntry.tags,
+                    categories: newEntry.categories,
                     activities: newEntry.activities,
                     text: newEntry.text,
                     linkedEntry: newEntry.linkedEntry
@@ -152,18 +152,18 @@ module.exports = class JournalService {
     };
 
     /**
-     * @desc                                   Edit a journal entry method.
-     * @param {string}   userId                String containing user ID.
-     * @param {string}   journalId             String containing journal ID.
-     * @param {string}   entryMood             String containing journal entry mood. Can be null.
-     * @param {string}   entyEmotion           String containing journal entry mood. Can be null.
-     * @param {array}    entryTags             Array containing journal entry tags. Can be null.
-     * @param {array}    entryActivities       Array containing journal entry activities. Can be null.
-     * @param {string}   entryText             String containing journal entry text. Can be null.
-     * @param {string}   linkedEntry           String containing the linkedEntry ID. Only allowed for unpleasant mood type. Can be null.
-     * @return                                 Object containing response. If authorisation fails includes authorise: false.
+     * @desc                                         Edit a journal entry method.
+     * @param {string}   userId                      String containing user ID.
+     * @param {string}   journalId                   String containing journal ID.
+     * @param {string}   entryMood                   String containing journal entry mood. Can be null.
+     * @param {string}   entyEmotion                 String containing journal entry mood. Can be null.
+     * @param {array}    entryCategories             Array containing journal entry categories. Can be null.
+     * @param {array}    entryActivities             Array containing journal entry activities. Can be null.
+     * @param {string}   entryText                   String containing journal entry text. Can be null.
+     * @param {string}   linkedEntry                 String containing the linkedEntry ID. Only allowed for unpleasant mood type. Can be null.
+     * @return                                       Object containing response. If authorisation fails includes authorise: false.
      */
-    async editEntry(userId, journalId, entryMood, entryEmotion, entryTags, entryActivities, entryText, linkedEntry) {
+    async editEntry(userId, journalId, entryMood, entryEmotion, entryCategories, entryActivities, entryText, linkedEntry) {
         try {
             // Check userId parameter exists
             if (!userId) {
@@ -221,7 +221,7 @@ module.exports = class JournalService {
                 // Add objects to newEntry object if found
                 if (entryMood) updatedEntry.mood = entryMood;
                 if (entryEmotion) updatedEntry.emotion = entryEmotion;
-                if (entryTags) updatedEntry.tags = entryTags;
+                if (entryCategories) updatedEntry.categories = entryCategories;
                 if (entryActivities) updatedEntry.activities = entryActivities;
                 if (entryText) updatedEntry.text = entryText;
                 if (linkedEntry) updatedEntry.linkedEntry = linkedEntry;
@@ -251,7 +251,7 @@ module.exports = class JournalService {
                 data = {
                     mood: updatedEntry.mood,
                     emotion: updatedEntry.emotion,
-                    tags: updatedEntry.tags,
+                    categories: updatedEntry.categories,
                     activities: updatedEntry.activities,
                     text: updatedEntry.text,
                     linkedEntry: updatedEntry.linkedEntry
@@ -559,7 +559,7 @@ module.exports = class JournalService {
             };
 
             // Get closestEntry to checkEntry
-            // Mood, emotion, tags activities. Priority high to low
+            // Mood, emotion, categories, activities. Priority high to low
             // Get the newest match
             const closestEntry = await Entry.aggregate(
                 [
@@ -577,7 +577,7 @@ module.exports = class JournalService {
                             ],
                             // $or: [
                             //     { "emotion": { $eq: checkEntry.emotion } },
-                            //     { "tags": { $eq: checkEntry.tags } },
+                            //     { "categories": { $eq: checkEntry.categories } },
                             //     { "activities": { $eq: checkEntry.activities } },
                             // ]
                         }
@@ -593,8 +593,8 @@ module.exports = class JournalService {
                                 $sum: [
                                     { $cond: [{ $eq: ["$mood", checkEntry.mood] }, 4, 0] },
                                     { $cond: [{ $eq: ["$emotion", checkEntry.emotion] }, 3, 0] },
-                                    { $cond: [{ $eq: ["$tags", checkEntry.tags] }, 2, 0] },
-                                    { $cond: [{ $eq: ["$activities", checkEntry.tags] }, 1, 0] }
+                                    { $cond: [{ $eq: ["$categories", checkEntry.categories] }, 2, 0] },
+                                    { $cond: [{ $eq: ["$activities", checkEntry.activities] }, 1, 0] }
                                 ]
                             }
                         }

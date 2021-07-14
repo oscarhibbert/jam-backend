@@ -12,13 +12,13 @@ exports.createEntry = async (req, res) => {
   console.log(req.user);
   try {
     const userID = req.user.sub;
-    const { mood, emotion, tags, activities, text, linkedEntry } = req.body;
+    const { mood, emotion, categories, activities, text, linkedEntry } = req.body;
 
     let response = await JournalServiceInstance.createEntry(
       userID,
       mood,
       emotion,
-      tags,
+      categories,
       activities,
       text,
       linkedEntry
@@ -51,14 +51,14 @@ exports.editEntry = async (req, res) => {
   try {
     const userId = req.user.sub;
     const journalId = req.params.id;
-    const { mood, emotion, tags, activities, text, linkedEntry } = req.body;
+    const { mood, emotion, categories, activities, text, linkedEntry } = req.body;
 
     let response = await JournalServiceInstance.editEntry(
       userId,
       journalId,
       mood,
       emotion,
-      tags,
+      categories,
       activities,
       text,
       linkedEntry

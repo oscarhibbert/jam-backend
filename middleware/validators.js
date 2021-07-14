@@ -78,13 +78,13 @@ exports.validateEditSettingsSetupStatus = [
 ];
 
 /**
- * @desc     Add tags validator
+ * @desc     Add categories validator
  */
-exports.validateAddTags = [
+exports.validateAddCategories = [
   // Checking configuration
-  check('tags', "'tags' value is not an array. Must be an array!")
+  check('categories', "'categories' value is not an array. Must be an array!")
     .isArray(),
-  check('tags', 'Key tags is required. Value must be array of new tags as objects!')
+  check('categories', "Key 'categories' is required. Value must be array of new categories as objects!")
     .not()
     .isEmpty(),
   
@@ -98,18 +98,18 @@ exports.validateAddTags = [
 ];
 
 /**
- * @desc     Edit tag validator
+ * @desc     Edit category validator
  */
-exports.validateEditTag = [
+exports.validateEditCategory = [
   // Checking configuration
-  check('tagId', 'TagId key with a string value is required!')
+  check('categoryId', 'categoryId key with a string value is required!')
     .not()
     .isEmpty(),
-  check('tagName', 'tagName key is required!')
+  check('categoryName', 'categoryName key is required!')
     .optional()
     .not()
     .isEmpty(),
-  check('tagType', 'tagType is required!')
+  check('categoryType', 'categoryType is required!')
     .optional()
     .not()
     .isEmpty(),
@@ -124,15 +124,15 @@ exports.validateEditTag = [
 ];
 
 /**
- * @desc     Delete tags validator
+ * @desc     Delete categories validator
  */
-exports.validateDeleteTags = [
+exports.validateDeleteCategories = [
   // Checking configuration
-  check('tags',
-    "'tags' key and value is missing!")
+  check('categories',
+    "'categories' key and value is missing!")
     .not()
     .isEmpty(),
-  check('tags', "'tags' value is not an array!")
+  check('categories', "'categories' value is not an array!")
     .isArray(),
 
   // Errors middleware function
@@ -151,7 +151,7 @@ exports.validateAddActivities = [
   // Checking configuration
   check('activities', "'activities' value is not an array. Must be an array!")
     .isArray(),
-  check('activities', 'Key activities is required. Value must be array of new tags as objects!')
+  check('activities', 'Key activities is required. Value must be array of new activities as objects!')
     .not()
     .isEmpty(),
   
@@ -199,7 +199,7 @@ exports.validateDeleteActivities = [
     "'activities' key and value is missing!")
     .not()
     .isEmpty(),
-  check('activities', "'activities' value is not an array of tags to be deleted!")
+  check('activities', "'activities' value is not an array of activities to be deleted!")
     .isArray(),
 
   // Errors middleware function
