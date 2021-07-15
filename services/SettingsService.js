@@ -233,8 +233,8 @@ module.exports = class SettingsService {
                 throw new Error('Edit category failed - categoryId parameter empty. Must be supplied.')
             };
 
-            // If at least categoryName or categoryType parameter is not provided
-            if (!categoryName || !categoryType) {
+            // If categoryName && categoryType parameter are not provided
+            if (!categoryName && !categoryType) {
                 throw new Error('Edit category failed - categoryName & categoryType empty. At least one must be supplied.');
             };
 
