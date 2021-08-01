@@ -1,6 +1,11 @@
 // Model imports
 const Setting = require('../models/Setting');
+const Categories = require('../models/Categories');
+const Activities = require('../models/Activities');
 const Entry = require('../models/Entry');
+
+// Other imports
+const {ObjectID} = require('mongodb');
 
 /**
  * @description Create an instance of the SettingsService class.
@@ -31,12 +36,26 @@ module.exports = class SettingsService {
             // Check the settings object exists for this user
             const settings = await Setting.findOne(
                 { user: userId }
-            );
+            ).lean();
 
             // If settings object for user not found throw error
             if (!settings) {
                 throw new Error('Get settings failed - settings object for user not found.');
             };
+
+            // Get the user's categories and add them to the setting object
+            // (as originally categories was contained in the settings object)
+            const categories = await Categories.find({ user: userId });
+
+            // Add categories as a property of the settings object
+            settings.categories = categories;
+
+            // Get the user's activities and add them to the setting object
+            // (as originally activities was contained in the settings object)
+            const activities = await Activities.find({ user: userId });
+
+            // Add categories as a property of the settings object
+            settings.activities = activities;
 
             // Return success and data
             console.log(settings);
@@ -133,6 +152,92 @@ module.exports = class SettingsService {
     };
 
     /**
+       * @desc                                                                        Attempt to create default categories for the specified user.
+       * @param  {string}                                              userId         String containing the UserId.
+       * @return                                                                      Object with success boolean and data containing the new default categories.
+       */
+    async createDefaultCategories(userId) {
+        try {
+            // Check userId parameter exists
+            if (!userId) {
+                throw new Error('Create default categories failed - userId parameter empty. Must be supplied.')
+            };
+
+            // Get the existing categories and convert cursor to array for the specified user
+            const existingCategories = await Categories.find({ user: userId }).lean();
+
+            // Create the default categories array and put them into the newCategories variable
+            const newCategories = [
+                    {
+                        user: userId,
+                        name: "Home 🏠",
+                        type: "General"
+                    },
+                    {
+                        user: userId,
+                        name: "Work 💻",
+                        type: "General"
+                    },
+                    {
+                        user: userId,
+                        name: "Hobbies 💃",
+                        type: "General"
+                    },
+                    {
+                        user: userId,
+                        name: "Self-Care 🥰",
+                        type: "General"
+                    }
+            ]
+                
+            /* Check newCategories array of category objects for errors */
+            for (const newCategory of newCategories) {
+                
+                // Check category name exists
+                if (!newCategory.name) {
+                    throw new Error(`Create default categories failed - category missing name. Must be supplied.`);
+                };
+
+                // Check category type exists
+                if (!newCategory.type) {
+                    throw new Error(`Create default categories failed - category '${newCategory.name}' missing type. Must be supplied.`);
+                };
+
+                // Check activity type for newCategory is valid
+                /* Check newCategory.type is correct activity. If categoryTypes
+                    does not include newCategory.type, throw error. */
+                if (!this.categoryTypes.includes(newCategory.type)) {
+                    throw new Error(`Create default categories failed - type '${newCategory.type}' for category '${newCategory.name}' is invalid.`);
+                };
+                continue;
+            };
+
+            // Check newCategory names for duplicate against existing categories
+            for (const existingCategory of existingCategories) {
+                for (const newCategory of newCategories) {
+                    if (existingCategory.name === newCategory.name) {
+                        throw new Error(`Create default categories failed - category name '${newCategory.name}' is already in use. Check value for key 'name'.`);
+                    };
+                    continue;
+                };
+                continue;
+            };
+            
+            // Write each object inside the newCategories array to the Categories collection
+            await Categories.insertMany(
+                newCategories
+            );
+
+            // Return response
+            return { success: true, data: newCategories };
+
+        } catch (err) {
+            console.error(err.message);
+            throw err;
+        };
+    };
+
+    /**
        * @desc                                                                        Attempt to add categories to the user's settings.
        * @param  {string}                                              userId         String containing the UserId.
        * @param  {[{"name":"Example Name","type":"General"}]}          categories     Array containing categories as objects.
@@ -150,20 +255,11 @@ module.exports = class SettingsService {
                 throw new Error('Add categories failed - categories parameter empty. Must be supplied.');
             };
 
-            // Check the settings object exists for this user
-            const settings = await Setting.findOne({ user: userId });
-
-            // If settings object for user not found throw error
-            if (!settings) {
-                throw new Error('Add categories failed - settings object for user not found.')
-            };
-
-            // Else, continue
-            // Get existing categories
-            const existingCategories = settings.categories;
+            // Get the existing categories and convert cursor to array for the specified user
+            const existingCategories = await Categories.find({ user: userId }).lean();
 
             // Get new categories array and put them into the newCategories variable
-            const newCategories = categories;
+            let newCategories = categories;
                 
             /* Check newCategories array of category objects for errors */
             for (const newCategory of newCategories) {
@@ -197,11 +293,22 @@ module.exports = class SettingsService {
                 };
                 continue;
             };
+
+            // Reorder all category properties
+            for (const [index, newCategory] of newCategories.entries()) {
+                // Reorder current newCategory object
+                newCategories[index] = {
+                    user: userId,
+                    name: newCategory.name,
+                    type: newCategory.type
+                };
+
+                continue;
+            };
             
-            // Add newCategories into the categories array in the user's settings object
-            await Setting.findOneAndUpdate(
-                { user: userId },
-                { $push: { categories: newCategories } }
+            // Write each object inside the newCategories array to the Categories collection
+            await Categories.insertMany(
+                newCategories
             );
 
             // Return response
@@ -238,25 +345,22 @@ module.exports = class SettingsService {
                 throw new Error('Edit category failed - categoryName & categoryType empty. At least one must be supplied.');
             };
 
-            // Check the settings object exists for this user
-            const settings = await Setting.findOne({ user: userId });
+            // Get the existing categories from the categories collection for the specified user
+            const existingCategories = await Categories.find({ user: userId });
 
-            // If settings object for user not found throw error
-            if (!settings) {
-                throw new Error('Edit category failed - settings object for user not found.');
-            }
-
-            // Set existing categories
-            const existingCategories = settings.categories;
+            // If no categories for the user found throw error
+            if (!existingCategories) {
+                throw new Error('Edit category failed - no categories for the user found.');
+            };
 
             // Prepare original category object
             const originalCategory = {};
 
             // Else, continue
 
-            /* Loop through each existing category in settings and check the
+            /* Loop through each existing category and check the
             specified category exists. Then set originalCategory info. 
-            If it doesn't match, throw error.
+            If there isn't a match, throw error.
             */
             let categoryFound = false;
 
@@ -274,9 +378,9 @@ module.exports = class SettingsService {
                     break;
                 };
                 continue;
-            }
+            };
 
-            // If not found, throw error
+            // If category not found, throw error
             if (categoryFound === false) {
                 throw new Error('Edit category failed - existing category not found. Check categoryId parameter.');
             };
@@ -315,17 +419,30 @@ module.exports = class SettingsService {
 
             // Create updatedCategory object
             // Set the _id otherwise it will be overwritten with null by Mongoose b/c of $set. Same with other fields.
-            updatedCategory._id = originalCategory.id;
+            // updatedCategory._id = originalCategory.id;
+
             // If categoryName param is provided, set it into object. Else, keep existingCategory.name.
-            if (categoryName) updatedCategory.name = categoryName; else { updatedCategory.name = originalCategory.name };
+            if (categoryName) updatedCategory.name = categoryName; /* else { updatedCategory.name = originalCategory.name }; */
             // If categoryType param is provided, set it into object. Else, keep the existingCategory.type.
-            if (categoryType) updatedCategory.type = categoryType; else { updatedCategory.type = originalCategory.type };
+            if (categoryType) updatedCategory.type = categoryType; /* else { updatedCategory.type = originalCategory.type }; */
          
-            // Add updatedCategory into the categories array overwriting the original in the user's settings object
-            await Setting.findOneAndUpdate(
-                { user: userId },
-                { $set: { "categories.$[el]": updatedCategory } },
-                { arrayFilters: [{ "el._id": categoryId }] }
+            // // Add updatedCategory into the categories array overwriting the original in the user's settings object
+            // await Setting.findOneAndUpdate(
+            //     { user: userId },
+            //     { $set: { "categories.$[el]": updatedCategory } },
+            //     { arrayFilters: [{ "el._id": categoryId }] }
+            // );
+
+            // Update category in the categories collection
+            await Categories.findOneAndUpdate(
+                { _id: originalCategory.id },
+                {
+                    "$set":
+                    {
+                        name: updatedCategory.name,
+                        type: updatedCategory.type
+                    }
+                }
             );
 
             // Return response
@@ -373,16 +490,13 @@ module.exports = class SettingsService {
                 continue;
             };
 
-            // Check the settings object exists for this user
-            const settings = await Setting.findOne({ user: userId });
+            // Get the existing categories for the specified user from the categories collection
+            const getCategories = await Categories.find({ user: userId });
 
-            // If settings object for user not found throw error
-            if (!settings) {
-                throw new Error('Delete categories failed - settings object for user not found.');
+            // If no categories for the user found throw error
+            if (!getCategories) {
+                throw new Error('Delete categories failed - no categories for the user found.');
             };
-
-            // Get categories from settings
-            const getCategories = settings.categories;
 
             // Set existingCategories array
             const existingCategories = [];
@@ -403,10 +517,20 @@ module.exports = class SettingsService {
                 continue;
             };
 
-            // Delete category objects from the user's category array in the settings object
-            await Setting.updateOne(
-                { user: userId },
-                { $pull: { categories: { _id: idsForDeletion } } }
+            // // Delete category objects from the user's category array in the settings object
+            // await Setting.updateOne(
+            //     { user: userId },
+            //     { $pull: { categories: { _id: idsForDeletion } } }
+            // );
+
+            // Delete specified categories for deletion from the categories collection for the specified user
+            await Categories.deleteMany(
+                {
+                    user: userId,
+                    _id: {
+                        $in: idsForDeletion
+                    }
+                }
             );
 
             return { success: true };
@@ -429,18 +553,14 @@ module.exports = class SettingsService {
                 throw new Error('Get all categories failed - userId parameter empty. Must be supplied.');
             };
 
-            // Check the settings object exists for this user
-            const settings = await Setting.findOne(
-                { user: userId }
-            );
+            // Get the existing categories for the specified user from the categories collection
+            // Use .lean() to get the clean record
+            const categories = await Categories.find({ user: userId }).lean();
 
-            // If settings object for user not found throw error
-            if (!settings) {
-                throw new Error('Get all categories failed - settings object for user not found.');
+            // If no categories for the user found throw error
+            if (!categories) {
+                throw new Error('Get all categories failed - no categories for the user found.');
             };
-
-            // Get categories
-            const categories = settings.categories.toObject();
 
             // Return success and data
             console.log(categories);
@@ -473,23 +593,23 @@ module.exports = class SettingsService {
                 throw new Error('Check category in use failed - categoryId parameter empty. Must be supplied.')
             };
 
-            // Check the settings object exists for this user
-            const settings = await Setting.findOne({ user: userId });
+            // Get the existing categories for the specified user from the categories collection
+            const categories = await Categories.find({ user: userId });
 
-            // If settings object for user not found throw error
-            if (!settings) {
-                throw new Error('Check category in use failed - settings object for user not found.')
+            // If no categories for the user found throw error
+            if (!categories) {
+                throw new Error('Check category in use failed - no categories for the user found.');
             };
 
-            // Try to get the specified category from the user's settings
-            const category = settings.categories.find(category => category.id === categoryId);
+            // Try to get the specified category from the categories array
+            const category = categories.find(category => category.id === categoryId);
             
             // If the specified category does not exists throw error
             if (!category) {
                 throw new Error('Check category in use failed - category does not exist.');
             };
 
-            // Count how many journal entries use this category
+            // Count how many journal entries use this category in the entries collection
             const checkCategory = await Entry.countDocuments(
                 {
                     categories: {
@@ -539,17 +659,8 @@ module.exports = class SettingsService {
                 throw new Error('Add activities failed - activities parameter empty. Must be supplied.');
             };
 
-            // Check the settings object exists for this user
-            const settings = await Setting.findOne({ user: userId });
-
-            // If settings object for user not found throw error
-            if (!settings) {
-                throw new Error('Add activities failed - settings object for user not found.')
-            };
-
-            // Else, continue
-            // Get existing activities
-            const existingActivities = settings.activities;
+            // Get the existing activities and convert cursor to array for the specified user
+            const existingActivities = await Activities.find({ user: userId }).lean();
 
             // Get new activities array and put them into newActivities variable
             const newActivities = activities;
@@ -587,10 +698,21 @@ module.exports = class SettingsService {
                 continue;
             };
             
-            // Add newActivities into the activities array in the user's settings object
-            await Setting.findOneAndUpdate(
-                { user: userId },
-                { $push: { activities: newActivities } }
+            // Reorder all activity properties
+            for (const [index, newActivity] of newActivities.entries()) {
+                // Reorder current newCategory object
+                newActivities[index] = {
+                    user: userId,
+                    name: newActivity.name,
+                    type: newActivity.type
+                };
+
+                continue;
+            };
+
+            // Write each object inside the newActivities array to the Activities collection
+            await Activities.insertMany(
+                newActivities
             );
 
             // Return response
@@ -627,16 +749,13 @@ module.exports = class SettingsService {
                 throw new Error('Edit activity failed - activityName & ActivityType empty. At least one must be supplied.');
             };
 
-            // Check the settings object exists for this user
-            const settings = await Setting.findOne({ user: userId });
+            // Get the existing activities from the activities collection for the specified user
+            const existingActivities = await Activities.find({ user: userId });
 
-            // If settings object for user not found throw error
-            if (!settings) {
-                throw new Error('Edit activity failed - settings object for user not found.');
-            }
-
-            // Set existing activities
-            const existingActivities = settings.activities;
+            // If no activities for the user found throw error
+            if (!existingActivities) {
+                throw new Error('Edit activity failed - no activities for the user found.');
+            };
 
             // Prepare original activity object
             const originalActivity = {};
@@ -702,19 +821,32 @@ module.exports = class SettingsService {
             // Set updatedActivity object
             const updatedActivity = {};
 
-            // Create updatedActivity object
-            // Set the _id otherwise it will be overwritten with null by Mongoose b/c of $set. Same with other fields.
-            updatedActivity._id = originalActivity.id;
+            // // Create updatedActivity object
+            // // Set the _id otherwise it will be overwritten with null by Mongoose b/c of $set. Same with other fields.
+            // updatedActivity._id = originalActivity.id;
+            
             // If activityName param is provided, set it into object. Else, keep existingActivity.name.
-            if (activityName) updatedActivity.name = activityName; else { updatedActivity.name = originalActivity.name };
+            if (activityName) updatedActivity.name = activityName; /* else { updatedActivity.name = originalActivity.name }; */
             // If activityType param is provided, set it into object. Else, keep the existingActivity.type.
-            if (activityType) updatedActivity.type = activityType; else { updatedActivity.type = originalActivity.type };
+            if (activityType) updatedActivity.type = activityType; /* else { updatedActivity.type = originalActivity.type }; */
          
-            // Add newActivity into the activities array in the user's settings object
-            await Setting.findOneAndUpdate(
-                { user: userId },
-                { $set: { "activities.$[el]": updatedActivity } },
-                { arrayFilters: [{ "el._id": activityId }] }
+            // // Add newActivity into the activities array in the user's settings object
+            // await Setting.findOneAndUpdate(
+            //     { user: userId },
+            //     { $set: { "activities.$[el]": updatedActivity } },
+            //     { arrayFilters: [{ "el._id": activityId }] }
+            // );
+
+            // Update activity in the activities colleciton
+            await Activities.findOneAndUpdate(
+                { _id: originalActivity.id },
+                {
+                    "$set":
+                    {
+                        name: updatedActivity.name,
+                        type: updatedActivity.type
+                    }
+                }
             );
 
             // Return response
@@ -762,16 +894,13 @@ module.exports = class SettingsService {
                 continue;
             };
 
-            // Check the settings object exists for this user
-            const settings = await Setting.findOne({ user: userId });
+            // Get the existing activities for the specified user from the activities collection
+            const getActivities = await Activities.find({ user: userId });
 
-            // If settings object for user not found throw error
-            if (!settings) {
-                throw new Error('Delete activities failed - settings object for user not found.');
+            // If no activities for the user found throw error
+            if (!getActivities) {
+                throw new Error('Delete activities failed - no activities for the user found.');
             };
-
-            // Get activities from settings
-            const getActivities = settings.activities;
 
             // Set existingActivities array
             const existingActivities = [];
@@ -792,10 +921,20 @@ module.exports = class SettingsService {
                 continue;
             };
 
-            // Delete activity objects from the user's activity array in the settings object
-            await Setting.updateOne(
-                { user: userId },
-                { $pull: { activities: { _id: idsForDeletion } } }
+            // // Delete activity objects from the user's activity array in the settings object
+            // await Setting.updateOne(
+            //     { user: userId },
+            //     { $pull: { activities: { _id: idsForDeletion } } }
+            // );
+
+            // Delete specified activities for deletion from the activities collection for the specified user
+            await Activities.deleteMany(
+                {
+                    user: userId,
+                    _id: {
+                        $in: idsForDeletion
+                    }
+                }
             );
 
             return { success: true };
@@ -818,18 +957,14 @@ module.exports = class SettingsService {
                 throw new Error('Get all activities failed - userId parameter empty. Must be supplied.');
             };
 
-            // Check the settings object exists for this user
-            const settings = await Setting.findOne(
-                { user: userId }
-            );
+            // Get the existing activities for the specified user from the activities collection
+            // Use .lean() to get the clean record
+            const activities = await Activities.find({ user: userId }).lean();
 
-            // If settings object for user not found throw error
-            if (!settings) {
-                throw new Error('Get all activities failed - settings object for user not found.');
+            // If no activities for the user found throw error
+            if (!activities) {
+                throw new Error('Get all activities failed - no activities for the user found.');
             };
-
-            // Get activities
-            const activities = settings.activities.toObject();
 
             // Return success and data
             console.log(activities);
@@ -862,16 +997,16 @@ module.exports = class SettingsService {
                 throw new Error('Check activity in use failed - activityId parameter empty. Must be supplied.')
             };
 
-            // Check the settings object exists for this user
-            const settings = await Setting.findOne({ user: userId });
+            // Get the existing activities for the specified user from the activities collection
+            const activities = await Activities.find({ user: userId });
 
-            // If settings object for user not found throw error
-            if (!settings) {
-                throw new Error('Check activity in use failed - settings object for user not found.')
-            };
+            // If no activities for the user found throw error
+            if (!activities) {
+                throw new Error('Check activity in use failed - no activities for the user found.');
+            };            
 
             // Try to get the specified activity from the user's settings
-            const activity = settings.activities.find(activity => activity.id === activityId);
+            const activity = activities.find(activity => activity.id === activityId);
             
             // If the specified activity does not exists throw error
             if (!activity) {

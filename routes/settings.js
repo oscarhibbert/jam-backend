@@ -22,6 +22,7 @@ const {
     getSettings,
     checkSettingsSetupStatus,
     editSettingsSetupStatus,
+    createDefaultCategories,
     addCategories,
     editCategory,
     deleteCategories,
@@ -60,6 +61,14 @@ router.route('/status')
  */
 router.route('/status')
     .put(checkJwt, validateEditSettingsSetupStatus, editSettingsSetupStatus);
+
+/**
+ * @desc                        Attempt to create default categories for the specified user.
+ * @route                       POST api/v1/settings/categories
+ * @access                      Private.
+ */
+router.route('/categories/default')
+    .post(checkJwt, createDefaultCategories);
 
 /**
  * @desc                        Attempt to add categories for the specified user.

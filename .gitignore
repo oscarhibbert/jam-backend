@@ -3,3 +3,7 @@ node_modules/
 config/
 .vscode/
 test.js
+createMasterKey.js
+master-key.txt
+enableMongoEncryption.js
+mongocryptd.pid

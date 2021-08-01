@@ -9,6 +9,28 @@ const SettingSchema = new Schema({
         required: true,
         unique: true
     },
+    categories: [
+        {
+            name: {
+                type: String
+            },
+            type: {
+                type: String,
+                required: true
+            }
+        }
+    ],
+    activities: [
+        {
+            name: {
+                type: String
+            },
+            type: {
+                type: String,
+                required: true
+            }
+        }
+    ],
     dailyReflectionAlert: {
         type: Boolean,
         required: true,

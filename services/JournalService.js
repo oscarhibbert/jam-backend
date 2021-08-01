@@ -101,10 +101,10 @@ module.exports = class JournalService {
                 newEntry.mood = entryMood;
                 newEntry.emotion = entryEmotion;
 
-                // Only add categories object if categories present
+                // Only add categories array if categories present
                 if (entryCategories) newEntry.categories = entryCategories;
 
-                // Only add activities object if activities present
+                // Only add activities arrary if activities present
                 if (entryActivities) newEntry.activities = entryActivities;
 
                 // Add journal details to newEntry object

@@ -96,6 +96,36 @@ exports.editSettingsSetupStatus = async (req, res) => {
 };
 
 /**
+ * @desc                        Attempt to create default categories for the specified user.
+ * @route                       POST api/v1/settings/categories/default
+ * @access                      Private.
+ */
+exports.createDefaultCategories = async (req, res) => {
+    try {
+        const userId = req.user.sub;
+
+        const response =
+            await SettingsServiceInstance.createDefaultCategories(
+                userId);
+        
+        console.log(response);
+
+        res.json(response);
+    } catch (err) {
+        res.status(500).json(
+            {
+                success: false,
+                errors: [
+                    {
+                        msg: err.message
+                    }
+                ]
+            }
+        );
+    };
+};
+
+/**
  * @desc                        Attempt to add categories to the user's settings.
  * @route                       POST api/v1/settings/categories
  * @access                      Private.
