@@ -3,16 +3,15 @@ const mongoose = require('mongoose');
 const config = require('config');
 const db = config.get('mongoURI');
 
-// Retrieve master key
-const fs = require('fs');
-const path = './master-key.txt';
-const localMasterKey = fs.readFileSync(path);
+// Retrieve master key configs
+const gcpKeyConfig = config.get('gcpKeyConfig');
 
 // Specify KMS provider settings
 const kmsProviders = {
-   local: {
-     key: localMasterKey,
-   },
+   gcp: {
+    email: gcpKeyConfig.email,
+    privateKey: gcpKeyConfig.privateKey
+  }
 };
  
 // Set keyVault Namespace
@@ -33,8 +32,7 @@ const connectDB = async () => {
       // Configure CSFLE auto encryption
       autoEncryption: {
         keyVaultNamespace, 
-        kmsProviders,
-        // schemaMap
+        kmsProviders
       }
     });
 
