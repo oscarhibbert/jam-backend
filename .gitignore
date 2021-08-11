@@ -2,8 +2,8 @@ node_modules/
 *.code-workspace
 config/
 .vscode/
-test.js
 createMasterKey.js
 master-key.txt
 enableMongoEncryption.js
 mongocryptd.pid
+testScript.js
