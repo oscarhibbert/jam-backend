@@ -27,7 +27,6 @@ const settings = require('./routes/settings');
 app.use('/api/v1/entries', journalEntries);
 app.use('/api/v1/settings', settings);
 
-
 // FINAL MIDDLEWARE - JWT authorization error handling
 app.use((err, req, res, next) => {
   try {

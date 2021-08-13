@@ -22,7 +22,7 @@ exports.getSettings = async (req, res) => {
         res.json(response);
 
     } catch (err) {
-        logger.error(err.message);
+        logger.error(err);
 
         res.status(500).json(
             {
