@@ -35,7 +35,7 @@ app.use((err, req, res, next) => {
 
     // Winston Response Logging
     res.on('finish', () => {
-      logger.info(`HTTP RESPONSE - ${res.statusCode}`);
+      logger.info(`HTTP RESPONSE - ${res.statusCode} - user unknown`);
     });  
 
     if (err.name === 'UnauthorizedError') {
