@@ -22,8 +22,8 @@ const users = require('./routes/users');
 const settings = require('./routes/settings');
 
 // Mount routers
-app.use('/api/v1/auth', auth);
-app.use('/api/v1/users', users);
+// app.use('/api/v1/auth', auth);
+// app.use('/api/v1/users', users);
 app.use('/api/v1/entries', journalEntries);
 app.use('/api/v1/settings', settings);
 
