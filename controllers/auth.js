@@ -22,7 +22,7 @@ exports.loginUser = async (req, res, next) => {
                 .json({ success: false, msg: 'Invalid Credentials' });
         }
 
-        console.log(response);
+        // console.log(response);
 
         res.json(response);
 

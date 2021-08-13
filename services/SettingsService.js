@@ -4,8 +4,8 @@ const Categories = require('../models/Categories');
 const Activities = require('../models/Activities');
 const Entry = require('../models/Entry');
 
-// Other imports
-const {ObjectID} = require('mongodb');
+// Import logger
+const logger = require('../loaders/logger');
 
 /**
  * @description Create an instance of the SettingsService class.
@@ -30,7 +30,7 @@ module.exports = class SettingsService {
         try {
             // Check userId parameter exists
             if (!userId) {
-                throw new Error('Get settings failed - userId parameter empty. Must be supplied.');
+                throw new Error(`Get settings failed - userId parameter empty. Must be supplied`);
             };
 
             // Check the settings object exists for this user
@@ -40,7 +40,7 @@ module.exports = class SettingsService {
 
             // If settings object for user not found throw error
             if (!settings) {
-                throw new Error('Get settings failed - settings object for user not found.');
+                throw new Error(`Get settings failed - settings object for user not found - ${userId}`);
             };
 
             // Get the user's categories and add them to the setting object
@@ -57,12 +57,14 @@ module.exports = class SettingsService {
             // Add categories as a property of the settings object
             settings.activities = activities;
 
-            // Return success and data
-            console.log(settings);
+            // Log success
+            logger.info(`Settings retrieved successfully for user ${userId}`);
+
+            // Return data
             return settings;
 
         } catch (err) {
-            console.error(err.message);
+            logger.error(err.message);
             throw err;
         };
     };
@@ -76,7 +78,7 @@ module.exports = class SettingsService {
         try {
             // Check userId parameter exists
             if (!userId) {
-                throw new Error('Check settings setup status - userId parameter empty. Must be supplied.');
+                throw new Error(`Check settings setup status - userId parameter empty. Must be supplied`);
             };
 
             // Check the settings object exists for this user
@@ -86,11 +88,14 @@ module.exports = class SettingsService {
 
             // If settings object for user not found throw error
             if (!settings) {
-                throw new Error('Check settings setup status - settings object for user not found.');
+                throw new Error(`Check settings setup status - settings object for user not found - ${userId}`);
             };
 
             // Get status
             const status = settings.settingsSetupComplete;
+
+            // Log success
+            logger.info(`Settings setup status retrieved successfully for user ${userId}`);
 
             return {
                 success: true,
@@ -100,7 +105,7 @@ module.exports = class SettingsService {
             };
 
         } catch (err) {
-            console.error(err.message);
+            logger.error(err.message);
             throw err;
         };
     };
@@ -115,12 +120,12 @@ module.exports = class SettingsService {
         try {
             // Check userId parameter exists
             if (!userId) {
-                throw new Error('Check settings setup status - userId parameter empty. Must be supplied.');
+                throw new Error('Check settings setup status - userId parameter empty. Must be supplied');
             };
 
             // Check status parameter is a boolean value
             if (typeof status !== "boolean") {
-                throw new Error('Check settings setup status - status parameter must be a boolean value.');
+                throw new Error(`Check settings setup status - status parameter must be a boolean value. ${userId}`);
             };
 
             // Check the settings object exists for this user
@@ -130,7 +135,7 @@ module.exports = class SettingsService {
 
             // If settings object for user not found throw error
             if (!settings) {
-                throw new Error('Check settings setup status - settings object for user not found.');
+                throw new Error(`Check settings setup status - settings object for user not found. ${userId}`);
             };
 
             // Update status for profileSetupComplete in the user settings object.
@@ -139,11 +144,13 @@ module.exports = class SettingsService {
                 { settingsSetupComplete: status }
             );
 
+            logger.info(`Settings setup status edited successfully for user ${userId}`);
+
             // Return response
             return { success: true };
 
         } catch (err) {
-            console.error(err.message);
+            logger.error(err.message);
             throw err;
         };
     };
@@ -160,7 +167,7 @@ module.exports = class SettingsService {
         try {
             // Check userId parameter exists
             if (!userId) {
-                throw new Error('Create default categories failed - userId parameter empty. Must be supplied.')
+                throw new Error('Create default categories failed - userId parameter empty. Must be supplied')
             };
 
             // Get the existing categories and convert cursor to array for the specified user
@@ -195,19 +202,19 @@ module.exports = class SettingsService {
                 
                 // Check category name exists
                 if (!newCategory.name) {
-                    throw new Error(`Create default categories failed - category missing name. Must be supplied.`);
+                    throw new Error(`Create default categories failed - category missing name. Must be supplied. ${userId}`);
                 };
 
                 // Check category type exists
                 if (!newCategory.type) {
-                    throw new Error(`Create default categories failed - category '${newCategory.name}' missing type. Must be supplied.`);
+                    throw new Error(`Create default categories failed - category '${newCategory.name}' missing type. Must be supplied. ${userId}`);
                 };
 
                 // Check activity type for newCategory is valid
                 /* Check newCategory.type is correct activity. If categoryTypes
                     does not include newCategory.type, throw error. */
                 if (!this.categoryTypes.includes(newCategory.type)) {
-                    throw new Error(`Create default categories failed - type '${newCategory.type}' for category '${newCategory.name}' is invalid.`);
+                    throw new Error(`Create default categories failed - type '${newCategory.type}' for category '${newCategory.name}' is invalid. ${userId}`);
                 };
                 continue;
             };
@@ -216,7 +223,7 @@ module.exports = class SettingsService {
             for (const existingCategory of existingCategories) {
                 for (const newCategory of newCategories) {
                     if (existingCategory.name === newCategory.name) {
-                        throw new Error(`Create default categories failed - category name '${newCategory.name}' is already in use. Check value for key 'name'.`);
+                        throw new Error(`Create default categories failed - category name '${newCategory.name}' is already in use. Check value for key 'name'. ${userId}`);
                     };
                     continue;
                 };
@@ -228,11 +235,13 @@ module.exports = class SettingsService {
                 newCategories
             );
 
+            logger.info(`Default categories created successfully for user ${userId}`);
+
             // Return response
             return { success: true, data: newCategories };
 
         } catch (err) {
-            console.error(err.message);
+            logger.error(err.message);
             throw err;
         };
     };
@@ -247,12 +256,12 @@ module.exports = class SettingsService {
         try {
             // Check userId parameter exists
             if (!userId) {
-                throw new Error('Add categories failed - userId parameter empty. Must be supplied.')
+                throw new Error('Add categories failed - userId parameter empty. Must be supplied')
             };
 
             // Check categories parameter exists
             if (!categories) {
-                throw new Error('Add categories failed - categories parameter empty. Must be supplied.');
+                throw new Error(`Add categories failed - categories parameter empty. Must be supplied. ${userId}`);
             };
 
             // Get the existing categories and convert cursor to array for the specified user
@@ -266,19 +275,19 @@ module.exports = class SettingsService {
                 
                 // Check category name exists
                 if (!newCategory.name) {
-                    throw new Error(`Add categories failed - category missing name. Must be supplied.`);
+                    throw new Error(`Add categories failed - category missing name. Must be supplied. ${userId}`);
                 };
 
                 // Check category type exists
                 if (!newCategory.type) {
-                    throw new Error(`Add categories failed - category '${newCategory.name}' missing type. Must be supplied.`);
+                    throw new Error(`Add categories failed - category '${newCategory.name}' missing type. Must be supplied. ${userId}`);
                 };
 
                 // Check activity type for newCategory is valid
                 /* Check newCategory.type is correct activity. If categoryTypes
                     does not include newCategory.type, throw error. */
                 if (!this.categoryTypes.includes(newCategory.type)) {
-                    throw new Error(`Add categories failed - type '${newCategory.type}' for category '${newCategory.name}' is invalid.`);
+                    throw new Error(`Add categories failed - type '${newCategory.type}' for category '${newCategory.name}' is invalid. ${userId}`);
                 };
                 continue;
             };
@@ -287,7 +296,7 @@ module.exports = class SettingsService {
             for (const existingCategory of existingCategories) {
                 for (const newCategory of newCategories) {
                     if (existingCategory.name === newCategory.name) {
-                        throw new Error(`Add categories failed - category name '${newCategory.name}' is already in use. Check value for key 'name'.`);
+                        throw new Error(`Add categories failed - category name '${newCategory.name}' is already in use. Check value for key 'name'. ${userId}`);
                     };
                     continue;
                 };
@@ -311,11 +320,13 @@ module.exports = class SettingsService {
                 newCategories
             );
 
+            logger.info(`New categories created successfully for user ${userId}`);
+
             // Return response
             return { success: true };
 
         } catch (err) {
-            console.error(err.message);
+            logger.error(err.message);
             throw err;
         };
     };
@@ -332,17 +343,17 @@ module.exports = class SettingsService {
         try {
             // Check userId parameter exists
             if (!userId) {
-                throw new Error('Edit category failed - userId parameter empty. Must be supplied.')
+                throw new Error('Edit category failed - userId parameter empty. Must be supplied')
             };
 
             // Check categoryId parameter exists
             if (!categoryId) {
-                throw new Error('Edit category failed - categoryId parameter empty. Must be supplied.')
+                throw new Error(`Edit category failed - categoryId parameter empty. Must be supplied. ${userId}`)
             };
 
             // If categoryName && categoryType parameter are not provided
             if (!categoryName && !categoryType) {
-                throw new Error('Edit category failed - categoryName & categoryType empty. At least one must be supplied.');
+                throw new Error(`Edit category failed - categoryName & categoryType empty. At least one must be supplied. ${userId}`);
             };
 
             // Get the existing categories from the categories collection for the specified user
@@ -350,7 +361,7 @@ module.exports = class SettingsService {
 
             // If no categories for the user found throw error
             if (!existingCategories) {
-                throw new Error('Edit category failed - no categories for the user found.');
+                throw new Error(`Edit category failed - no categories for the user found. ${userId}`);
             };
 
             // Prepare original category object
@@ -382,7 +393,7 @@ module.exports = class SettingsService {
 
             // If category not found, throw error
             if (categoryFound === false) {
-                throw new Error('Edit category failed - existing category not found. Check categoryId parameter.');
+                throw new Error(`Edit category failed - existing category not found. Check categoryId parameter. ${userId}`);
             };
                 
             /* Check the new category name is not the same as any of the other categories 
@@ -398,7 +409,7 @@ module.exports = class SettingsService {
                     }
                     // Else, as they do not have the same ID throw error as duplicate cannot be created
                     else {
-                        throw new Error(`Edit category failed - category name '${categoryName}' already in use. Check categoryName parameter.`);
+                        throw new Error(`Edit category failed - category name '${categoryName}' already in use. Check categoryName parameter. ${userId}`);
                     };
                 };
 
@@ -409,7 +420,7 @@ module.exports = class SettingsService {
             /* Check categoryType is correct activity. If categoryType exists
             and categoryTypes does not include categoryType, throw error. */
             if (categoryType && !this.categoryTypes.includes(categoryType)) {
-                throw new Error(`Edit category failed - category type '${categoryType}' invalid. Check categoryType parameter.`);
+                throw new Error(`Edit category failed - category type '${categoryType}' invalid. Check categoryType parameter. ${userId}`);
             };
 
             // Else, continue
@@ -445,11 +456,13 @@ module.exports = class SettingsService {
                 }
             );
 
+            logger.info(`Category edited successfully for user ${userId}`);
+
             // Return response
             return { success: true };
 
         } catch (err) {
-            console.error(err.message);
+            logger.error(err.message);
             throw err;
         };
     };
@@ -464,12 +477,12 @@ module.exports = class SettingsService {
         try {
             // Check userId parameter exists
             if (!userId) {
-                throw new Error('Delete categories failed - userId parameter empty. Must be supplied.');
+                throw new Error('Delete categories failed - userId parameter empty. Must be supplied');
             };
 
             // Check categories parameter exists
             if (!categories) {
-                throw new Error('Delete categories failed - categories parameter empty. Must be supplied.');
+                throw new Error(`Delete categories failed - categories parameter empty. Must be supplied. ${userId}`);
             };
 
             // Set idsForDeletion array
@@ -479,7 +492,7 @@ module.exports = class SettingsService {
             for (const category of categories) {
                 // Check _id key for category exists
                 if (!category.id) {
-                    throw new Error(`Delete categories failed - a category object is missing required key 'id'.`);
+                    throw new Error(`Delete categories failed - a category object is missing required key 'id'. ${userId}`);
                 };
 
                 // Else
@@ -495,7 +508,7 @@ module.exports = class SettingsService {
 
             // If no categories for the user found throw error
             if (!getCategories) {
-                throw new Error('Delete categories failed - no categories for the user found.');
+                throw new Error(`Delete categories failed - no categories for the user found. ${userId}`);
             };
 
             // Set existingCategories array
@@ -510,7 +523,7 @@ module.exports = class SettingsService {
             for (const id of idsForDeletion) {
                 // If ID is not included in existingCategories, throw error
                 if (!existingCategories.includes(id)) {
-                    throw new Error(`Delete categories failed - category with ID '${id}' does not exist.`);
+                    throw new Error(`Delete categories failed - category with ID '${id}' does not exist. ${userId}`);
                 };
 
                 // Else, continue
@@ -533,10 +546,12 @@ module.exports = class SettingsService {
                 }
             );
 
+            logger.info(`Categories deleted successfully for user ${userId}`);
+
             return { success: true };
 
         } catch (err) {
-            console.error(err.message);
+            logger.error(err.message);
             throw err;
         };
     };
@@ -550,7 +565,7 @@ module.exports = class SettingsService {
         try {
             // Check userId parameter exists
             if (!userId) {
-                throw new Error('Get all categories failed - userId parameter empty. Must be supplied.');
+                throw new Error('Get all categories failed - userId parameter empty. Must be supplied');
             };
 
             // Get the existing categories for the specified user from the categories collection
@@ -559,18 +574,20 @@ module.exports = class SettingsService {
 
             // If no categories for the user found throw error
             if (!categories) {
-                throw new Error('Get all categories failed - no categories for the user found.');
+                throw new Error(`Get all categories failed - no categories for the user found. ${userId}`);
             };
 
+            // Log success
+            logger.info(`All categories retrieved successfully for user ${userId}`);
+
             // Return success and data
-            console.log(categories);
             return {
                 success: true,
                 data: categories
             };
 
         } catch (err) {
-            console.error(err.message);
+            logger.error(err.message);
             throw err;
         };
     };
@@ -585,12 +602,12 @@ module.exports = class SettingsService {
         try {
             // Check userId parameter exists
             if (!userId) {
-                throw new Error('Check category in use failed - userId parameter empty. Must be supplied.')
+                throw new Error('Check category in use failed - userId parameter empty. Must be supplied');
             };
 
             // Check categoryId parameter exists
             if (!categoryId) {
-                throw new Error('Check category in use failed - categoryId parameter empty. Must be supplied.')
+                throw new Error(`Check category in use failed - categoryId parameter empty. Must be supplied. ${userId}`);
             };
 
             // Get the existing categories for the specified user from the categories collection
@@ -598,7 +615,7 @@ module.exports = class SettingsService {
 
             // If no categories for the user found throw error
             if (!categories) {
-                throw new Error('Check category in use failed - no categories for the user found.');
+                throw new Error(`Check category in use failed - no categories for the user found. ${userId}`);
             };
 
             // Try to get the specified category from the categories array
@@ -606,7 +623,7 @@ module.exports = class SettingsService {
             
             // If the specified category does not exists throw error
             if (!category) {
-                throw new Error('Check category in use failed - category does not exist.');
+                throw new Error(`Check category in use failed - category does not exist. ${userId}`);
             };
 
             // Count how many journal entries use this category in the entries collection
@@ -628,6 +645,9 @@ module.exports = class SettingsService {
 
             // if check category does not exist set exists to false
             if (checkCategory === 0) inUse = false;
+            
+            // Log success
+            logger.info(`Retrieved category in use status successfully for user ${userId}`);
 
             // Return response
             return {
@@ -636,7 +656,7 @@ module.exports = class SettingsService {
             };
 
         } catch (err) {
-            console.error(err.message);
+            logger.error(err.message);
             throw err;
         };
     };
@@ -656,7 +676,7 @@ module.exports = class SettingsService {
 
             // Check activities parameter exists
             if (!activities) {
-                throw new Error('Add activities failed - activities parameter empty. Must be supplied.');
+                throw new Error(`Add activities failed - activities parameter empty. Must be supplied. ${userId}`);
             };
 
             // Get the existing activities and convert cursor to array for the specified user
@@ -670,19 +690,19 @@ module.exports = class SettingsService {
                 
                 // Check activity name exists
                 if (!newActivity.name) {
-                    throw new Error(`Add activities failed - activity missing name. Must be supplied.`);
+                    throw new Error(`Add activities failed - activity missing name. Must be supplied. ${userId}`);
                 };
 
                 // Check activity type exists
                 if (!newActivity.type) {
-                    throw new Error(`Add activities failed - activity '${newActivity.name}' missing type. Must be supplied.`);
+                    throw new Error(`Add activities failed - activity '${newActivity.name}' missing type. Must be supplied. ${userId}`);
                 };
 
                 // Check type for newActivity is valid
                 /* Check newActivity.type is correct type. If activityTypes
                     does not include newActivity.type, throw error. */
                 if (!this.activityTypes.includes(newActivity.type)) {
-                    throw new Error(`Add activities failed - type '${newActivity.type}' for activity '${newActivity.name}' is invalid.`);
+                    throw new Error(`Add activities failed - type '${newActivity.type}' for activity '${newActivity.name}' is invalid. ${userId}`);
                 };
                 continue;
             };
@@ -691,7 +711,7 @@ module.exports = class SettingsService {
             for (const existingActivity of existingActivities) {
                 for (const newActivity of newActivities) {
                     if (existingActivity.name === newActivity.name) {
-                        throw new Error(`Add activity failed - activity name '${newActivity.name}' is already in use. Check value for key 'name'.`);
+                        throw new Error(`Add activity failed - activity name '${newActivity.name}' is already in use. Check value for key 'name'. ${userId}`);
                     };
                     continue;
                 };
@@ -715,11 +735,14 @@ module.exports = class SettingsService {
                 newActivities
             );
 
+            // Log success
+            logger.info(`Activities created successfully for user ${userId}`);
+
             // Return response
             return { success: true };
 
         } catch (err) {
-            console.error(err.message);
+            logger.error(err.message);
             throw err;
         };
     };
@@ -736,17 +759,17 @@ module.exports = class SettingsService {
         try {
             // Check userId parameter exists
             if (!userId) {
-                throw new Error('Edit activity failed - userId parameter empty. Must be supplied.');
+                throw new Error('Edit activity failed - userId parameter empty. Must be supplied');
             };
 
             // Check activityId parameter exists
             if (!activityId) {
-                throw new Error('Edit activity failed - activityId parameter empty. Must be supplied.');
+                throw new Error(`Edit activity failed - activityId parameter empty. Must be supplied. ${userId}`);
             };
 
             // If at least activityName or activityType parameter is not provided
             if (!activityName && !activityType) {
-                throw new Error('Edit activity failed - activityName & ActivityType empty. At least one must be supplied.');
+                throw new Error(`Edit activity failed - activityName & ActivityType empty. At least one must be supplied. ${userId}`);
             };
 
             // Get the existing activities from the activities collection for the specified user
@@ -754,7 +777,7 @@ module.exports = class SettingsService {
 
             // If no activities for the user found throw error
             if (!existingActivities) {
-                throw new Error('Edit activity failed - no activities for the user found.');
+                throw new Error(`Edit activity failed - no activities for the user found. ${userId}`);
             };
 
             // Prepare original activity object
@@ -786,7 +809,7 @@ module.exports = class SettingsService {
 
             // If not found, throw error
             if (activityFound === false) {
-                throw new Error('Update activity failed - existing activity not found. Check activityId parameter.');
+                throw new Error(`Update activity failed - existing activity not found. Check activityId parameter. ${userId}`);
             };
                 
             /* Check the new activity name is not the same as any of the other activities 
@@ -802,7 +825,7 @@ module.exports = class SettingsService {
                     }
                     // Else, as they do not have the same ID throw error as duplicate cannot be created
                     else {
-                        throw new Error(`Update activity failed - activity name '${activityName}' already in use. Check activityName parameter.`);
+                        throw new Error(`Update activity failed - activity name '${activityName}' already in use. Check activityName parameter. ${userId}`);
                     };
                 };
 
@@ -813,7 +836,7 @@ module.exports = class SettingsService {
             /* Check activityType is correct type. If activityType exists
             and activitiesTypes does not include activityType, throw error. */
             if (activityType && !this.activityTypes.includes(activityType)) {
-                throw new Error(`Update activity failed - activity type '${activityType}' invalid. Check activityType parameter.`);
+                throw new Error(`Update activity failed - activity type '${activityType}' invalid. Check activityType parameter. ${userId}`);
             };
 
             // Else, continue
@@ -849,11 +872,14 @@ module.exports = class SettingsService {
                 }
             );
 
+            // Log success
+            logger.info(`Activity edited successfully for user ${userId}`);
+
             // Return response
             return { success: true };
 
         } catch (err) {
-            console.error(err.message);
+            logger.error(err.message);
             throw err;
         };
     };
@@ -868,12 +894,12 @@ module.exports = class SettingsService {
         try {
             // Check userId parameter exists
             if (!userId) {
-                throw new Error('Delete activities failed - userId parameter empty. Must be supplied.');
+                throw new Error('Delete activities failed - userId parameter empty. Must be supplied');
             };
 
             // Check activities parameter exists
             if (!activities) {
-                throw new Error('Delete activities failed - activities parameter empty. Must be supplied.');
+                throw new Error(`Delete activities failed - activities parameter empty. Must be supplied. ${userId}`);
             };
 
             // Set idsForDeletion array
@@ -883,7 +909,7 @@ module.exports = class SettingsService {
             for (const activity of activities) {
                 // Check _id key for activity exists
                 if (!activity.id) {
-                    throw new Error(`Delete activities failed - an activity object is missing required key 'id'.`);
+                    throw new Error(`Delete activities failed - an activity object is missing required key 'id'. ${userId}`);
                 };
 
                 // Else
@@ -899,7 +925,7 @@ module.exports = class SettingsService {
 
             // If no activities for the user found throw error
             if (!getActivities) {
-                throw new Error('Delete activities failed - no activities for the user found.');
+                throw new Error(`Delete activities failed - no activities for the user found. ${userId}`);
             };
 
             // Set existingActivities array
@@ -914,7 +940,7 @@ module.exports = class SettingsService {
             for (const id of idsForDeletion) {
                 // If ID is not included in existingActivities, throw error
                 if (!existingActivities.includes(id)) {
-                    throw new Error(`Delete activities failed - activity with ID '${id}' does not exist.`);
+                    throw new Error(`Delete activities failed - activity with ID '${id}' does not exist. ${userId}`);
                 };
 
                 // Else, continue
@@ -937,10 +963,14 @@ module.exports = class SettingsService {
                 }
             );
 
+            // Log success
+            logger.info(`Activities deleted successfully for user ${userId}`);
+            
+            // Return success
             return { success: true };
 
         } catch (err) {
-            console.error(err.message);
+            logger.error(err.message);
             throw err;
         };
     };
@@ -954,7 +984,7 @@ module.exports = class SettingsService {
         try {
             // Check userId parameter exists
             if (!userId) {
-                throw new Error('Get all activities failed - userId parameter empty. Must be supplied.');
+                throw new Error('Get all activities failed - userId parameter empty. Must be supplied');
             };
 
             // Get the existing activities for the specified user from the activities collection
@@ -963,18 +993,20 @@ module.exports = class SettingsService {
 
             // If no activities for the user found throw error
             if (!activities) {
-                throw new Error('Get all activities failed - no activities for the user found.');
+                throw new Error(`Get all activities failed - no activities for the user found. ${userId}`);
             };
 
+            // Log success
+            logger.info(`All activities retrieved successfully for user ${userId}`);
+
             // Return success and data
-            console.log(activities);
             return {
                 success: true,
                 data: activities
             };
 
         } catch (err) {
-            console.error(err.message);
+            logger.error(err.message);
             throw err;
         };
     };
@@ -989,12 +1021,12 @@ module.exports = class SettingsService {
         try {
             // Check userId parameter exists
             if (!userId) {
-                throw new Error('Check activity in use failed - userId parameter empty. Must be supplied.')
+                throw new Error('Check activity in use failed - userId parameter empty. Must be supplied')
             };
 
             // Check activityId parameter exists
             if (!activityId) {
-                throw new Error('Check activity in use failed - activityId parameter empty. Must be supplied.')
+                throw new Error(`Check activity in use failed - activityId parameter empty. Must be supplied. ${userId}`)
             };
 
             // Get the existing activities for the specified user from the activities collection
@@ -1002,7 +1034,7 @@ module.exports = class SettingsService {
 
             // If no activities for the user found throw error
             if (!activities) {
-                throw new Error('Check activity in use failed - no activities for the user found.');
+                throw new Error(`Check activity in use failed - no activities for the user found. ${userId}`);
             };            
 
             // Try to get the specified activity from the user's settings
@@ -1010,7 +1042,7 @@ module.exports = class SettingsService {
             
             // If the specified activity does not exists throw error
             if (!activity) {
-                throw new Error('Check activity in use failed - activity does not exist.');
+                throw new Error(`Check activity in use failed - activity does not exist. ${userId}`);
             };
 
             // Count how many journal entries use this activity
@@ -1032,15 +1064,18 @@ module.exports = class SettingsService {
 
             // if check activity count is equal to 0 set exists to false
             if (checkActivity === 0) inUse = false;
+            
+            // Log success
+            logger.info(`Retrieved activity in use status successfully for user ${userId}`);
 
-            // Return response
+            // Return success and data response
             return {
                 success: true,
                 inuse: inUse
             };
 
         } catch (err) {
-            console.error(err.message);
+            logger.error(err.message);
             throw err;
         };
     };

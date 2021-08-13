@@ -1,5 +1,8 @@
 // This controller contains all settings controller methods
 
+// Import logger
+const logger = require('../loaders/logger');
+
 // Service imports
 const SettingsService = require('../services/SettingsService');
 const SettingsServiceInstance = new SettingsService();
@@ -15,11 +18,12 @@ exports.getSettings = async (req, res) => {
         const response =
             await SettingsServiceInstance.getSettings(
                 userId);
-        
-        console.log(response);
 
         res.json(response);
+
     } catch (err) {
+        logger.error(err.message);
+
         res.status(500).json(
             {
                 success: false,
@@ -45,11 +49,12 @@ exports.checkSettingsSetupStatus = async (req, res) => {
         const response =
             await SettingsServiceInstance.checkSettingsSetupStatus(
                 userId);
-        
-        console.log(response);
 
         res.json(response);
+
     } catch (err) {
+        logger.error(err.message);
+
         res.status(500).json(
             {
                 success: false,
@@ -77,11 +82,12 @@ exports.editSettingsSetupStatus = async (req, res) => {
         const response =
             await SettingsServiceInstance.editSettingsSetupStatus(
                 userId, status);
-        
-        console.log(response);
 
         res.json(response);
+
     } catch (err) {
+        logger.error(err.message);
+
         res.status(500).json(
             {
                 success: false,
@@ -107,11 +113,12 @@ exports.createDefaultCategories = async (req, res) => {
         const response =
             await SettingsServiceInstance.createDefaultCategories(
                 userId);
-        
-        console.log(response);
 
         res.json(response);
+
     } catch (err) {
+        logger.error(err.message);
+
         res.status(500).json(
             {
                 success: false,
@@ -138,11 +145,12 @@ exports.addCategories = async (req, res) => {
         const response =
             await SettingsServiceInstance.addCategories(
                 userId, categories);
-        
-        console.log(response);
 
         res.json(response);
+
     } catch (err) {
+        logger.error(err.message);
+
         res.status(500).json(
             {
                 success: false,
@@ -169,11 +177,12 @@ exports.editCategory = async (req, res) => {
         const response =
             await SettingsServiceInstance.editCategory(
                 userId, categoryId, categoryName, categoryType);
-        
-        console.log(response);
 
         res.json(response);
+
     } catch (err) {
+        logger.error(err.message);
+
         res.status(500).json(
             {
                 success: false,
@@ -200,11 +209,12 @@ exports.deleteCategories = async (req, res) => {
         const response =
             await SettingsServiceInstance.deleteCategories(
                 userId, categories);
-        
-        console.log(response);
 
         res.json(response);
+
     } catch (err) {
+        logger.error(err.message);
+
         res.status(500).json(
             {
                 success: false,
@@ -230,11 +240,12 @@ exports.getAllCategories = async (req, res) => {
         const response =
             await SettingsServiceInstance.getAllCategories(
                 userId);
-        
-        console.log(response);
 
         res.json(response);
+
     } catch (err) {
+        logger.error(err.message);
+
         res.status(500).json(
             {
                 success: false,
@@ -261,11 +272,12 @@ exports.checkCategoryInUse = async (req, res) => {
         const response =
             await SettingsServiceInstance.checkCategoryInUse(
                 userId, categoryId);
-        
-        console.log(response);
 
         res.json(response);
+
     } catch (err) {
+        logger.error(err.message);
+
         res.status(500).json(
             {
                 success: false,
@@ -292,11 +304,12 @@ exports.addActivities = async (req, res) => {
         const response =
             await SettingsServiceInstance.addActivities(
                 userId, activities);
-        
-        console.log(response);
 
         res.json(response);
+
     } catch (err) {
+        logger.error(err.message);
+
         res.status(500).json(
             {
                 success: false,
@@ -323,11 +336,12 @@ exports.editActivity = async (req, res) => {
         const response =
             await SettingsServiceInstance.editActivity(
                 userId, activityId, activityName, activityType);
-        
-        console.log(response);
 
         res.json(response);
+
     } catch (err) {
+        logger.error(err.message);
+
         res.status(500).json(
             {
                 success: false,
@@ -354,11 +368,12 @@ exports.deleteActivities = async (req, res) => {
         const response =
             await SettingsServiceInstance.deleteActivities(
                 userId, activities);
-        
-        console.log(response);
 
         res.json(response);
+
     } catch (err) {
+        logger.error(err.message);
+        
         res.status(500).json(
             {
                 success: false,
@@ -384,11 +399,12 @@ exports.getAllActivities = async (req, res) => {
         const response =
             await SettingsServiceInstance.getAllActivities(
                 userId);
-        
-        console.log(response);
 
         res.json(response);
+
     } catch (err) {
+        logger.error(err.message);
+
         res.status(500).json(
             {
                 success: false,
@@ -415,11 +431,12 @@ exports.checkActivityInUse = async (req, res) => {
         const response =
             await SettingsServiceInstance.checkActivityInUse(
                 userId, activityId);
-        
-        console.log(response);
 
         res.json(response);
+
     } catch (err) {
+        logger.error(err.message);
+
         res.status(500).json(
             {
                 success: false,

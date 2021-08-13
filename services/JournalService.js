@@ -6,6 +6,9 @@ const Entry = require('../models/Entry');
 const EventEmitter = require('events').EventEmitter;
 const journalServiceEvents = new EventEmitter;
 
+// Import logger
+const logger = require('../loaders/logger');
+
 /**
  * @description Create an instance of the JournalService class.
  */
@@ -49,28 +52,28 @@ module.exports = class JournalService {
         try {
             // Check userId parameter exists
             if (!userId) {
-                throw new Error('Add journal entry failed - userId parameter empty. Must be supplied.');
+                throw new Error('Add journal entry failed - userId parameter empty. Must be supplied');
             };
 
             // Check entryMood parameter exists
             if (!entryMood) {
-                throw new Error('Add journal entry failed - entryMood parameter empty. Must be supplied.');
+                throw new Error(`Add journal entry failed - entryMood parameter empty. Must be supplied. ${userId}`);
             };
 
             // Check entryEmotion parameter exists
             if (!entryEmotion) {
-                throw new Error('Add journal entry failed - entryEmotion parameter empty. Must be supplied.');
+                throw new Error(`Add journal entry failed - entryEmotion parameter empty. Must be supplied. ${userId}`);
             };
 
             // Check entryText parameter exists
             if (!entryText) {
-                throw new Error('Add journal entry failed - entryText parameter empty. Must be supplied.');
+                throw new Error(`Add journal entry failed - entryText parameter empty. Must be supplied. ${userId}`);
             };
 
             // If linkedEntry parameter exists and entry mood parameter is unpleasant
             // Throw error
             if (linkedEntry && entryMood.includes('Pleasant')) {
-                throw new Error('Add journal entry failed - cannot link an entry when current entry mood type is pleasant.');
+                throw new Error(`Add journal entry failed - cannot link an entry when current entry mood type is pleasant. ${userId}`);
             };
 
             // Create response obj
@@ -120,6 +123,9 @@ module.exports = class JournalService {
                 // Emit journalCreated event
                 journalServiceEvents.emit('journalEntryCreated');
 
+                // Log success
+                logger.info(`New journal entry created successfully for user ${userId}`);
+
                 // Set response
                 success = true;
                 authorise = true;
@@ -147,6 +153,7 @@ module.exports = class JournalService {
             return response;
 
         } catch (err) {
+            logger.error(err.message);
             throw err;
         };
     };
@@ -167,24 +174,24 @@ module.exports = class JournalService {
         try {
             // Check userId parameter exists
             if (!userId) {
-                throw new Error('Edit journal entry failed - userId parameter empty. Must be supplied.');
+                throw new Error('Edit journal entry failed - userId parameter empty. Must be supplied');
             };
 
             // Check journalId parameter exists
             if (!journalId) {
-                throw new Error('Edit journal entry failed - journalId parameter empty. Must be supplied.');
+                throw new Error(`Edit journal entry failed - journalId parameter empty. Must be supplied. ${userId}`);
             };
 
             // If linkedEntry exists and entryMood does not exists
             // Throw error
             if (linkedEntry && !entryMood) {
-                throw new Error('Add journal entry failed - cannot link an entry when current entry mood type parameter is empty.');
+                throw new Error(`Add journal entry failed - cannot link an entry when current entry mood type parameter is empty. ${userId}`);
             }
 
             // If linkedEntry parameter exists and entry mood parameter is pleasant
             // Throw error
             if (linkedEntry && entryMood.includes('Pleasant')) {
-                throw new Error('Add journal entry failed - cannot link an entry when current entry mood type is pleasant.');
+                throw new Error(`Add journal entry failed - cannot link an entry when current entry mood type is pleasant. ${userId}`);
             };
 
             // Create response obj
@@ -244,6 +251,9 @@ module.exports = class JournalService {
                 // Emit journalUpdated event
                 journalServiceEvents.emit('journalEntryUpdated');
 
+                // Log success
+                logger.info(`Journal entry edited successfully for user ${userId}`);
+
                 // Set response
                 success = true;
                 authorise = true;
@@ -270,6 +280,7 @@ module.exports = class JournalService {
             return response;
 
         } catch (err) {
+            logger.error(err.message);
             throw err;
         };
     };
@@ -284,12 +295,12 @@ module.exports = class JournalService {
         try {
             // Check userId parameter exists
             if (!userId) {
-                throw new Error('Delete journal entry failed - userId parameter empty. Must be supplied.');
+                throw new Error('Delete journal entry failed - userId parameter empty. Must be supplied');
             };
 
             // Check journalId parameter exists
             if (!journalId) {
-                throw new Error('Delete journal entry failed - journalId parameter empty. Must be supplied.');
+                throw new Error(`Delete journal entry failed - journalId parameter empty. Must be supplied. ${userId}`);
             };
 
             // Create response obj
@@ -331,6 +342,9 @@ module.exports = class JournalService {
                 // Emit journalDeleted event
                 journalServiceEvents.emit('journalEntryDeleted');
 
+                // Log success
+                logger.info(`Journal entry deleted successfully for user ${userId}`);
+
                 // Set response
                 success = true;
                 authorise = true;
@@ -348,7 +362,7 @@ module.exports = class JournalService {
             return response;
             
         } catch (err) {
-            console.error(err.message);
+            logger.error(err.message);
             throw err;
         };
     };
@@ -362,7 +376,7 @@ module.exports = class JournalService {
         try {
             // Check userId parameter exists
             if (!userId) {
-                throw new Error('Get all journal entries failed - userId parameter empty. Must be supplied.');
+                throw new Error('Get all journal entries failed - userId parameter empty. Must be supplied');
             };
 
             // Create response obj
@@ -392,6 +406,9 @@ module.exports = class JournalService {
                 
                 // Emit journalEntriesFetched event
                 journalServiceEvents.emit('journalEntriesFetched');
+
+                // Log success
+                logger.info(`All entries retrieved successfully for user ${userId}`);
                 
                 // Set response
                 success = true;
@@ -412,7 +429,7 @@ module.exports = class JournalService {
             return response;
 
         } catch (err) {
-            console.error(err.message);
+            logger.error(err.message);
             throw err;
         };
     };
@@ -427,12 +444,12 @@ module.exports = class JournalService {
         try {
             // Check userId parameter exists
             if (!userId) {
-                throw new Error('Get journal entry failed - userId parameter empty. Must be supplied.');
+                throw new Error('Get journal entry failed - userId parameter empty. Must be supplied');
             };
 
             // Check journalId parameter exists
             if (!journalId) {
-                throw new Error('Get journal entry failed - journalId parameter empty. Must be supplied.');
+                throw new Error(`Get journal entry failed - journalId parameter empty. Must be supplied. ${userId}`);
             };
 
             // Create response obj
@@ -475,6 +492,9 @@ module.exports = class JournalService {
                 // Emit journalEntryFetched event
                 journalServiceEvents.emit('journalEntryFetched');
 
+                // Log success
+                logger.info(`Entry retrieved successfully for user ${userId}`);
+
                 // Set response
                 success = true;
                 authorise = true;
@@ -494,6 +514,7 @@ module.exports = class JournalService {
             return response;
 
         } catch (err) {
+            logger.error(err.message);
             throw err;
         };
     };
@@ -507,7 +528,7 @@ module.exports = class JournalService {
         try {
             // Check userId parameter exists
             if (!userId) {
-                throw new Error('Get most recent journal entry failed - userId parameter empty. Must be supplied.');
+                throw new Error('Get most recent journal entry failed - userId parameter empty. Must be supplied');
             };
 
             // Get most recent journal entry
@@ -515,10 +536,14 @@ module.exports = class JournalService {
                 .find({ user: userId })
                 .limit(1)
                 .sort({ dateCreated: -1 });
+            
+            // Log success
+            logger.info(`Most recent entry retrieved successfully for user ${userId}`);
 
             return mostRecentEntry;
 
         } catch (err) {
+            logger.error(err.message);
             throw err;
         };
     };
@@ -533,12 +558,12 @@ module.exports = class JournalService {
         try {
             // Check userId parameter exists
             if (!userId) {
-                throw new Error('Get closest journal entry failed - userId parameter empty. Must be supplied.');
+                throw new Error('Get closest journal entry failed - userId parameter empty. Must be supplied');
             };
 
             // Check journalId parameter exists
             if (!journalId) {
-                throw new Error('Get closest journal entry failed - journalId parameter empty. Must be supplied.');
+                throw new Error(`Get closest journal entry failed - journalId parameter empty. Must be supplied. ${userId}`);
             };
 
             // Get entry for checking
@@ -555,7 +580,7 @@ module.exports = class JournalService {
 
             // If journal entry not found
             if (!checkEntry) {
-                throw new Error('Get closest journal entry failed - journal entry not found.');
+                throw new Error(`Get closest journal entry failed - journal entry not found. ${userId}`);
             };
 
             // Get closestEntry to checkEntry
@@ -623,9 +648,14 @@ module.exports = class JournalService {
             //     throw new Error('Get closest journal entry failed - no results found.');
             // }
 
+            // Log success
+            logger.info(`Closest matching entry retrieved successfully for user ${userId}`);
+            
+            // Return data
             return closestEntry;
 
         } catch (err) {
+            logger.error(err.message);
             throw err;
         };
     };

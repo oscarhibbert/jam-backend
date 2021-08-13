@@ -1,3 +1,6 @@
+// Logger module
+const logger = require('./logger');
+
 // Mongoose deps
 const mongoose = require('mongoose');
 const config = require('config');
@@ -23,6 +26,7 @@ const keyVaultNamespace = 'acorn.encryption';
 
 const connectDB = async () => {
   try {
+    logger.info('Establishing connection to MongoDB...')
     // Establish connection to MongoDB Atlas
     await mongoose.connect(db, {
       useNewUrlParser: true,
@@ -36,8 +40,10 @@ const connectDB = async () => {
       }
     });
 
+    logger.info('MongoDB connected successfully!')
+
   } catch (err) {
-    console.error(err.message);
+    logger.error(err.message);
     // Exit process with failure
     process.exit(1);
   }

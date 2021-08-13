@@ -6,6 +6,9 @@ const express = require('express');
 // Import checkJwt middleware (Auth0)
 const { checkJwt } = require('../middleware/checkJwt');
 
+// Import logger middleware
+const { logger } = require('../middleware/logger');
+
 // Import validator middleware
 const {
     validateEditSettingsSetupStatus,
@@ -44,7 +47,7 @@ const router = express.Router();
  * @access                      Private.
  */
 router.route('/')
-    .get(checkJwt, getSettings);
+    .get(checkJwt, logger, getSettings);
 
 /**
  * @desc                        Attempt to get status of settings setup for specified user.
@@ -52,7 +55,7 @@ router.route('/')
  * @access                      Private.
  */
 router.route('/status')
-    .get(checkJwt, checkSettingsSetupStatus);
+    .get(checkJwt, logger, checkSettingsSetupStatus);
 
 /**
  * @desc                        Attempt to change the settings setup status for the specified user.
@@ -60,7 +63,7 @@ router.route('/status')
  * @access                      Private.
  */
 router.route('/status')
-    .put(checkJwt, validateEditSettingsSetupStatus, editSettingsSetupStatus);
+    .put(checkJwt, logger, validateEditSettingsSetupStatus, editSettingsSetupStatus);
 
 /**
  * @desc                        Attempt to create default categories for the specified user.
@@ -68,7 +71,7 @@ router.route('/status')
  * @access                      Private.
  */
 router.route('/categories/default')
-    .post(checkJwt, createDefaultCategories);
+    .post(checkJwt, logger, createDefaultCategories);
 
 /**
  * @desc                        Attempt to add categories for the specified user.
@@ -76,7 +79,7 @@ router.route('/categories/default')
  * @access                      Private.
  */
 router.route('/categories')
-    .post(checkJwt, validateAddCategories, addCategories);
+    .post(checkJwt, logger, validateAddCategories, addCategories);
 
 /**
  * @desc                        Attempt to edit caetgory for the specified user.
@@ -84,7 +87,7 @@ router.route('/categories')
  * @access                      Private.
  */
 router.route('/categories')
-    .patch(checkJwt, validateEditCategory, editCategory);
+    .patch(checkJwt, logger, validateEditCategory, editCategory);
 
 /**
  * @desc                        Attempt to delete specified categories for specified user.
@@ -92,7 +95,7 @@ router.route('/categories')
  * @access                      Private.
  */
 router.route('/categories')
-    .delete(checkJwt, validateDeleteCategories, deleteCategories);
+    .delete(checkJwt, logger, validateDeleteCategories, deleteCategories);
 
 /**
  * @desc                        Attempt to get all categories for specified user.
@@ -100,7 +103,7 @@ router.route('/categories')
  * @access                      Private.
  */
 router.route('/categories')
-    .get(checkJwt, getAllCategories);
+    .get(checkJwt, logger, getAllCategories);
 
 /**
  * @desc                        Attempt to check whether the specified category is in use.
@@ -108,7 +111,7 @@ router.route('/categories')
  * @access                      Private.
  */
 router.route('/categories/inuse/:id')
-    .get(checkJwt, checkCategoryInUse);
+    .get(checkJwt, logger, checkCategoryInUse);
 
 /**
  * @desc                        Attempt to add activities to the user's settings.
@@ -116,7 +119,7 @@ router.route('/categories/inuse/:id')
  * @access                      Private.
  */
 router.route('/activities')
-    .post(checkJwt, validateAddActivities, addActivities);
+    .post(checkJwt, logger, validateAddActivities, addActivities);
 
 /**
  * @desc                        Attempt to edit activity for user.
@@ -124,7 +127,7 @@ router.route('/activities')
  * @access                      Private.
  */
 router.route('/activities')
-    .patch(checkJwt, validateEditActivity, editActivity);
+    .patch(checkJwt, logger, validateEditActivity, editActivity);
 
 /**
  * @desc                        Attempt to delete specified activities for user.
@@ -132,7 +135,7 @@ router.route('/activities')
  * @access                      Private.
  */
 router.route('/activities')
-    .delete(checkJwt, validateDeleteActivities, deleteActivities);
+    .delete(checkJwt, logger, validateDeleteActivities, deleteActivities);
 
 /**
  * @desc                        Attempt to get all activities for specified user.
@@ -140,7 +143,7 @@ router.route('/activities')
  * @access                      Private.
  */
 router.route('/activities')
-    .get(checkJwt, getAllActivities);
+    .get(checkJwt, logger, getAllActivities);
 
 /**
  * @desc                        Attempt to check whether the specified activity is in use.
@@ -148,6 +151,6 @@ router.route('/activities')
  * @access                      Private.
  */
 router.route('/activities/inuse/:id')
-    .get(checkJwt, checkActivityInUse);
+    .get(checkJwt, logger, checkActivityInUse);
 
 module.exports = router;

@@ -6,6 +6,9 @@ const express = require('express');
 // Import middleware
 const { checkJwt } = require('../middleware/checkJwt');
 
+// Import logger middleware
+const { logger } = require('../middleware/logger');
+
 const {
     validateEntry
 } = require('../middleware/validators');
@@ -27,42 +30,42 @@ const router = express.Router();
 // @route  POST api/v1/entries
 // @access Private
 router.route('/')
-    .post(checkJwt, validateEntry, createEntry);
+    .post(checkJwt, logger, validateEntry, createEntry);
 
 // @desc   Edit a journal entry by entry ID
 // @route  PATCH api/v1/entries/:id
 // @access Private
 router.route('/:id')
-    .patch(checkJwt, editEntry);
+    .patch(checkJwt, logger, editEntry);
 
 // @desc   Delete a journal entry by entry ID
 // @route  DELETE api/v1/entries/id
 // @access Private
 router.route('/:id')
-    .delete(checkJwt, deleteEntry);
+    .delete(checkJwt, logger, deleteEntry);
 
 // @desc   Get all journal entries
 // @route  GET api/v1/entries
 // @access Private
 router.route('/')
-    .get(checkJwt, getAllEntries);
+    .get(checkJwt, logger, getAllEntries);
 
 // @desc   Get single journal entry by entry ID
 // @route  GET api/v1/entries/id
 // @access Private
 router.route('/:id')
-    .get(checkJwt, getEntry);
+    .get(checkJwt, logger, getEntry);
 
 // @desc   Get the most recent entry for the specified user
 // @route  GET api/v1/entries/fetch/newest
 // @access Private
 router.route('/fetch/newest')
-    .get(checkJwt, getMostRecentEntry);
+    .get(checkJwt, logger, getMostRecentEntry);
 
 // @desc   Get single journal entry by entry ID
 // @route  GET api/v1/entries/closestmatch/:id
 // @access Private
 router.route('/closestmatch/:id')
-    .get(checkJwt, getClosestEntry);
+    .get(checkJwt, logger, getClosestEntry);
 
 module.exports = router;

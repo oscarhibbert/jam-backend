@@ -1,5 +1,8 @@
 // This controller contains all journal entry controller methods
 
+// Import logger
+const logger = require('../loaders/logger');
+
 // Service imports
 const JournalService = require('../services/JournalService');
 const JournalServiceInstance = new JournalService();
@@ -9,7 +12,6 @@ const JournalServiceInstance = new JournalService();
 // @route  POST api/v1/entries
 // @access Private
 exports.createEntry = async (req, res) => {
-  console.log(req.user);
   try {
     const userID = req.user.sub;
     const { mood, emotion, categories, activities, text, linkedEntry } = req.body;
@@ -24,8 +26,6 @@ exports.createEntry = async (req, res) => {
       linkedEntry
     );
 
-    console.log(response);
-
     if (response.authorise === false) {
       // Return a 401 authorisation denied
       return res
@@ -38,8 +38,9 @@ exports.createEntry = async (req, res) => {
 
     // Respond
     res.json(response);
+
   } catch (err) {
-    console.error(err.message);
+    logger.error(err.message);
     res.status(500).json({ success: false, msg: 'Server Error' });
   }
 };
@@ -64,8 +65,6 @@ exports.editEntry = async (req, res) => {
       linkedEntry
     );
 
-    console.log(response);
-
     if (response.authorise === false) {
       // Return a 401 authorisation denied
       return res
@@ -78,8 +77,9 @@ exports.editEntry = async (req, res) => {
 
     // Respond
     res.json(response);
+
   } catch (err) {
-    console.error(err.message);
+    logger.error(err.message);
     // if (err.kind === 'ObjectId')
     //   return res
     //     .status(500)
@@ -98,8 +98,6 @@ exports.deleteEntry = async (req, res) => {
 
     let response = await JournalServiceInstance.deleteEntry(userID, journalID);
 
-    console.log(response);
-
     if (response.authorise === false) {
       // Return a 401 authorisation denied
       return res
@@ -112,8 +110,9 @@ exports.deleteEntry = async (req, res) => {
 
     // Respond
     res.json(response);
+
   } catch (err) {
-    console.error(err.message);
+    logger.error(err.message);
     res.status(500).json({ success: false, msg: 'Server Error' });
   }
 };
@@ -127,8 +126,6 @@ exports.getAllEntries = async (req, res) => {
 
     let response = await JournalServiceInstance.getAllEntries(userID);
 
-    console.log(response);
-
     if (response.authorise === false) {
       // Return 401 authorisation denied
       return res
@@ -141,8 +138,9 @@ exports.getAllEntries = async (req, res) => {
 
     // Respond
     res.json(response);
+
   } catch (err) {
-    console.error(err.message);
+    logger.error(err.message);
     res.status(500).json({ success: false, msg: 'Server Error' });
   }
 };
@@ -157,8 +155,6 @@ exports.getEntry = async (req, res) => {
 
     let response = await JournalServiceInstance.getEntry(userID, journalID);
 
-    console.log(response);
-
     if (response.authorise === false) {
       // Return a 401 authorisation denied
       return res
@@ -171,8 +167,9 @@ exports.getEntry = async (req, res) => {
     
     // Respond
     res.json(response);
+
   } catch (err) {
-    console.error(err.message);
+    logger.error(err.message);
     res.status(500).json({ success: false, msg: 'Server Error' });
   }
 };
@@ -185,14 +182,13 @@ exports.getMostRecentEntry = async (req, res) => {
     const userId = req.user.sub;
 
     let response = await JournalServiceInstance.getMostRecentEntry(userId);
-
-    console.log(response);
     
     // Respond
     res.json(response);
-    
+
   } catch (err) {
-    console.error(err.message);
+    logger.error(err.message);
+    console.error(err);
     res.status(500).json({ success: false, msg: 'Server Error' });
   };
 };
@@ -206,14 +202,12 @@ exports.getClosestEntry = async (req, res) => {
     const journalId = req.params.id;
 
     let response = await JournalServiceInstance.getClosestEntry(userId, journalId);
-
-    console.log(response);
     
     // Respond
     res.json(response);
     
   } catch (err) {
-    console.error(err.message);
+    logger.error(err.message);
     res.status(500).json({ success: false, msg: 'Server Error' });
   };
 };
