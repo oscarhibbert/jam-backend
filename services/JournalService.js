@@ -132,6 +132,7 @@ module.exports = class JournalService {
                 (msg = 'New journal entry created successfully'),
                     (data = {
                     _id: entry._id,
+                    user: userId,
                     mood: newEntry.mood,
                     emotion: newEntry.emotion,
                     categories: newEntry.categories,
@@ -259,6 +260,7 @@ module.exports = class JournalService {
                 authorise = true;
                 msg = `Journal entry successfully updated with ID ${journalId}`;
                 data = {
+                    user: userId,
                     mood: updatedEntry.mood,
                     emotion: updatedEntry.emotion,
                     categories: updatedEntry.categories,
@@ -355,7 +357,8 @@ module.exports = class JournalService {
             response = {
                 success: success,
                 authorise: authorise,
-                msg: msg
+                msg: msg,
+                user: userId
             };
 
             // Return response object
@@ -422,7 +425,8 @@ module.exports = class JournalService {
                 success: success,
                 authorise: authorise,
                 msg: msg,
-                data: data
+                data: data,
+                user: userId
             };
 
             // Return response object
@@ -650,9 +654,12 @@ module.exports = class JournalService {
 
             // Log success
             logger.info(`Closest matching entry retrieved successfully for user ${userId}`);
+
+            // Add userId to closestEntry object
+            closestEntry.user = userId;
             
             // Return data
-            return closestEntry;
+            return {data: closestEntry, user: userId};
 
         } catch (err) {
             logger.error(err.message);

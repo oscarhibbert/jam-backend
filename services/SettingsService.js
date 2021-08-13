@@ -100,6 +100,7 @@ module.exports = class SettingsService {
             return {
                 success: true,
                 data: {
+                    user: userId,
                     status: status
                 }
             };
@@ -147,7 +148,7 @@ module.exports = class SettingsService {
             logger.info(`Settings setup status edited successfully for user ${userId}`);
 
             // Return response
-            return { success: true };
+            return { success: true, user: userId };
 
         } catch (err) {
             logger.error(err.message);
@@ -238,7 +239,7 @@ module.exports = class SettingsService {
             logger.info(`Default categories created successfully for user ${userId}`);
 
             // Return response
-            return { success: true, data: newCategories };
+            return { success: true, user: userId, data: newCategories };
 
         } catch (err) {
             logger.error(err.message);
@@ -323,7 +324,7 @@ module.exports = class SettingsService {
             logger.info(`New categories created successfully for user ${userId}`);
 
             // Return response
-            return { success: true };
+            return { success: true, user: userId };
 
         } catch (err) {
             logger.error(err.message);
@@ -459,7 +460,7 @@ module.exports = class SettingsService {
             logger.info(`Category edited successfully for user ${userId}`);
 
             // Return response
-            return { success: true };
+            return { success: true, user: userId };
 
         } catch (err) {
             logger.error(err.message);
@@ -548,7 +549,7 @@ module.exports = class SettingsService {
 
             logger.info(`Categories deleted successfully for user ${userId}`);
 
-            return { success: true };
+            return { success: true, user: userId };
 
         } catch (err) {
             logger.error(err.message);
@@ -583,6 +584,7 @@ module.exports = class SettingsService {
             // Return success and data
             return {
                 success: true,
+                user: userId,
                 data: categories
             };
 
@@ -652,6 +654,7 @@ module.exports = class SettingsService {
             // Return response
             return {
                 success: true,
+                user: userId,
                 inuse: inUse
             };
 
@@ -739,7 +742,7 @@ module.exports = class SettingsService {
             logger.info(`Activities created successfully for user ${userId}`);
 
             // Return response
-            return { success: true };
+            return { success: true, user: userId };
 
         } catch (err) {
             logger.error(err.message);
@@ -876,7 +879,7 @@ module.exports = class SettingsService {
             logger.info(`Activity edited successfully for user ${userId}`);
 
             // Return response
-            return { success: true };
+            return { success: true, user: userId };
 
         } catch (err) {
             logger.error(err.message);
@@ -967,7 +970,7 @@ module.exports = class SettingsService {
             logger.info(`Activities deleted successfully for user ${userId}`);
             
             // Return success
-            return { success: true };
+            return { success: true, user: userId };
 
         } catch (err) {
             logger.error(err.message);
@@ -1002,6 +1005,7 @@ module.exports = class SettingsService {
             // Return success and data
             return {
                 success: true,
+                user: userId,
                 data: activities
             };
 
@@ -1071,6 +1075,7 @@ module.exports = class SettingsService {
             // Return success and data response
             return {
                 success: true,
+                user: userId,
                 inuse: inUse
             };
 
