@@ -1,3 +1,6 @@
+// Import logger
+const logger = require('../loaders/logger');
+
 // Model imports
 const User = require('../models/User');
 const Entry = require('../models/Entry');
@@ -5,9 +8,6 @@ const Entry = require('../models/Entry');
 // Events
 const EventEmitter = require('events').EventEmitter;
 const journalServiceEvents = new EventEmitter;
-
-// Import logger
-const logger = require('../loaders/logger');
 
 /**
  * @description Create an instance of the JournalService class.

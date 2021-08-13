@@ -1,11 +1,11 @@
+// Import logger
+const logger = require('../loaders/logger');
+
 // Model imports
 const Setting = require('../models/Setting');
 const Categories = require('../models/Categories');
 const Activities = require('../models/Activities');
 const Entry = require('../models/Entry');
-
-// Import logger
-const logger = require('../loaders/logger');
 
 /**
  * @description Create an instance of the SettingsService class.
