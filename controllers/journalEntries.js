@@ -188,7 +188,6 @@ exports.getMostRecentEntry = async (req, res) => {
 
   } catch (err) {
     logger.error(err.message);
-    console.error(err);
     res.status(500).json({ success: false, msg: 'Server Error' });
   };
 };

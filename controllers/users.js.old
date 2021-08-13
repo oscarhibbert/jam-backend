@@ -54,8 +54,7 @@ exports.registerUser = async (req, res, next) => {
         //     success: true,
         //     msg: `New user created successfully`
         //   };
-
-        //   console.log(response);
+        
         //   res.json(response);
 
         // }
