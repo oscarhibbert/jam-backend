@@ -1,7 +1,8 @@
+// Import logger
+const logger = require('./loaders/logger');
+
 // Imports
 const express = require('express');
-
-const logger = require('./loaders/logger');
 
 // Init express
 const app = express();
