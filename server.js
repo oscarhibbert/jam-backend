@@ -16,9 +16,9 @@ connectDB();
 app.use(express.json({ extended: false }));
 
 // Import route files
-const auth = require('./routes/auth');
+// const auth = require('./routes/auth');
+// const users = require('./routes/users');
 const journalEntries = require('./routes/journalEntries');
-const users = require('./routes/users');
 const settings = require('./routes/settings');
 
 // Mount routers
