@@ -1,65 +1,13 @@
 // Import Winston
 const winston = require('winston');
+const config = require('config');
+const Sentry = require('winston-transport-sentry-node').default;
+const { LoggingWinston } = require('@google-cloud/logging-winston');
 
-// let formatAllLevels = winston.format.combine(
-//     winston.format.colorize({
-//         all:true
-//     }),
-//     winston.format.label({
-//         label:'[LOGGER]'
-//     }),
-//     winston.format.timestamp({
-//         format:"DD-MM-YY HH:mm:ss"
-//     }),
-//     winston.format.printf(
-//         info => ` ${info.label}  ${info.timestamp}  ${info.level} : ${info.message}`
-//     )
-// );
+// Create empty logger object
+let logger;
 
-// const enumerateErrorFormat = winston.format(info => {
-//   if (info.message instanceof Error) {
-//     info.message = Object.assign({
-//       message: info.message.message,
-//       stack: info.message.stack
-//     }, info.message);
-//   }
-
-//   if (info instanceof Error) {
-//     return Object.assign({
-//       message: info.message,
-//       stack: info.stack
-//     }, info);
-//   }
-
-//   return info;
-// });
-
-// const logger = winston.createLogger({
-//     format: winston.format.combine(
-//     enumerateErrorFormat(),
-//     winston.format.json()
-//     ),
-//     transports: [
-//         new (winston.transports.Console)({
-//             level: 'debug',
-//             format: winston.format.combine(winston.format.colorize(), formatAllLevels)
-//         }),
-//         new (winston.transports.Console)({
-//             level: 'error'
-//         }),
-//     ],
-//     // Handle uncaught exceptions
-//     exceptionHandlers: [
-//         new (winston.transports.Console)({
-//         })
-//     ],
-//     // Handle uncaught promise rejections
-//     rejectionHandlers: [
-//         new (winston.transports.Console)({
-//         })
-//     ]
-// });
-
+// Format all Winston transports
 let formatAllLevels = winston.format.combine(
     winston.format.colorize({
         all:true
@@ -84,28 +32,95 @@ let formatAllLevels = winston.format.combine(
     return `${info.label} ${timestamp} ${level}: ${message} ${stack}`;
     })
 );
-  
-const logger = winston.createLogger({
-        level: 'debug',
-        // put the errors formatter in the parent for some reason, only needed there:
-        format: winston.format.errors({ stack: true }),
-        transports: new winston.transports.Console({
-            format: winston.format.combine(
-                winston.format.colorize(),
-                formatAllLevels
-            ),
-        }),
-        // Handle uncaught exceptions
-        exceptionHandlers: [
-            new (winston.transports.Console)({
-            })
-        ],
-        // Handle uncaught promise rejections
-        rejectionHandlers: [
-            new (winston.transports.Console)({
-            })
-        ]
+
+// Set console transport
+const consoleTransport = new winston.transports.Console({
+    format: winston.format.combine(
+        winston.format.colorize(),
+        formatAllLevels
+    ),
+});
+
+// Set logger options
+let loggerOptions = {
+    // Set maximum level to log
+    level: 'debug',
+    // put the errors formatter in the parent, only works if included here
+    format: winston.format.errors({ stack: true }),
+    // Transport array with consoleTransport included. Others to be added to below on logic
+    transports: [
+        consoleTransport
+    ],
+    // Handle uncaught exceptions
+    exceptionHandlers: [
+        new (winston.transports.Console)({
+        })
+    ],
+    // Handle uncaught promise rejections
+    rejectionHandlers: [
+        new (winston.transports.Console)({
+        })
+    ]
+};
+
+// Create empty transport objects
+let sentryTransport;
+let gcpTransport;
+
+// Fetch remote logging status from ENV
+const remoteLoggingStatus = () => {
+    const remoteLoggingBoolean = config.get('remoteLogging');
+    if (remoteLoggingBoolean === true) return true;
+    else return false;
+};
+
+// If the remote logging status is true
+if (remoteLoggingStatus()) {    
+    // Set Sentry Transport
+    sentryTransport = new Sentry({
+        sentry: {
+            dsn: config.get('sentryDSN'),
+        },
+        level: 'error',
     });
+
+    // Set GCP Log Name
+    let gcpWinstonLogName;
+
+    if (process.env.NODE_ENV === 'development') gcpWinstonLogName = "Acorn-Backend-Dev";
+    else if (process.env.NODE_ENV === 'production') gcpWinstonLogName = "Acorn-Backend-Prod";
+    else gcpWinstonLogName = "Acorn-Prod-Server";
+    
+    // Set GCP Transport
+    gcpTransport = new LoggingWinston({
+        projectId: config.get('gcpProjectId'),
+        keyFilename: config.get('gcpKeyFilepath'),
+        logName: gcpWinstonLogName,
+    });
+
+    // Add Transports to transport array
+    loggerOptions.transports.push(sentryTransport, gcpTransport);
+
+    // Build logger
+    logger = winston.createLogger(
+        loggerOptions
+    );
+
+    // Log info
+    logger.info(`Logging ENABLED. Remote logging to Sentry & GCP ENABLED....`);
+}
+
+// Else
+else {
+    // Using base loggerOptions
+    // Build logger
+    logger = winston.createLogger(
+        loggerOptions
+    );
+
+    // Log info
+    logger.info(`Logging ENABLED. Remote logging to Sentry & GCP DISABLED....`)
+};
 
 // Export logger
 module.exports = logger;
