@@ -89,7 +89,7 @@ if (remoteLoggingStatus()) {
 
     if (process.env.NODE_ENV === 'development') gcpWinstonLogName = config.get('gcpDevLogName');
     else if (process.env.NODE_ENV === 'production') gcpWinstonLogName = config.get('gcpProdLogName');
-    else gcpWinstonLogName = config.get('gcpDevLogName');
+    else gcpWinstonLogName = 'acorn-backend-dev';
     
     // Set GCP Transport
     gcpTransport = new LoggingWinston({
