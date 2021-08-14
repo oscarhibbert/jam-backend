@@ -1,3 +1,21 @@
+// Import Config
+const config = require('config');
+
+// Import Sentry
+const Sentry = require("@sentry/node");
+// or use es6 import statements
+// import * as Sentry from '@sentry/node';
+
+// Init Sentry
+Sentry.init({
+  dsn: config.get('sentryDSN'),
+
+  // Set tracesSampleRate to 1.0 to capture 100%
+  // of transactions for performance monitoring.
+  // We recommend adjusting this value in production
+  tracesSampleRate: 1.0,
+});
+
 // Import logger
 const logger = require('./loaders/logger');
 
