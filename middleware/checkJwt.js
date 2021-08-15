@@ -4,7 +4,7 @@ const app = express();
 const jwt = require('express-jwt');
 const jwtAuthz = require('express-jwt-authz');
 const jwksRsa = require('jwks-rsa');
-const auth0Config = require('../config/auth0Config');
+const config = require('config');
 
 // Authorization middleware. When used, the
 // Access Token must exist and be verified against
@@ -17,11 +17,11 @@ exports.checkJwt = jwt({
     cache: true,
     rateLimit: true,
     jwksRequestsPerMinute: 5,
-    jwksUri: auth0Config.jwksUri,
+    jwksUri: config.auth0.jwksUri,
     }),
 
     // Validate the audience and the issuer.
-    audience: auth0Config.audience,
-    issuer: [auth0Config.issuer],
-    algorithms: [auth0Config.algorithms],
+    audience: config.auth0.audience,
+    issuer: [config.auth0.issuer],
+    algorithms: [config.auth0.algorithms],
 });
