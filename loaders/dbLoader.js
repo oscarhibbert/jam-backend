@@ -18,7 +18,7 @@ const kmsProviders = {
 };
  
 // Set keyVault Namespace
-const keyVaultNamespace = 'acorn.encryption';
+const keyVaultNamespace = 'aura.encryption';
 
 // Fetch schemaMap
 // const getSchemaMap = require('../csfleSchema');
@@ -26,7 +26,7 @@ const keyVaultNamespace = 'acorn.encryption';
 
 const connectDB = async () => {
   try {
-    logger.info('Establishing connection to MongoDB...')
+    logger.info('Establishing connection to MongoDB....')
     // Establish connection to MongoDB Atlas
     await mongoose.connect(db, {
       useNewUrlParser: true,

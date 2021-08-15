@@ -14,7 +14,7 @@ const journalServiceEvents = new EventEmitter;
  */
 module.exports = class JournalService {
     /**
-     * Represents the AcornService instance constructor.
+     * Represents the AuraService instance constructor.
      * @constructor
      */
     constructor() {

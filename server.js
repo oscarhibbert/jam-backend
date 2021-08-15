@@ -68,10 +68,10 @@ app.use((err, req, res, next) => {
 });
 
 // // API running message
-// app.get('/', (req, res) => res.send('Acorn API running'));
+// app.get('/', (req, res) => res.send('Aura API running'));
 
 // Port config
 const PORT = process.env.PORT || 5000;
 
 // Listen config
-app.listen(PORT, () => logger.info(`Acorn backend server started on port ${PORT}...`));
+app.listen(PORT, () => logger.info(`Aura backend server started on port ${PORT}....`));

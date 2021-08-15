@@ -1,7 +1,7 @@
 {
-  "name": "acorn-backend",
+  "name": "aura-backend",
   "version": "1.0.0",
-  "description": "Acorn backend - Mental wellness journaling app.",
+  "description": "Aura backend - Mental wellness journaling bot.",
   "main": "server.js",
   "scripts": {
     "start": "NODE_ENV=production node server",
