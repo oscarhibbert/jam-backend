@@ -536,10 +536,13 @@ module.exports = class JournalService {
             };
 
             // Get most recent journal entry
-            const mostRecentEntry = await Entry
+            let mostRecentEntry = await Entry
                 .find({ user: userId })
                 .limit(1)
                 .sort({ dateCreated: -1 });
+            
+            // If mostRecentEntry is an empty array add an object with the user property
+            if (mostRecentEntry.length === 0) mostRecentEntry = [{ user: userId }];
             
             // Log success
             logger.info(`Most recent entry retrieved successfully for user ${userId}`);
