@@ -18,7 +18,7 @@ const kmsProviders = {
 };
  
 // Set keyVault Namespace
-const keyVaultNamespace = 'aura.encryption';
+const keyVaultNamespace = 'aura-backend.encryption';
 
 // Fetch schemaMap
 // const getSchemaMap = require('../csfleSchema');
