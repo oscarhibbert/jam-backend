@@ -99,6 +99,7 @@ module.exports = class Auth0Service {
     async deleteUser(userId) {
         try {
             // Try to get the user profile so error throws if not found
+            // There is a small bug with the Auth0 
             const { msg } = await this.getUserProfile(userId);
 
             if (msg === 'User profile not found') {
