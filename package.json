@@ -13,6 +13,7 @@
     "@google-cloud/logging-winston": "^4.1.0",
     "@sentry/node": "^6.11.0",
     "@sentry/tracing": "^6.11.0",
+    "auth0": "^2.36.1",
     "bcryptjs": "^2.4.3",
     "config": "^3.3.6",
     "dotenv": "^10.0.0",
