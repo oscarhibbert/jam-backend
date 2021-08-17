@@ -8,3 +8,4 @@ enableMongoEncryption.js
 mongocryptd.pid
 testScript.js
 acorn-bot-313715-8cce0e8eb4e2.json
+auth0test.js
