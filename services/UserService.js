@@ -16,9 +16,6 @@ const SettingsServiceInstance = new SettingsService();
 const JournalService = require('../services/JournalService');
 const JournalServiceInstance = new JournalService();
 
-// Import the User Mongoose model
-const User = require('../models/User');
-
 /**
  * @description Create an instance of the UserService class.
  */
@@ -68,17 +65,24 @@ module.exports = class JournalService {
             if (!userId) {
                 throw new Error('Delete user failed - userId parameter empty. Must be supplied');
             };
-            
-            // Attempt to delete Auth0 user via the Auth0 Service
-            await Auth0ServiceInstance.deleteUser(userId);
 
-            // Delete all journal entries for the user via the Journal Service
+            // Check the user object exists for this user
+            const user = await User.findOne(
+                { auth0UserId: userId }
+            ).lean();
+
+            // If settings object for user not found throw error
+            if (!user) {
+                throw new Error(`Delete user failed - user object for user not found - ${userId}`);
+            };
+
+            // Attempt to delete all journal entries for the user via the Journal Service
             await JournalServiceInstance.deleteAllEntries(userId);
 
-            // Delete all categories for the user via the Settings Service
+            // Attempt to delete all categories for the user via the Settings Service
             await SettingsServiceInstance.deleteAllCategories(userId);
 
-            // Delete all activities for the user via the Settings Service
+            // Attempt to delete all activities for the user via the Settings Service
             await SettingsServiceInstance.deleteAllActivities(userId);
 
             // Attempt to delete the settings object for the user
@@ -87,15 +91,18 @@ module.exports = class JournalService {
             // Attempt to delete the user from the MongoDB user collection
             await User.deleteOne(
                 {
-                    user: userId
+                    auth0UserId: userId
                 }
             );
 
             // Log success
             logger.info(`Aura user deleted successfully ${userId}`);
+
+            // Attempt to delete Auth0 user via the Auth0 Service
+            await Auth0ServiceInstance.deleteUser(userId);
             
-            // Return object with success boolean
-            return { success: true };
+            // Return
+            return;
 
         } catch (err) {
             // Log error

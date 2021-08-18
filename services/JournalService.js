@@ -460,15 +460,10 @@ module.exports = class JournalService {
             // Log success
             logger.info(`All journal entries deleted successfully for user ${userId}`);
 
-            // Set response
-            success = true;
-            authorise = true;
-            msg = `All journal entries delete successfully`;
-
             // Build response
-            response = {
-                success: success,
-                msg: msg,
+            const response = {
+                success: true,
+                msg: `All journal entries delete successfully`,
                 user: userId
             };
 

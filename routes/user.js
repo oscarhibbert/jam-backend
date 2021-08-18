@@ -16,7 +16,8 @@ const {
 
 // Import controller methods
 const {
-    getUserProfile
+    getUserProfile,
+    deleteUser
 } = require('../controllers/user');
 
 const router = express.Router();
@@ -27,5 +28,10 @@ const router = express.Router();
 router.route('/profile')
     .get(checkJwt, logger, getUserProfile);
 
+// @desc   Get the user profile
+// @route  DELETE api/v1/user
+// @access Private
+router.route('/')
+    .delete(checkJwt, logger, deleteUser);
 
 module.exports = router;

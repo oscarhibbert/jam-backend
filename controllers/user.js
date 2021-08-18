@@ -28,6 +28,33 @@ exports.getUserProfile = async (req, res) => {
 
   } catch (err) {
     logger.error(err.message);
-    res.status(500).json({ success: false, msg: 'Server Error', userId });
+    res.status(500).json({ success: false, msg: 'Server Error', userId: req.user.sub });
+  };
+};
+
+// @desc   Get the user profile
+// @route  DELETE api/v1/user
+// @access Private
+exports.deleteUser = async (req, res) => {
+  try {
+    const userId = req.user.sub;
+
+    await UserServiceInstance.deleteUser(userId);
+
+    // Set response to empty object
+    let response = {};
+
+    // Add response success property: true
+    response.success = true;
+
+    // Add response userId propery
+    response.userId = userId;
+
+    // Respond
+    res.json(response);
+
+  } catch (err) {
+    logger.error(err.message);
+    res.status(500).json({ success: false, msg: 'Server Error', userId: req.user.sub });
   };
 };
