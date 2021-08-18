@@ -16,8 +16,16 @@ const {
 
 // Import controller methods
 const {
-
-} = require('../controllers/users');
+    getUserProfile
+} = require('../controllers/user');
 
 const router = express.Router();
 
+// @desc   Get the user profile
+// @route  GET api/v1/user/profile
+// @access Private
+router.route('/profile')
+    .get(checkJwt, logger, getUserProfile);
+
+
+module.exports = router;
