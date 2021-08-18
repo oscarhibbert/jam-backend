@@ -558,6 +558,34 @@ module.exports = class SettingsService {
     };
 
     /**
+       * @desc                                        Attempt to delete all categories for the specified user.
+       * @param  {string}             userId          String containing the UserId.
+       * @return                                      Object with success boolean.
+       */
+    async deleteAllCategories(userId) {
+        try {
+            // Check userId parameter exists
+            if (!userId) {
+                throw new Error('Delete all categories failed - userId parameter empty. Must be supplied');
+            };
+
+            await Categories.deleteMany(
+                {
+                    user: userId,
+                }
+            );
+
+            logger.info(`All categories deleted successfully for user ${userId}`);
+
+            return { success: true, user: userId };
+
+        } catch (err) {
+            logger.error(err.message);
+            throw err;
+        };
+    };
+
+    /**
        * @desc                                  Attempt to get all categories for specified user.
        * @param      {string}        userId     String containing the UserId.
        * @return                                Object with success boolean and key called data with array of categories.
@@ -979,6 +1007,37 @@ module.exports = class SettingsService {
     };
 
     /**
+       * @desc                                        Attempt to delete all activities for the specified user.
+       * @param  {string}             userId          String containing the UserId.
+       * @return                                      Object with success boolean.
+       */
+    async deleteAllActivities(userId) {
+        try {
+            // Check userId parameter exists
+            if (!userId) {
+                throw new Error('Delete activities failed - userId parameter empty. Must be supplied');
+            };
+
+            // Delete all activities for the specified user
+            await Activities.deleteMany(
+                {
+                    user: userId
+                }
+            );
+
+            // Log success
+            logger.info(`All activities deleted successfully for user ${userId}`);
+            
+            // Return success
+            return { success: true, user: userId };
+
+        } catch (err) {
+            logger.error(err.message);
+            throw err;
+        };
+    };
+
+    /**
        * @desc                                  Attempt to get all activities for the specified user.
        * @param      {string}        userId     String containing the UserId.
        * @return                                Object with success boolean and key called data with array of activities.
@@ -1078,6 +1137,47 @@ module.exports = class SettingsService {
                 user: userId,
                 inuse: inUse
             };
+
+        } catch (err) {
+            logger.error(err.message);
+            throw err;
+        };
+    };
+
+     /**
+       * @desc                                  Attempt to delete the settings object for the specified user.
+       * @param      {string}        userId     String containing the UserId.
+       * @return                                Settings object.
+       */
+    async deleteSettings(userId) {
+        try {
+            // Check userId parameter exists
+            if (!userId) {
+                throw new Error(`Delete settings failed - userId parameter empty. Must be supplied`);
+            };
+
+            // Check the settings object exists for this user
+            const settings = await Setting.findOne(
+                { user: userId }
+            ).lean();
+
+            // If settings object for user not found throw error
+            if (!settings) {
+                throw new Error(`Delete settings failed - settings object for user not found - ${userId}`);
+            };
+
+            // Delete the user settings object
+            await Setting.deleteOne(
+                {
+                    user: userId
+                }
+            );
+
+            // Log success
+            logger.info(`Settings deleted successfully for user ${userId}`);
+            
+            // Return success
+            return { success: true, user: userId };
 
         } catch (err) {
             logger.error(err.message);

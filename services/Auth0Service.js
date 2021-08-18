@@ -39,7 +39,10 @@ module.exports = class Auth0Service {
     async getUserProfile(userId) {
         try {
             // Try fetch the user profile from Auth0
-            let userProfile = await this.auth0.getUser({id: userId});
+            let userProfile = await this.auth0.getUser({ id: userId });
+            
+            // Log success
+            logger.info(`Auth0 user profile fetched successfully ${userId}`);
 
             // Return message and data
             return {msg: "User profile found", data: userProfile};
@@ -69,6 +72,9 @@ module.exports = class Auth0Service {
                 { id: userId },
                 newInfo
             );
+
+            // Log success
+            logger.info(`Auth0 user updated successfully ${userId}`);
 
             // Return message and data
             return {msg: "Profile updated successfully", data: updateProfile};
@@ -108,7 +114,10 @@ module.exports = class Auth0Service {
 
             // Try to delete the user from Auth0
             const deleteUser = await this.auth0.deleteUser({id: userId});
-            console.log(deleteUser);
+            
+            // Log success
+            logger.info(`Auth0 user deleted successfully ${userId}`);
+
             // Return message and data
             return {msg: "Success - user deleted"};
 

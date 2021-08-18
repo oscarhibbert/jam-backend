@@ -438,6 +438,49 @@ module.exports = class JournalService {
         };
     };
 
+        /**
+     * @desc                         Delete all journal entries method.
+     * @param {string} userId        String containing user ID.
+     * @return                       Object containing response.
+     */
+    async deleteAllEntries(userId) {
+        try {
+            // Check userId parameter exists
+            if (!userId) {
+                throw new Error('Delete journal entry failed - userId parameter empty. Must be supplied');
+            };
+
+            // Delete all journal entries for the specified user from the database
+            await Entry.deleteMany(
+                {
+                    user: userId
+                }
+            );
+
+            // Log success
+            logger.info(`All journal entries deleted successfully for user ${userId}`);
+
+            // Set response
+            success = true;
+            authorise = true;
+            msg = `All journal entries delete successfully`;
+
+            // Build response
+            response = {
+                success: success,
+                msg: msg,
+                user: userId
+            };
+
+            // Return response object
+            return response;
+            
+        } catch (err) {
+            logger.error(err.message);
+            throw err;
+        };
+    };
+
     /**
      * @desc                         Get single journal entry method.
      * @param {string} userId        String containing user ID.
