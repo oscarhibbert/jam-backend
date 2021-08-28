@@ -751,7 +751,7 @@ module.exports = class JournalService {
             };
 
             // Set datesTimesFormatOptions
-            datesTimesFormatOptions = ['year', 'month', 'week', 'day'];
+            const datesTimesFormatOptions = ['year', 'month', 'week', 'day'];
 
             // Check datesTimesFormat option is correct
             if (datesTimesFormat) {
