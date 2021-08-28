@@ -711,8 +711,8 @@ module.exports = class JournalService {
     /**
      * @desc                                                                 Get stats between a start dateTime and end dateTime
      * @param {string}                         userId                        String containing user ID
-     * @param {"2021-08-27T14:08:06.353Z"}     startDateTime                 A start dateTime. Time Optional. Must be an ISO 8601 string in Zulu time
-     * @param {"2021-08-27T14:08:06.353Z"}     endDateTime                   An end dateTime. Time Optional. Must be an ISO 8601 string in Zulu time
+     * @param {"2021-08-27T00:00:00.000Z"}     startDateTime                 A start dateTime. Must be an ISO 8601 string in Zulu time
+     * @param {"2021-08-27T00:00:00.000Z"}     endDateTime                   An end dateTime. Must be an ISO 8601 string in Zulu time
      * @param {string}                         categoryId                    A category Id, for filtering stats. Optional
      * @param {"year"}                         datesTimesFormat              A format for datesTimes. Defaults to year Optional
      * @return                                                               Returns object with stats
@@ -721,7 +721,43 @@ module.exports = class JournalService {
         try {
             // Check userId parameter exists
             if (!userId) {
-                throw new Error('Get closest journal entry failed - userId parameter empty. Must be supplied');
+                throw new Error('Get stats failed - userId parameter empty. Must be supplied');
+            };
+
+            // Check startDateTime parameter exists
+            if (!startDateTime) {
+                throw new Error('Get stats failed - startDateTime parameter empty. Must be supplied');
+            };
+
+            // Check endDateTime parameter exists
+            if (!endDateTime) {
+                throw new Error('Get stats failed - startDateTime parameter empty. Must be supplied');
+            };
+
+            // Check startDateTime and endDateTime is ISO 8601 formatted
+            // See here: https://stackoverflow.com/questions/52869695/check-if-a-date-string-is-in-iso-and-utc-format
+            function isIsoDate(str) {
+                if (!/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/.test(str)) return false;
+                var d = new Date(str); 
+                return d.toISOString()===str;
+            };
+
+            if (!isIsoDate(startDateTime)) {
+                throw new Error('Get stats failed - startDateTime parameter must be an ISO 8601 string in Zulu time');
+            };
+
+            if (!isIsoDate(endDateTime)) {
+                throw new Error('Get stats failed - endDateTime parameter must be an ISO 8601 string in Zulu time');
+            };
+
+            // Set datesTimesFormatOptions
+            datesTimesFormatOptions = ['year', 'month', 'week', 'day'];
+
+            // Check datesTimesFormat option is correct
+            if (datesTimesFormat) {
+                if (!datesTimesFormatOptions.includes(datesTimesFormat)) {
+                    throw new Error('Get stats failed - datesTimesFormat option does not exist');
+                };
             };
 
             return {};
