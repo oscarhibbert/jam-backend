@@ -707,4 +707,28 @@ module.exports = class JournalService {
             throw err;
         };
     };
+
+    /**
+     * @desc                                                                 Get stats between a start dateTime and end dateTime
+     * @param {string}                         userId                        String containing user ID
+     * @param {"2021-08-27T14:08:06.353Z"}     startDateTime                 A start dateTime. Time Optional. Must be an ISO 8601 string in Zulu time
+     * @param {"2021-08-27T14:08:06.353Z"}     endDateTime                   An end dateTime. Time Optional. Must be an ISO 8601 string in Zulu time
+     * @param {string}                         categoryId                    A category Id, for filtering stats. Optional
+     * @param {"year"}                         datesTimesFormat              A format for datesTimes. Defaults to year Optional
+     * @return                                                               Returns object with stats
+     */
+    async getStats(userId, startDateTime, endDateTime, categoryId, datesTimesFormat) {
+        try {
+            // Check userId parameter exists
+            if (!userId) {
+                throw new Error('Get closest journal entry failed - userId parameter empty. Must be supplied');
+            };
+
+            return {};
+
+        } catch (err) {
+            logger.error(err.message);
+            throw err;
+        };
+    };
 };
