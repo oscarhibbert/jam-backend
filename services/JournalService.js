@@ -760,6 +760,23 @@ module.exports = class JournalService {
                 };
             };
 
+            // Build stats
+            const buildStats = await Entry.aggregate(
+                [
+                    // Pipeline stage 1
+                    // Get records between startDateTime & endDateTime
+                    {
+                        $match: {
+                            $and: [
+                                { createdAt: { $gte: ISODate(startDateTime), $lt: ISODate(endDateTime) } }
+                            ],
+                        },
+                    },
+
+                    // Pipeline stage 2
+                ]
+            );
+
             return {};
 
         } catch (err) {
