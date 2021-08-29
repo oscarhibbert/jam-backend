@@ -768,12 +768,17 @@ module.exports = class JournalService {
                     {
                         $match: {
                             $and: [
+                                { user: { $eq: userId } },
                                 { createdAt: { $gte: ISODate(startDateTime), $lt: ISODate(endDateTime) } }
                             ],
                         },
                     },
 
                     // Pipeline stage 2
+                    // Create stat objects
+                    {
+                        
+                    }
                 ]
             );
 
