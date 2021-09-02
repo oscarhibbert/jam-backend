@@ -776,9 +776,11 @@ module.exports = class JournalService {
                     },
 
                     // Pipeline stage 2
-                    // Create stat objects
+                    // Create group
                     {
-                        
+                        $group: {
+                            _id
+                        }
                     }
                 ]
             );
