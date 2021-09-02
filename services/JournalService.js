@@ -714,11 +714,11 @@ module.exports = class JournalService {
      * @param {string}                         userId                        String containing user ID
      * @param {"2021-08-27T00:00:00.000Z"}     startDateTime                 A start dateTime. Must be an ISO 8601 string in Zulu time
      * @param {"2021-08-27T00:00:00.000Z"}     endDateTime                   An end dateTime. Must be an ISO 8601 string in Zulu time
-     * @param {string}                         categoryId                    A category Id, for filtering stats. Optional
      * @param {"year"}                         datesTimesFormat              A format for datesTimes. Defaults to year Optional
+     * @param {string}                         categoryId                    A category Id, for filtering stats. Optional
      * @return                                                               Returns object with stats
      */
-    async getStats(userId, startDateTime, endDateTime, categoryId, datesTimesFormat) {
+    async getStats(userId, startDateTime, endDateTime, datesTimesFormat, categoryId) {
         try {
             // Check userId parameter exists
             if (!userId) {
@@ -739,8 +739,8 @@ module.exports = class JournalService {
             // See here: https://stackoverflow.com/questions/52869695/check-if-a-date-string-is-in-iso-and-utc-format
             function isIsoDate(str) {
                 if (!/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/.test(str)) return false;
-                var d = new Date(str); 
-                return d.toISOString()===str;
+                var d = new Date(str);
+                return d.toISOString() === str;
             };
 
             if (!isIsoDate(startDateTime)) {
@@ -761,23 +761,38 @@ module.exports = class JournalService {
                 };
             };
 
+            // Build MongoDB aggregation pipeline query
+            let aggregationPipeline = [
+                // Pipeline stage
+                // Get records by userId and between startDateTime & endDateTime
+                {
+                    $match: {
+                        $and: [
+                            { user: { $eq: userId } },
+                            { dateCreated: { $gte: new Date(startDateTime), $lt: new Date(endDateTime) } },
+                        ],
+                    },
+                },
+            ];
+
+            // If categoryId parameter exists
+            if (categoryId) {
+                // Add pipeline stage to start of aggregationPipeline array
+                aggregationPipeline.unshift(
+                    // Pipeline stage
+                    // Match records where categories.0._id === categoryId parameter
+                    {
+                        $match: { "categories.0._id": { $eq: categoryId } }
+                    }
+                );
+            };
+
             // Get stats
             const getStats = await Entry.aggregate(
-                [
-                    // Pipeline stage 1
-                    // Get records between startDateTime & endDateTime
-                    {
-                        $match: {
-                            $and: [
-                                { user: { $eq: userId } },
-                                { createdAt: { $gte: ISODate(startDateTime), $lt: ISODate(endDateTime) } }
-                            ],
-                        },
-                    }
-                ]
+                aggregationPipeline
             );
 
-            return buildStats;
+            return getStats;
 
         } catch (err) {
             logger.error(err.message);
