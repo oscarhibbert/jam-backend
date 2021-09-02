@@ -10,3 +10,4 @@ testScript.js
 acorn-bot-313715-8cce0e8eb4e2.json
 auth0test.js
 checkISO8601.js
+testStatsEndpoint.js

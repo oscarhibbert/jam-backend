@@ -732,7 +732,7 @@ module.exports = class JournalService {
 
             // Check endDateTime parameter exists
             if (!endDateTime) {
-                throw new Error('Get stats failed - startDateTime parameter empty. Must be supplied');
+                throw new Error('Get stats failed - endDateTime parameter empty. Must be supplied');
             };
 
             // Check startDateTime and endDateTime is ISO 8601 formatted
@@ -761,8 +761,8 @@ module.exports = class JournalService {
                 };
             };
 
-            // Build stats
-            const buildStats = await Entry.aggregate(
+            // Get stats
+            const getStats = await Entry.aggregate(
                 [
                     // Pipeline stage 1
                     // Get records between startDateTime & endDateTime
@@ -773,19 +773,11 @@ module.exports = class JournalService {
                                 { createdAt: { $gte: ISODate(startDateTime), $lt: ISODate(endDateTime) } }
                             ],
                         },
-                    },
-
-                    // Pipeline stage 2
-                    // Create group
-                    {
-                        $group: {
-                            _id
-                        }
                     }
                 ]
             );
 
-            return {};
+            return buildStats;
 
         } catch (err) {
             logger.error(err.message);
