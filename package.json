@@ -26,6 +26,7 @@
     "jwks-rsa": "^2.0.4",
     "mongodb-client-encryption": "^1.2.6",
     "mongoose": "^5.13.7",
+    "percent-round": "^2.2.1",
     "uuid-base64": "^1.0.0",
     "winston": "^3.3.3",
     "winston-transport-sentry-node": "^1.0.2"
