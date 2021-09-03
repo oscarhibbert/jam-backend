@@ -761,6 +761,8 @@ module.exports = class JournalService {
                 };
             };
 
+
+
             // Build MongoDB aggregation pipeline query
             let aggregationPipeline = [
                 // Pipeline stage
@@ -773,6 +775,40 @@ module.exports = class JournalService {
                         ],
                     },
                 },
+
+                // // Project an additional array, stands for "moodStats", "copingStats" & "datesTimes"
+                // { "$project": {
+                //     "_id": 0,
+                //     "mood": 1,
+                //     "categories": 1,
+                //     "dateCreated": 1,
+                //     "type": { "$literal": ["ms", "cs", "dt"] }
+                // }
+                // },
+                
+                // // Unwind that array, creates three documents by "type"
+                // { "$unwind": "$type" },
+
+                // {
+                //     "$group": {
+                //         "_id": {
+                //             "mood": "$mood",
+                //         },
+                //         "dateCreated": "$dateCreated",
+                //         "count": { "$sum": 1 }
+                //     }
+                // },
+
+
+
+                // {
+                //     "$project": {
+                //         "count": 1,
+                //         "percentage": {
+                //             "$concat": [{ "$substr": [{ "$multiply": [{ "$divide": ["$count", { "$literal": 3 }] }, 100] }, 0, 2] }, "", "%"]
+                //         }
+                //     }
+                // }
             ];
 
             // If categoryId parameter exists
@@ -787,12 +823,64 @@ module.exports = class JournalService {
                 );
             };
 
-            // Get stats
-            const getStats = await Entry.aggregate(
+            // Get records
+            const getRecords = await Entry.aggregate(
                 aggregationPipeline
             );
 
-            return getStats;
+            // Set counts variable
+            let counts = {
+                recordsCount: 0,
+                highEnergyUnpleasantCount: 0,
+                lowEnergyUnpleasantCount: 0,
+                highEnergyPleasantCount: 0,
+                lowEnergyPleasantCount: 0,
+                copingActivityCounts: [],
+                dateTimeCounts: []
+            };
+
+            for (const record of getRecords) {
+                console.log(record);
+                // +1 to counts.recordsCount
+                counts.recordsCount ++;
+
+                // Update mood type count
+                if (record.mood === 'High Energy, Unpleasant') counts.highEnergyUnpleasantCount ++;
+                if (record.mood === 'Low Energy, Unpleasant') counts.lowEnergyUnpleasantCount ++;
+                if (record.mood === 'High Energy, Pleasant') counts.highEnergyPleasantCount ++;
+                if (record.mood === 'Low Energy, Pleasant') counts.lowEnergyPleasantCount ++;
+            };
+
+            // // Build stats object
+            let stats = {
+
+                // Start and end time/date
+                timePeriod: {
+                    startDate: startDateTime,
+                    endDate: endDateTime
+                },
+
+                // Mood stats
+                moodStats: {
+                    highEnergyUnpleasant:
+                        ((counts.highEnergyUnpleasantCount / counts.recordsCount) * 100).toFixed(1).toString() + "%",
+                    lowEnergyUnpleasant:
+                        ((counts.lowEnergyUnpleasantCount / counts.recordsCount) * 100).toFixed(1).toString() + "%",
+                    highEnergyPleasant:
+                        ((counts.highEnergyPleasantCount / counts.recordsCount) * 100).toFixed(1).toString() + "%",
+                    lowEnergyPleasant:
+                        ((counts.lowEnergyPleasantCount / counts.recordsCount) * 100).toFixed(1).toString() + "%"
+                },
+
+                // Coping stats array
+                copingStats: [],
+
+                // Dates entries exist array
+                dateTimes: []
+            };
+            
+            // // Return the stats object
+            return stats;
 
         } catch (err) {
             logger.error(err.message);
