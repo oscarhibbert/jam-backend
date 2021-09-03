@@ -842,16 +842,69 @@ module.exports = class JournalService {
                 dateTimeCounts: []
             };
 
+            // Set copingActivities to empty array
+            let copingActivities = [];
+
+            // Populate copingActivities array
+            getRecords.map(
+                record => {
+                    // If the record activities array is populated
+                    if (record.activities.length > 0) {
+                        // If the copingActivities array does not
+                        // include the record activity id
+                        if (!copingActivities.includes(record.activities[0]._id)) {
+                            copingActivities.push(record.activities[0]._id);
+                        };
+
+                        return;
+                    };
+                }
+            );
+
+            // Build counts.copingActivityCounts
+            copingActivities.map(
+                activity => {
+                    counts.copingActivityCounts.push(
+                        {
+                            copingActivityId: activity,
+                            count: 0
+                        }
+                    )
+                }
+            );
+
+            // Calculate mood counts & coping activity counts
             for (const record of getRecords) {
-                console.log(record);
                 // +1 to counts.recordsCount
                 counts.recordsCount ++;
 
-                // Update mood type count
+                // Calculate mood type counts
                 if (record.mood === 'High Energy, Unpleasant') counts.highEnergyUnpleasantCount ++;
                 if (record.mood === 'Low Energy, Unpleasant') counts.lowEnergyUnpleasantCount ++;
                 if (record.mood === 'High Energy, Pleasant') counts.highEnergyPleasantCount ++;
-                if (record.mood === 'Low Energy, Pleasant') counts.lowEnergyPleasantCount ++;
+                if (record.mood === 'Low Energy, Pleasant') counts.lowEnergyPleasantCount++;
+
+                // Calculate copingActivity counts
+                for (const activity of counts.copingActivityCounts) {
+                    // If record.activities array is populated
+                    if (record.activities.length > 0) {
+                        // If record activity Id matches
+                        // activity Id
+                        if (record.activities[0]._id === activity.copingActivityId) {
+                            // Update activity count
+                            activity.count ++;
+                        }
+
+                        // Continue
+                        continue;
+                    };
+
+                    // Continue
+                    continue;
+                };
+                
+                // Continue
+                continue;
             };
 
             // Calculate mood breakdown stats in %
@@ -883,7 +936,7 @@ module.exports = class JournalService {
                 },
 
                 // Coping stats array
-                copingStats: [],
+                copingStats: counts.copingActivityCounts,
 
                 // Dates entries exist array
                 dateTimes: []
