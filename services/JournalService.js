@@ -9,6 +9,9 @@ const Entry = require('../models/Entry');
 const EventEmitter = require('events').EventEmitter;
 const journalServiceEvents = new EventEmitter;
 
+// Import Percentage Round
+const percentRound = require('percent-round');
+
 /**
  * @description Create an instance of the JournalService class.
  */
@@ -851,6 +854,13 @@ module.exports = class JournalService {
                 if (record.mood === 'Low Energy, Pleasant') counts.lowEnergyPleasantCount ++;
             };
 
+            // Calculate mood breakdown stats in %
+            // [HEU,LEU,HEP,LEP]
+            const moodStatsCalculated = percentRound(
+                [counts.highEnergyUnpleasantCount, counts.lowEnergyUnpleasantCount,
+                counts.highEnergyPleasantCount, counts.lowEnergyPleasantCount]
+            );
+
             // // Build stats object
             let stats = {
 
@@ -863,13 +873,13 @@ module.exports = class JournalService {
                 // Mood stats
                 moodStats: {
                     highEnergyUnpleasant:
-                        ((counts.highEnergyUnpleasantCount / counts.recordsCount) * 100).toFixed(1).toString() + "%",
+                        moodStatsCalculated[0].toFixed().toString() + "%",
                     lowEnergyUnpleasant:
-                        ((counts.lowEnergyUnpleasantCount / counts.recordsCount) * 100).toFixed(1).toString() + "%",
+                        moodStatsCalculated[1].toFixed().toString() + "%",
                     highEnergyPleasant:
-                        ((counts.highEnergyPleasantCount / counts.recordsCount) * 100).toFixed(1).toString() + "%",
+                        moodStatsCalculated[2].toFixed().toString() + "%",
                     lowEnergyPleasant:
-                        ((counts.lowEnergyPleasantCount / counts.recordsCount) * 100).toFixed(1).toString() + "%"
+                        moodStatsCalculated[3].toFixed().toString() + "%"
                 },
 
                 // Coping stats array
