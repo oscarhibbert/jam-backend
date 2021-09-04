@@ -717,11 +717,10 @@ module.exports = class JournalService {
      * @param {string}                         userId                        String containing user ID
      * @param {"2021-08-27T00:00:00.000Z"}     startDateTime                 A start dateTime. Must be an ISO 8601 string in Zulu time
      * @param {"2021-08-27T00:00:00.000Z"}     endDateTime                   An end dateTime. Must be an ISO 8601 string in Zulu time
-     * @param {"year"}                         datesTimesFormat              A format for datesTimes. Defaults to year Optional
      * @param {string}                         categoryId                    A category Id, for filtering stats. Optional
      * @return                                                               Returns object with stats
      */
-    async getStats(userId, startDateTime, endDateTime, datesTimesFormat, categoryId) {
+    async getStats(userId, startDateTime, endDateTime, categoryId) {
         try {
             // Check userId parameter exists
             if (!userId) {
@@ -753,18 +752,6 @@ module.exports = class JournalService {
             if (!isIsoDate(endDateTime)) {
                 throw new Error('Get stats failed - endDateTime parameter must be an ISO 8601 string in Zulu time');
             };
-
-            // Set datesTimesFormatOptions
-            const datesTimesFormatOptions = ['year', 'month', 'week', 'day'];
-
-            // Check datesTimesFormat option is correct
-            if (datesTimesFormat) {
-                if (!datesTimesFormatOptions.includes(datesTimesFormat)) {
-                    throw new Error('Get stats failed - datesTimesFormat option does not exist');
-                };
-            };
-
-
 
             // Build MongoDB aggregation pipeline query
             let aggregationPipeline = [
@@ -855,9 +842,9 @@ module.exports = class JournalService {
                         if (!copingActivities.includes(record.activities[0]._id)) {
                             copingActivities.push(record.activities[0]._id);
                         };
-
-                        return;
                     };
+
+                    return;
                 }
             );
 
@@ -938,8 +925,6 @@ module.exports = class JournalService {
                 // Coping stats array
                 copingStats: counts.copingActivityCounts,
 
-                // Dates entries exist array
-                dateTimes: []
             };
             
             // // Return the stats object
