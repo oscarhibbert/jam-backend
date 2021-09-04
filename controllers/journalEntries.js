@@ -122,9 +122,12 @@ exports.deleteEntry = async (req, res) => {
 // @access Private
 exports.getAllEntries = async (req, res) => {
   try {
-    const userID = req.user.sub;
+    const userId = req.user.sub;
+    const { startDateTime, endDateTime, categoryId } = req.body;
 
-    let response = await JournalServiceInstance.getAllEntries(userID);
+    let response = await JournalServiceInstance.getAllEntries(
+      userId, startDateTime, endDateTime, categoryId
+    );
 
     if (response.authorise === false) {
       // Return 401 authorisation denied

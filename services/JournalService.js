@@ -379,15 +379,45 @@ module.exports = class JournalService {
     };
 
     /**
-     * @desc                         Get all journal entries method.
-     * @param {string} userId        String containing user ID.
-     * @return                       Object containing response. If authorisation fails includes authorise: false.
+     * @desc                                                    Get all journal entries method
+     * @param {string}                         userId           String containing user ID
+     * @param {"2021-01-01T00:00:00.000Z"}     startDateTime    A start dateTime. Must be an ISO 8601 string in Zulu time (optional)
+     * @param {"2022-01-01T00:00:00.000Z"}     endDateTime      An end dateTime. Must be an ISO 8601 string in Zulu time (optional, must be included with startDateTime)
+     * @param {string}                         categoryId       A categoryId, for filtering. Optional
+     * @return                                                  Object containing response. If authorisation fails includes authorise: false
      */
-    async getAllEntries(userId) {
+    async getAllEntries(userId, startDateTime, endDateTime, categoryId) {
         try {
             // Check userId parameter exists
             if (!userId) {
                 throw new Error('Get all journal entries failed - userId parameter empty. Must be supplied');
+            };
+
+            // If startDateTime parameter exists and endDateTime parameter doesn't exist
+            if (startDateTime && !endDateTime) {
+                throw new Error(`Get all journal entries failed - endDateTime parameter empty. Must be supplied with startDateTime parameter. ${userId}`);
+            };
+
+            // If startDateTime & endDateTime parameters exists
+            if (startDateTime && endDateTime) {
+                // Check startDateTime and endDateTime is ISO 8601 formatted
+                if (!checkIsoDate(startDateTime)) {
+                    throw new Error(`Get all journal entries failed - startDateTime parameter must be an ISO 8601 string in Zulu time. ${userId}`);
+                };
+
+                if (!checkIsoDate(endDateTime)) {
+                    throw new Error(`Get all journal entries failed - endDateTime parameter must be an ISO 8601 string in Zulu time. ${userId}`);
+                };
+            };
+
+            // If the categoryId parameter has been provided
+            // Check it exists in the database
+            if (categoryId) {
+                const checkCategory = await Categories.find({ _id: categoryId }).lean();
+
+                if (checkCategory.length === 0) {
+                    throw new Error(`Get all journal entries failed - specified categoryId not found. ${userId}`);
+                };
             };
 
             // Create response obj
