@@ -11,6 +11,7 @@ const { logger } = require('../middleware/logger');
 
 const {
     validateEntry,
+    validateGetAllEntries,
     validateGetStats
 } = require('../middleware/validators');
 
@@ -50,7 +51,7 @@ router.route('/:id')
 // @route  GET api/v1/entries
 // @access Private
 router.route('/')
-    .get(checkJwt, logger, getAllEntries);
+    .get(checkJwt, logger, validateGetAllEntries, getAllEntries);
 
 // @desc   Get single journal entry by entry ID
 // @route  GET api/v1/entries/id
