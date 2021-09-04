@@ -210,3 +210,29 @@ exports.validateDeleteActivities = [
     next();
   }
 ];
+
+/**
+ * @desc     Get stats validator
+ */
+exports.validateGetStats = [
+  // Checking configuration
+  check('startDateTime',
+    "'startDateTime' key is missing!")
+    .not()
+    .isEmpty(),
+  check('endDateTime', "'endDateTime' key is missing!")
+    .not()
+    .isEmpty(),
+  check('startDateTime', "'startDateTime' value must be an ISO 8601 string in Zulu time")
+    .matches(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/),
+  check('endDateTime', "'endDateTime' value must be an ISO 8601 string in Zulu time")
+    .matches(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/),
+
+  // Errors middleware function
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+      return res.status(422).json({ success: false, errors: errors.array() });
+    next();
+  }
+];

@@ -212,7 +212,7 @@ exports.getClosestEntry = async (req, res) => {
 };
 
 // @desc   Get stats on journalling for specified user between a start dateTime and end dateTime
-// @route  GET api/v1/entries/stats
+// @route  GET api/v1/entries/fetch/stats
 // @access Private
 exports.getStats = async (req, res) => {
   try {

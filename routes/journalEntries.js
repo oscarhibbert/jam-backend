@@ -10,7 +10,8 @@ const { checkJwt } = require('../middleware/checkJwt');
 const { logger } = require('../middleware/logger');
 
 const {
-    validateEntry
+    validateEntry,
+    validateGetStats
 } = require('../middleware/validators');
 
 // Import controller methods
@@ -21,7 +22,8 @@ const {
     getAllEntries,
     getEntry,
     getMostRecentEntry,
-    getClosestEntry
+    getClosestEntry,
+    getStats
 } = require('../controllers/journalEntries');
 
 const router = express.Router();
@@ -67,5 +69,11 @@ router.route('/fetch/newest')
 // @access Private
 router.route('/closestmatch/:id')
     .get(checkJwt, logger, getClosestEntry);
+
+// @desc   Get stats on journalling for specified user between a start dateTime and end dateTime
+// @route  GET api/v1/entries/fetch/stats
+// @access Private
+router.route('/fetch/stats')
+    .get(checkJwt, logger, validateGetStats, getStats);
 
 module.exports = router;
