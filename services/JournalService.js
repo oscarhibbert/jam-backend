@@ -4,6 +4,7 @@ const logger = require('../loaders/logger');
 // Model imports
 const User = require('../models/User');
 const Entry = require('../models/Entry');
+const Categories = require('../models/Categories');
 const Activities = require('../models/Activities');
 
 // Events
@@ -730,12 +731,12 @@ module.exports = class JournalService {
 
             // Check startDateTime parameter exists
             if (!startDateTime) {
-                throw new Error('Get stats failed - startDateTime parameter empty. Must be supplied');
+                throw new Error(`Get stats failed - startDateTime parameter empty. Must be supplied. ${userId}`);
             };
 
             // Check endDateTime parameter exists
             if (!endDateTime) {
-                throw new Error('Get stats failed - endDateTime parameter empty. Must be supplied');
+                throw new Error(`Get stats failed - endDateTime parameter empty. Must be supplied. ${userId}`);
             };
 
             // Check startDateTime and endDateTime is ISO 8601 formatted
@@ -747,11 +748,21 @@ module.exports = class JournalService {
             };
 
             if (!isIsoDate(startDateTime)) {
-                throw new Error('Get stats failed - startDateTime parameter must be an ISO 8601 string in Zulu time');
+                throw new Error(`Get stats failed - startDateTime parameter must be an ISO 8601 string in Zulu time. ${userId}`);
             };
 
             if (!isIsoDate(endDateTime)) {
-                throw new Error('Get stats failed - endDateTime parameter must be an ISO 8601 string in Zulu time');
+                throw new Error(`Get stats failed - endDateTime parameter must be an ISO 8601 string in Zulu time. ${userId}`);
+            };
+
+            // If the categoryId parameter has been provided
+            // Check it exists in the database
+            if (categoryId) {
+                const checkCategory = await Categories.find({ _id: categoryId }).lean();
+
+                if (checkCategory.length === 0) {
+                    throw new Error(`Get stats failed - specified categoryId not found. ${userId}`);
+                };
             };
 
             // Build MongoDB aggregation pipeline query
