@@ -4,6 +4,7 @@ const logger = require('../loaders/logger');
 // Model imports
 const User = require('../models/User');
 const Entry = require('../models/Entry');
+const Activities = require('../models/Activities');
 
 // Events
 const EventEmitter = require('events').EventEmitter;
@@ -829,31 +830,25 @@ module.exports = class JournalService {
                 dateTimeCounts: []
             };
 
-            // Set copingActivities to empty array
-            let copingActivities = [];
-
-            // Populate copingActivities array
-            getRecords.map(
-                record => {
-                    // If the record activities array is populated
-                    if (record.activities.length > 0) {
-                        // If the copingActivities array does not
-                        // include the record activity id
-                        if (!copingActivities.includes(record.activities[0]._id)) {
-                            copingActivities.push(record.activities[0]._id);
-                        };
-                    };
-
-                    return;
-                }
-            );
+            // Get copingActivities
+            let copingActivities = await Activities.find({ user: userId }).lean();
+            //     [
+            //         // Pipeline stage
+            //         // Get records by userId
+            //         {
+            //             $match: { user: { $eq: userId } }
+            //         },
+            //     ]
+            // );
 
             // Build counts.copingActivityCounts
             copingActivities.map(
                 activity => {
                     counts.copingActivityCounts.push(
                         {
-                            copingActivityId: activity,
+                            copingActivityId: activity._id.toString(),
+                            copingActivityName: activity.name,
+                            copingActivityType: activity.type, 
                             count: 0
                         }
                     )
