@@ -714,7 +714,7 @@ module.exports = class JournalService {
     };
 
     /**
-     * @desc                                                                 Get stats between a start dateTime and end dateTime
+     * @desc                                                                 Get stats on journalling between a start dateTime and end dateTime
      * @param {string}                         userId                        String containing user ID
      * @param {"2021-08-27T00:00:00.000Z"}     startDateTime                 A start dateTime. Must be an ISO 8601 string in Zulu time
      * @param {"2021-08-27T00:00:00.000Z"}     endDateTime                   An end dateTime. Must be an ISO 8601 string in Zulu time
