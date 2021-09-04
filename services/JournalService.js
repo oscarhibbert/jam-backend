@@ -439,22 +439,52 @@ module.exports = class JournalService {
 
             // Else, continue
             else {
-                // Get all entries in the Entry collection against userId
-                // Sort by newest first. +1 instead of -1 would be oldest first
-                const entries = await Entry
-                    .find({ user: userId })
-                    .sort({ date: -1, });
+                // Build main aggregation pipeline stages
+                const stages = [
+                    // Get records by userId
+                    {
+                        $match: { user: { $eq: userId } }
+                    }
+                ];
+
+                // Conditional aggregation pipeline stages
+                // Category filter (add to start of stages array)
+                if (categoryId) {
+                    stages.unshift(
+                        {
+                            $match: { "categories.0._id": { $eq: categoryId } }
+                        }
+                    )
+                };
+                // startDateTime & endDateTime filter (add to end of stages array)
+                if (startDateTime && endDateTime) {
+                    stages.push(
+                        {
+                            $match: { dateCreated: { $gte: new Date(startDateTime), $lt: new Date(endDateTime) } }
+                        }
+                    )
+                };
+
+                // Add date sort stage to the end of the aggregation pipeline
+                stages.push(
+                    // Sort the records newest to oldest
+                    {
+                        $sort: { dateCreated: -1 }
+                    }
+                );
+
+                const entries = await Entry.aggregate(stages);
                 
                 // Emit journalEntriesFetched event
                 journalServiceEvents.emit('journalEntriesFetched');
 
                 // Log success
-                logger.info(`All entries retrieved successfully for user ${userId}`);
+                logger.info(`Journal entries retrieved successfully for user ${userId}`);
                 
                 // Set response
                 success = true;
                 authorise = true;
-                msg = 'All journal entries for requested user';
+                msg = 'Journal entries for requested user';
                 data = entries;
             };
 
