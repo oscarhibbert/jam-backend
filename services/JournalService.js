@@ -14,6 +14,9 @@ const journalServiceEvents = new EventEmitter;
 // Import Percentage Round
 const percentRound = require('percent-round');
 
+// Import helpers
+const checkIsoDate = require('../helpers/checkIsoDate');
+
 /**
  * @description Create an instance of the JournalService class.
  */
