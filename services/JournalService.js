@@ -743,18 +743,11 @@ module.exports = class JournalService {
             };
 
             // Check startDateTime and endDateTime is ISO 8601 formatted
-            // See here: https://stackoverflow.com/questions/52869695/check-if-a-date-string-is-in-iso-and-utc-format
-            function isIsoDate(str) {
-                if (!/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/.test(str)) return false;
-                var d = new Date(str);
-                return d.toISOString() === str;
-            };
-
-            if (!isIsoDate(startDateTime)) {
+            if (!checkIsoDate(startDateTime)) {
                 throw new Error(`Get stats failed - startDateTime parameter must be an ISO 8601 string in Zulu time. ${userId}`);
             };
 
-            if (!isIsoDate(endDateTime)) {
+            if (!checkIsoDate(endDateTime)) {
                 throw new Error(`Get stats failed - endDateTime parameter must be an ISO 8601 string in Zulu time. ${userId}`);
             };
 
