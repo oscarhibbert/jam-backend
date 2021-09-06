@@ -989,8 +989,8 @@ module.exports = class JournalService {
 
             };
             
-            // // Return the stats object
-            return stats;
+            // Return the stats object
+            return {success: true, data: stats, user: userId};
 
         } catch (err) {
             logger.error(err.message);
