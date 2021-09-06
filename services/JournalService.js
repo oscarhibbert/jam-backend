@@ -467,9 +467,9 @@ module.exports = class JournalService {
 
                 // Add date sort stage to the end of the aggregation pipeline
                 stages.push(
-                    // Sort the records newest to oldest
+                    // Sort the records oldest to newest
                     {
-                        $sort: { dateCreated: -1 }
+                        $sort: { dateCreated: 1 }
                     }
                 );
 
