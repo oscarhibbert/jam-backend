@@ -956,12 +956,65 @@ module.exports = class JournalService {
                 continue;
             };
 
+            // Build array of mood counts
+            // [HEU,LEU,HEP,LEP]
+            const moodCounts =
+                [counts.highEnergyUnpleasantCount, counts.lowEnergyUnpleasantCount,
+                counts.highEnergyPleasantCount, counts.lowEnergyPleasantCount];
+
             // Calculate mood breakdown stats in %
             // [HEU,LEU,HEP,LEP]
             const moodStatsCalculated = percentRound(
-                [counts.highEnergyUnpleasantCount, counts.lowEnergyUnpleasantCount,
-                counts.highEnergyPleasantCount, counts.lowEnergyPleasantCount]
+                moodCounts
             );
+            
+            // Check that there is at least one mood count greater than 0
+            let moodCountCheck = false;
+
+            moodCounts.map(
+                moodCount => {
+                    if (moodCount > 0) moodCountCheck = true
+                }
+            );
+
+            // Set highestMood to empty object
+            let highestMood = {};
+            
+            // If moodCountCheck is true
+            if (moodCountCheck === true) {
+                // Get the index with the highest mood count
+                let highestMoodIndex = moodCounts.indexOf(Math.max.apply(Math, moodCounts.map
+                    (moodCount => moodCount))
+                );
+
+                if (highestMoodIndex === 0) highestMood = {
+                    moodType: 'High Energy, Unpleasant',
+                    stat: moodStatsCalculated[0].toFixed().toString() + "%"
+                };
+
+                if (highestMoodIndex === 1) highestMood = {
+                    moodType: 'Low Energy, Unpleasant',
+                    stat: moodStatsCalculated[1].toFixed().toString() + "%"
+                };
+
+                if (highestMoodIndex === 2) highestMood = {
+                    moodType: 'High Energy, Pleasant',
+                    stat: moodStatsCalculated[2].toFixed().toString() + "%"
+                };
+
+                if (highestMoodIndex === 3) highestMood = {
+                    moodType: 'Low Energy, Pleasant',
+                    stat: moodStatsCalculated[3].toFixed().toString() + "%"
+                };
+            }
+
+            // Else, if moodCountCheck is false
+            else {
+                highestMood = {
+                    moodType: '',
+                    count: ''
+                };
+            };
 
             // // Build stats object
             let stats = {
@@ -974,6 +1027,7 @@ module.exports = class JournalService {
 
                 // Mood stats
                 moodStats: {
+                    highestMood: highestMood,
                     highEnergyUnpleasant:
                         moodStatsCalculated[0].toFixed().toString() + "%",
                     lowEnergyUnpleasant:
@@ -990,7 +1044,7 @@ module.exports = class JournalService {
             };
             
             // Return the stats object
-            return {success: true, data: stats, user: userId};
+            return { success: true, data: stats, user: userId };
 
         } catch (err) {
             logger.error(err.message);
