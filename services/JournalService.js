@@ -1025,6 +1025,9 @@ module.exports = class JournalService {
                     endDate: endDateTime
                 },
 
+                // Category filter Id
+                categoryFilterId: categoryId,
+
                 // Mood stats
                 moodStats: {
                     highestMood: highestMood,
