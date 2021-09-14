@@ -683,7 +683,8 @@ module.exports = class SettingsService {
             return {
                 success: true,
                 user: userId,
-                inuse: inUse
+                inuse: inUse,
+                data: category
             };
 
         } catch (err) {
@@ -1135,7 +1136,8 @@ module.exports = class SettingsService {
             return {
                 success: true,
                 user: userId,
-                inuse: inUse
+                inuse: inUse,
+                data: activity
             };
 
         } catch (err) {
