@@ -31,6 +31,38 @@ module.exports = class Auth0Service {
         });
     };
 
+        /**
+     * @desc                                                Create a new passwordless user in Auth0
+     * @param {string}                      email           The email address of the new user
+     * @param {string}                      firstName       The first name of the new user
+     * @param {string}                      lastName        The surname of the new user
+     * @return                                              Object with msg and data
+     */
+    async createUser(email, firstName, lastName) {
+        try {
+            // Create the user using the email connection type
+            // (magic link)
+            const newUser = await this.auth0.createUser(
+                {
+                    email: email,
+                    given_name: firstName,
+                    family_name: lastName,
+                    connection: "email",
+                }
+            );
+
+            // Log success
+            logger.info(`Auth0 user created successfully ${newUser.user_id}`);
+
+            // Return message and data
+            return { msg: "Success - user created", data: newUser };
+            
+        } catch (err) {
+            // Log error
+            logger.error(err);
+        };
+    };
+
     /**
      * @desc                                       Get a user profile from Auth0
      * @param {string}    userId                   String containing user ID
@@ -132,5 +164,4 @@ module.exports = class Auth0Service {
             throw err;
         };
     };
-
 };
