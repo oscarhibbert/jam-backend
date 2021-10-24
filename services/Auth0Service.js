@@ -22,6 +22,8 @@ module.exports = class Auth0Service {
         this.auth0ClientId = config.auth0.clientId;
         /** Sets the Auth0 application client secret */
         this.auth0ClientSecret = config.auth0.clientSecret;
+        /** Sets the Auth0 passwordless email connection ID */
+        this.auth0EmailConnectionId = config.auth0.emailConnectionId;
         
         /** Instantiate the Auth0 management client */
         this.auth0 = new ManagementClient({
@@ -32,14 +34,23 @@ module.exports = class Auth0Service {
     };
 
     /**
-     * @desc                                                Create a new passwordless user in Auth0
-     * @param {string}                      email           The email address of the new user
-     * @param {string}                      firstName       The first name of the new user
-     * @param {string}                      lastName        The surname of the new user
-     * @return                                              Object with msg and data
+     * @desc                                                   Create a new passwordless user in Auth0
+     * @param {string}                      email              The email address of the new user
+     * @param {string}                      firstName          The first name of the new user
+     * @param {string}                      lastName           The surname of the new user
+     * @param {string}                      setEmailVerified   (optional) Can be set to true when new user will be linked to existing user
+     * @return                                                 Object with msg and data
      */
-    async createUser(email, firstName, lastName) {
+    async createUser(email, firstName, lastName, setEmailVerified) {
         try {
+
+            // Set email verified var
+            let emailVerified = false;
+
+            if (setEmailVerified) {
+                if (setEmailVerified === true) emailVerified = true;
+            }
+
             // Create the user using the email connection type
             // (magic link)
             const newUser = await this.auth0.createUser(
@@ -48,6 +59,7 @@ module.exports = class Auth0Service {
                     given_name: firstName,
                     family_name: lastName,
                     connection: "email",
+                    email_verified: emailVerified
                 }
             );
 
@@ -194,6 +206,37 @@ module.exports = class Auth0Service {
             if (err.name === 'Not Found') {
                 return {msg: "User not found"};
             };
+            throw err;
+        };
+    };
+
+    /**
+     * @desc                                                   Link an existing user to another user
+     * @param {string}                      mainUserId         String containing main user ID
+     * @param {string}                      secondaryUserId    String containing the user ID of the secondary account
+     * @param {string}                      provider           String containing the identity provider of the secondary account 
+     * @return                                                 Object with msg
+     */
+    async linkUsers(mainUserId, secondaryUserId, provider) {
+        try {
+            // Try to link the
+            await this.auth0.linkUsers(
+                // Main account
+                mainUserId,
+                // User to link to the main account
+                {
+                    user_id: secondaryUserId,
+                    connection_id: this.auth0EmailConnectionId,
+                    provider: provider
+                }
+            );
+
+            return { msg: `Auth0 user ${mainUserId} linked successfully to ${secondaryUserId}` };
+
+        } catch (err) {
+            // Log error
+            logger.error(err);
+
             throw err;
         };
     };
