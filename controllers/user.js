@@ -7,6 +7,38 @@ const logger = require('../loaders/logger');
 const UserService = require('../services/UserService');
 const UserServiceInstance = new UserService();
 
+// @desc   Create a new user
+// @route  POST api/v1/user
+// @access Private
+// @scope create:users
+exports.createUser = async (req, res) => {
+  try {
+    // Extract params from the request
+    const { email, firstName, lastName } = req.body;
+
+    const newUser = await UserServiceInstance.createUser(email, firstName, lastName);
+
+    // Set response to empty object
+    let response = {};
+
+    // Add response success property: true
+    response.success = true;
+
+    // Add response msg
+    response.msg = newUser.msg;
+
+    // Add response data
+    response.data = newUser.data;
+
+    // Respond
+    res.json(response);
+
+  } catch (err) {
+    logger.error(err.message);
+    res.status(500).json({ success: false, msg: 'Server Error' });
+  };
+};
+
 // Controller methods
 // @desc   Get the user profile
 // @route  GET api/v1/user/profile

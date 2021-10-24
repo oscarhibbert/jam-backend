@@ -37,10 +37,27 @@ exports.validateLogin = [
     }
 ];
 
+// Create new user validator
+exports.validateCreateUser = [
+  // Checking configuration
+  check('email', 'Please specify an email address for the new user!').not().isEmpty(),
+  check('email', 'Please specify a valid email address for the new user!').isEmail(),
+  check('firstName', 'Please specify a first name for the new user!').not().isEmpty(),
+  check('lastName', 'Please specify a last name for the new user!').not().isEmpty(),
+
+  // Errors middleware function
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+      return res.status(422).json({ success: false, errors: errors.array() });
+    next();
+  },
+];
+
 // Journal entry validator
 exports.validateEntry = [
   // Checking configuration
-  check('mood', 'Please specifcy a mood type!').not().isEmpty(),
+  check('mood', 'Please specify a mood type!').not().isEmpty(),
   check('mood', 'Invalid mood type!').isIn(
     ['High Energy, Unpleasant', 'Low Energy, Unpleasant',
     'High Energy, Pleasant', 'Low Energy, Pleasant']),

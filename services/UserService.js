@@ -45,12 +45,12 @@ module.exports = class UserService {
             };
 
             // Create the new user
-            await Auth0ServiceInstance.createUser(email, firstName, lastName);
+            const newUser = await Auth0ServiceInstance.createUser(email, firstName, lastName);
 
             // Log success
-            logger.info(`Aura user created successfully`);
+            logger.info(`New Aura Journal user created successfully`);
 
-            return;
+            return {msg: 'New Aura Journal user created successfully', data: newUser.data};
 
         } catch (err) {
             // Log error
