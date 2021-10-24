@@ -25,3 +25,9 @@ exports.checkJwt = jwt({
     issuer: [config.auth0.issuer],
     algorithms: [config.auth0.algorithms],
 });
+
+// Check permissions middleware
+exports.CheckPermissions = jwtAuthz(
+    config.auth0.permissions,
+    { }
+);
