@@ -31,7 +31,7 @@ module.exports = class Auth0Service {
         });
     };
 
-        /**
+    /**
      * @desc                                                Create a new passwordless user in Auth0
      * @param {string}                      email           The email address of the new user
      * @param {string}                      firstName       The first name of the new user
@@ -55,9 +55,42 @@ module.exports = class Auth0Service {
             logger.info(`Auth0 user created successfully ${newUser.user_id}`);
 
             // Return message and data
-            return { msg: "Success - user created", data: newUser };
+            return { msg: "Success – Auth0 user created", data: newUser };
             
         } catch (err) {
+            // Log error
+            logger.error(err);
+        };
+    };
+
+    /**
+     * @desc                                                Get an Auth0 user by email address
+     * @param {string}                      email           The email address of the user
+     * @return                                              Object with msg and data
+     */
+    async getUserByEmail(email) {
+        try {
+            // Try fetch the user profile from Auth0
+            const user = await this.auth0.getUsersByEmail(email);
+
+            if (user.length === 0) throw new Error('No user found');
+            
+            // Log success
+            logger.info(`Auth0 user found successfully with email address ${email}`);
+
+            // Return message and data
+            return { msg: `User profile found for email address ${email}`, data: user[0] };
+            
+        } catch (err) {
+            // If error not found return message empty data
+            if (err.message === 'No user found') {
+                return {msg: `No user found with email address ${email}`};
+            };
+
+            if (err.message.includes("Object didn't pass validation for format email")) {
+                return {msg: `Incorrect email syntax for email address ${email}`};
+            };
+
             // Log error
             logger.error(err);
         };

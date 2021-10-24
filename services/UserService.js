@@ -19,7 +19,46 @@ const JournalServiceInstance = new JournalService();
 /**
  * @description Create an instance of the UserService class.
  */
-module.exports = class JournalService {
+module.exports = class UserService {
+    /**
+     * @desc                                                Create a new Aura Journal user
+     * @param {string}                      email           The email address of the new user
+     * @param {string}                      firstName       The first name of the new user
+     * @param {string}                      lastName        The surname of the new user
+     * @return                                              Object with msg and data
+     */
+    async createUser(email, firstName, lastName) {
+        try {
+            // Check email parameter exists
+            if (!email) {
+                throw new Error('Create new user failed - email parameter empty. Must be supplied');
+            };
+
+            // Check firstName parameter exists
+            if (!firstName) {
+                throw new Error('Create new user failed - firstName parameter empty. Must be supplied');
+            };
+
+            // Check lastName parameter exists
+            if (!lastName) {
+                throw new Error('Create new user failed - lastName parameter empty. Must be supplied');
+            };
+
+            // Create the new user
+            await Auth0ServiceInstance.createUser(email, firstName, lastName);
+
+            // Log success
+            logger.info(`Aura user created successfully`);
+
+            return;
+
+        } catch (err) {
+            // Log error
+            logger.error(err);
+            throw err;
+        };
+    };
+
     /**
      * @desc                                       Get a user profile method.
      * @param {string}    userId                   String containing user ID.
@@ -100,6 +139,34 @@ module.exports = class JournalService {
 
             // Attempt to delete Auth0 user via the Auth0 Service
             await Auth0ServiceInstance.deleteUser(userId);
+            
+            // Return
+            return;
+
+        } catch (err) {
+            // Log error
+            logger.error(err);
+            throw err;
+        };
+    };
+
+    /**
+     * @desc                                       Delete a user by email addressmethod.
+     * @param {string}    email                    String containing user email address.
+     * @return                                     Object containing message object and data object.
+     */
+    async deleteUserByEmail(email) {
+        try {
+            // Check userId parameter exists
+            if (!email) {
+                throw new Error('Delete user by email failed - email parameter empty. Must be supplied');
+            };
+
+            // Get the userId
+            const userId = await Auth0ServiceInstance.getUserByEmail(email);
+
+            // Delete the user
+            await this.deleteUser(userId);
             
             // Return
             return;
