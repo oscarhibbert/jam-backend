@@ -13,3 +13,4 @@ checkISO8601.js
 testStatsEndpoint.js
 passwordlessEmailTemplate.html
 passwordlessLogin.html
+userMigration.js
