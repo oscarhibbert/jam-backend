@@ -75,13 +75,13 @@ module.exports = class UserService {
             let userProfile = await Auth0ServiceInstance.getUserProfile(userId);
 
             // Destructure desired properties from data
-            const { email, name } = userProfile.data;
+            const { email, name, given_name, family_name } = userProfile.data;
 
             // Overwrite userProfile.data to an empty object
             userProfile.data = {};
 
             // Update userProfile.data to only include the desired properties
-            userProfile.data = { email, name };
+            userProfile.data = { email, name, given_name, family_name };
 
             // Return the userProfile
             return userProfile;
