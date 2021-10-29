@@ -106,9 +106,6 @@ exports.deleteUserByEmail = async (req, res) => {
     // Add response success property: true
     response.success = true;
 
-    // Add response userId propery
-    response.userId = userId;
-
     // Respond
     res.json(response);
 
