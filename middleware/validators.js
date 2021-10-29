@@ -54,6 +54,21 @@ exports.validateCreateUser = [
   },
 ];
 
+// Delete user by email validator
+exports.validateDeleteUserByEmail = [
+  // Checking configuration
+  check('email', 'Please specify an email address for the user to delete!').not().isEmpty(),
+  check('email', 'Please specify a valid email address for the user to delete!').isEmail(),
+
+  // Errors middleware function
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+      return res.status(422).json({ success: false, errors: errors.array() });
+    next();
+  },
+];
+
 // Journal entry validator
 exports.validateEntry = [
   // Checking configuration

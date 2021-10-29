@@ -64,7 +64,7 @@ exports.getUserProfile = async (req, res) => {
   };
 };
 
-// @desc   Get the user profile
+// @desc   Delete the user profile by specified user ID
 // @route  DELETE api/v1/user
 // @access Private
 exports.deleteUser = async (req, res) => {
@@ -72,6 +72,33 @@ exports.deleteUser = async (req, res) => {
     const userId = req.user.sub;
 
     await UserServiceInstance.deleteUser(userId);
+
+    // Set response to empty object
+    let response = {};
+
+    // Add response success property: true
+    response.success = true;
+
+    // Add response userId propery
+    response.userId = userId;
+
+    // Respond
+    res.json(response);
+
+  } catch (err) {
+    logger.error(err.message);
+    res.status(500).json({ success: false, msg: 'Server Error', userId: req.user.sub });
+  };
+};
+
+// @desc   Delete the user profile by specified user ID
+// @route  DELETE api/v1/user/email
+// @access Private
+exports.deleteUserByEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    await UserServiceInstance.deleteUserByEmail(email);
 
     // Set response to empty object
     let response = {};

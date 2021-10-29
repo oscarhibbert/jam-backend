@@ -151,9 +151,9 @@ module.exports = class UserService {
     };
 
     /**
-     * @desc                                       Delete a user by email addressmethod.
-     * @param {string}    email                    String containing user email address.
-     * @return                                     Object containing message object and data object.
+     * @desc                                       Delete a user by email address method
+     * @param {string}    email                    String containing user email address
+     * @return                                     Object containing message object and data object
      */
     async deleteUserByEmail(email) {
         try {

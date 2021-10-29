@@ -14,14 +14,16 @@ const jwtAuthz = require('express-jwt-authz');
 
 // Import validators
 const {
-    validateCreateUser
+    validateCreateUser,
+    validateDeleteUserByEmail
 } = require('../middleware/validators');
 
 // Import controller methods
 const {
     createUser,
     getUserProfile,
-    deleteUser
+    deleteUser,
+    deleteUserByEmail
 } = require('../controllers/user');
 
 const router = express.Router();
@@ -52,5 +54,20 @@ router.route('/profile')
 // @access Private
 router.route('/')
     .delete(checkJwt, logger, deleteUser);
+
+// @desc   Delete a user by email address
+// @route  POST api/v1/user/email
+// @access Private
+// @scope delete:users
+router.route('/email')
+    .delete(
+        checkJwt,
+        logger,
+        jwtAuthz(
+            ['delete:users'],
+            { customScopeKey: 'permissions' }
+        ),
+        validateDeleteUserByEmail,
+        deleteUserByEmail);
 
 module.exports = router;
