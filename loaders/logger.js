@@ -107,7 +107,9 @@ if (remoteLoggingStatus()) {
     );
 
     // Log info
-    logger.info(`Logging ENABLED. Remote logging to Sentry & GCP ENABLED....`);
+    logger.info(`Winston: Console Logging Enabled ✅`);
+    logger.info(`Winston: Sentry Logging Enabled ✅`);
+    logger.info(`Winston: GCP Logging Enabled ✅`);
 }
 
 // Else
@@ -119,7 +121,7 @@ else {
     );
 
     // Log info
-    logger.info(`Logging ENABLED. Remote logging to Sentry & GCP DISABLED....`)
+    logger.info(`Winston: Console Logging Enabled ✅`);
 };
 
 // Export logger

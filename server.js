@@ -26,10 +26,7 @@ const express = require('express');
 const app = express();
 
 // Call DB loader 
-const connectDB = require('./loaders/dbLoader');
-
-// Call database loader
-connectDB();
+const { connectDB, disconnectDB } = require('./loaders/dbLoader');
 
 // Init express json middleware
 app.use(express.json({ extended: false }));
@@ -65,11 +62,53 @@ app.use((err, req, res, next) => {
   };
 });
 
-// // API running message
-// app.get('/', (req, res) => res.send('Aura API running'));
-
 // Port config
 const PORT = process.env.PORT || 5000;
 
-// Listen config
-app.listen(PORT, () => logger.info(`Aura backend server started on port ${PORT}....`));
+// Set Server Var
+let server;
+
+// Build startServer function
+const startServer = async () => {
+  try {
+    // Call database loader
+    await connectDB();
+
+    // Start Express Server
+    server = app.listen(PORT, () => logger.info(`Server: Started On Port ${PORT} ✅`));
+    
+  } catch (err) {
+    console.error(err);
+    throw err;
+  };
+};
+
+// Start Server
+startServer();
+
+// Graceful Shutdown for Express
+// Set graceful shutdown options
+process.on('SIGINT', async () => {
+  // Disconnect MongoDB
+  await disconnectDB();
+
+  // Shut Down Server
+  logger.info(`Server: Shutting Down Server....`)
+  await server.close();
+  logger.info(`Server: Server Shutdown Complete ✅`);
+  // Avoid plugging up ports - ensures all processes are stopped
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  // Disconnect MongoDB
+  await disconnectDB();
+  
+  // Shut Down Server
+  logger.info(`Server: Shutting Down Server....`)
+  await server.close();
+  logger.info(`Server: Server Shutdown Complete ✅`);
+  // Avoid plugging up ports - ensures all processes are stopped
+  process.exit(0);
+});
+  

@@ -24,9 +24,9 @@ const keyVaultNamespace = 'aura-backend.encryption';
 // const getSchemaMap = require('../csfleSchema');
 // const schemaMap = getSchemaMap();
 
-const connectDB = async () => {
+exports.connectDB = async () => {
   try {
-    logger.info('Establishing connection to MongoDB....')
+    logger.info('MongoDB: Establishing connection....')
     // Establish connection to MongoDB Atlas
     await mongoose.connect(db, {
       useNewUrlParser: true,
@@ -40,7 +40,7 @@ const connectDB = async () => {
       }
     });
 
-    logger.info('MongoDB connected successfully!')
+    logger.info('MongoDB: Connection Established ✅');
 
   } catch (err) {
     logger.error(err.message);
@@ -49,4 +49,12 @@ const connectDB = async () => {
   }
 };
 
-module.exports = connectDB;
+exports.disconnectDB = async () => {
+  try {
+      logger.info('MongoDB: Closing Connection....');
+      await mongoose.disconnect();
+      logger.info('MongoDB: Connection Closed ✅');
+  } catch (err) {
+    throw err;
+  };
+};
