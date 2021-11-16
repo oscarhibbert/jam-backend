@@ -44,13 +44,13 @@ module.exports = class UserService {
                 throw new Error('Create new user failed - lastName parameter empty. Must be supplied');
             };
 
-            // Create the new user
+            // Create the new user in Auth0
             const newUser = await Auth0ServiceInstance.createUser(email, firstName, lastName);
 
             // Log success
             logger.info(`New Aura Journal user created successfully`);
 
-            return {msg: 'New Aura Journal user created successfully', data: newUser.data};
+            return { msg: 'New Aura Journal user created successfully', data: newUser.data };
 
         } catch (err) {
             // Log error
