@@ -8,6 +8,10 @@ const User = require('../models/User');
 const Auth0Service = require('../services/Auth0Service');
 const Auth0ServiceInstance = new Auth0Service();
 
+// Mixpanel Service Import
+const MixpanelService = require('../services/MixpanelService');
+const MixpanelServiceInstance = new MixpanelService();
+
 // Settings Service Import
 const SettingsService = require('../services/SettingsService');
 const SettingsServiceInstance = new SettingsService();
@@ -46,6 +50,14 @@ module.exports = class UserService {
 
             // Create the new user in Auth0
             const newUser = await Auth0ServiceInstance.createUser(email, firstName, lastName);
+
+            // Create a new user in Mixpanel
+            MixpanelServiceInstance.createOrUpdateUser(
+                newUser.data.user_id,
+                newUser.data.given_name,
+                newUser.data.family_name,
+                newUser.data.email
+            );
 
             // Log success
             logger.info(`New Aura Journal user created successfully`);

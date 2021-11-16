@@ -70,9 +70,9 @@ module.exports = class MixpanelService {
             let properties = {};
 
             // If the properties are provided add them to properties object
-            if (firstName) properties[$first_name] = firstName;
-            if (lastName) properties[$last_name] = lastName;
-            if (email) properties[$email] = email;
+            if (firstName) properties.$first_name = firstName;
+            if (lastName) properties.$last_name = lastName;
+            if (email) properties.$email = email;
 
             // Create or update the existing user in Mixpanel
             this.mixpanelClient.people.set(
