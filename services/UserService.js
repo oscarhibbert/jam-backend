@@ -60,6 +60,15 @@ module.exports = class UserService {
                 newUser.data.created_at
             );
 
+            // Create Mixpanel Event New User
+            MixpanelServiceInstance.createEvent(
+                'New User',
+                newUser.data.user_id,
+                {
+                    $time: newUser.data.created_at
+                }
+            );
+
             // Log success
             logger.info(`New Aura Journal user created successfully`);
 

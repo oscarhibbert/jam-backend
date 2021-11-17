@@ -37,16 +37,18 @@ module.exports = class MixpanelService {
             let propertiesObj;
 
             /* If the properties object exists
-            add it to propertiesObj */
-            if (properties) propertiesObj = properties;
+            let propertiesObj equal properties */
+            if (properties) {
+                propertiesObj = properties
+            };
+
+            // Add distinct_id property to the propertiesObj
+            propertiesObj.distinct_id = userId;
 
             // Create the event in Mixpanel
             this.mixpanelClient.track(
                 eventName,
-                {
-                    distinct_id: userId,
-                    propertiesObj
-                }
+                propertiesObj
             );
 
             return { success: true };
