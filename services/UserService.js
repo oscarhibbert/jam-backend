@@ -139,6 +139,9 @@ module.exports = class UserService {
             // Attempt to delete the settings object for the user
             await SettingsServiceInstance.deleteSettings(userId);
 
+            // Attempt to delete user from Mixpanel
+            MixpanelServiceInstance.deleteUser(userId);
+
             // Attempt to delete the user from the MongoDB user collection
             await User.deleteOne(
                 {
@@ -146,11 +149,11 @@ module.exports = class UserService {
                 }
             );
 
-            // Log success
-            logger.info(`Aura user deleted successfully ${userId}`);
-
             // Attempt to delete Auth0 user via the Auth0 Service
             await Auth0ServiceInstance.deleteUser(userId);
+
+            // Log success
+            logger.info(`Aura user deleted successfully ${userId}`);
             
             // Return
             return;

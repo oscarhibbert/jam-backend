@@ -80,6 +80,29 @@ module.exports = class MixpanelService {
                 properties
             );
 
+            logger.info(`Mixpanel user profile created successfully ${userId}`);
+
+            return { success: true };
+
+        } catch (err) {
+            throw err;
+        };
+    };
+
+    /**
+       * @desc                                        Deletes an existing user from Mixpanel
+       * @param      {string}        userId           The UserId as a string
+       * @return                                    
+    */
+    deleteUser(userId) {
+        try {
+            // Remove the existing user from Mixpanel
+            this.mixpanelClient.people.delete_user(
+                userId
+            );
+
+            logger.info(`Mixpanel user profile deleted successfully ${userId}`);
+
             return { success: true };
 
         } catch (err) {
