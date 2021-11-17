@@ -62,9 +62,10 @@ module.exports = class MixpanelService {
        * @param      {string}        firstName        The first name of the user (optional)
        * @param      {string}        lastName         The surname of the user (optional)
        * @param      {string}        email            The email address of the user (optional)
+       * @param      {Date}          dateCreated      The date the user was created in Zulu time (optional)
        * @return                                    
     */
-    createOrUpdateUser(userId, firstName, lastName, email) {
+    createOrUpdateUser(userId, firstName, lastName, email, dateCreated) {
         try {
             // Create properties object
             let properties = {};
@@ -73,11 +74,12 @@ module.exports = class MixpanelService {
             if (firstName) properties.$first_name = firstName;
             if (lastName) properties.$last_name = lastName;
             if (email) properties.$email = email;
+            if (dateCreated) properties.dateCreated = dateCreated;
 
             // Create or update the existing user in Mixpanel
             this.mixpanelClient.people.set(
                 userId,
-                properties
+                properties,
             );
 
             logger.info(`Mixpanel user profile created successfully ${userId}`);

@@ -56,7 +56,8 @@ module.exports = class UserService {
                 newUser.data.user_id,
                 newUser.data.given_name,
                 newUser.data.family_name,
-                newUser.data.email
+                newUser.data.email,
+                newUser.data.created_at
             );
 
             // Log success
