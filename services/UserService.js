@@ -8,6 +8,10 @@ const User = require('../models/User');
 const Auth0Service = require('../services/Auth0Service');
 const Auth0ServiceInstance = new Auth0Service();
 
+// Mixpanel Service Import
+const MixpanelService = require('../services/MixpanelService');
+const MixpanelServiceInstance = new MixpanelService();
+
 // Settings Service Import
 const SettingsService = require('../services/SettingsService');
 const SettingsServiceInstance = new SettingsService();
@@ -44,13 +48,31 @@ module.exports = class UserService {
                 throw new Error('Create new user failed - lastName parameter empty. Must be supplied');
             };
 
-            // Create the new user
+            // Create the new user in Auth0
             const newUser = await Auth0ServiceInstance.createUser(email, firstName, lastName);
+
+            // Create a new user in Mixpanel
+            MixpanelServiceInstance.createOrUpdateUser(
+                newUser.data.user_id,
+                newUser.data.given_name,
+                newUser.data.family_name,
+                newUser.data.email,
+                newUser.data.created_at
+            );
+
+            // Create Mixpanel Event New User
+            MixpanelServiceInstance.createEvent(
+                'New User',
+                newUser.data.user_id,
+                {
+                    $time: newUser.data.created_at
+                }
+            );
 
             // Log success
             logger.info(`New Aura Journal user created successfully`);
 
-            return {msg: 'New Aura Journal user created successfully', data: newUser.data};
+            return { msg: 'New Aura Journal user created successfully', data: newUser.data };
 
         } catch (err) {
             // Log error
@@ -127,6 +149,9 @@ module.exports = class UserService {
             // Attempt to delete the settings object for the user
             await SettingsServiceInstance.deleteSettings(userId);
 
+            // Attempt to delete user from Mixpanel
+            MixpanelServiceInstance.deleteUser(userId);
+
             // Attempt to delete the user from the MongoDB user collection
             await User.deleteOne(
                 {
@@ -134,11 +159,11 @@ module.exports = class UserService {
                 }
             );
 
-            // Log success
-            logger.info(`Aura user deleted successfully ${userId}`);
-
             // Attempt to delete Auth0 user via the Auth0 Service
             await Auth0ServiceInstance.deleteUser(userId);
+
+            // Log success
+            logger.info(`Aura user deleted successfully ${userId}`);
             
             // Return
             return;
