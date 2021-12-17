@@ -41,7 +41,8 @@ router.route('/')
             { customScopeKey: 'permissions' }
         ),
         validateCreateUser,
-        createUser);
+        createUser
+    );
 
 // @desc   Get the user profile
 // @route  GET api/v1/user/profile
