@@ -1,6 +1,6 @@
 # Jam Mental Health Tracker – Backend API
 ### Introduction
-The Jam Mental Health Tracker backend API built on Node.js and Express designed for use with our without the Telegram frontend application.
+The Jam Mental Health Tracker backend API built on Node.js and Express designed for use with or without the Telegram frontend app.
 ### Features
 * Journalling endpoints for creating, updating, searching and retrieving, filtering and deleting complex mood and emotional health data as well as viewing mental health statistics over a searchable period of time.
 * Settings endpoints for managing user account and profile and managing mood health categories and activities.
