@@ -1,6 +1,9 @@
 // Import logger
 const logger = require('../loaders/logger');
 
+// Import evervault
+const evervault = require('../loaders/evervault');
+
 // Model imports
 const User = require('../models/User');
 const Entry = require('../models/Entry');
@@ -108,18 +111,18 @@ module.exports = class JournalService {
                 const newEntry = {};
 
                 // Add journal details to newEntry object
-                newEntry.user = userId;
-                newEntry.mood = entryMood;
-                newEntry.emotion = entryEmotion;
+                newEntry.user = userId; 
+                newEntry.mood = await evervault.encrypt(entryMood);
+                newEntry.emotion = await evervault.encrypt(entryEmotion);
 
                 // Only add categories array if categories present
-                if (entryCategories) newEntry.categories = entryCategories;
+                if (entryCategories) newEntry.categories = await evervault.encrypt(entryCategories);
 
                 // Only add activities arrary if activities present
-                if (entryActivities) newEntry.activities = entryActivities;
+                if (entryActivities) newEntry.activities = await evervault.encrypt(entryActivities);
 
                 // Add journal details to newEntry object
-                newEntry.text = entryText;
+                newEntry.text = await evervault.encrypt(entryText);
 
                 // Only add linkedEntry if linkedEntry present
                 if (linkedEntry) newEntry.linkedEntry = linkedEntry;
@@ -235,11 +238,11 @@ module.exports = class JournalService {
                 const updatedEntry = {};
 
                 // Add objects to newEntry object if found
-                if (entryMood) updatedEntry.mood = entryMood;
-                if (entryEmotion) updatedEntry.emotion = entryEmotion;
-                if (entryCategories) updatedEntry.categories = entryCategories;
-                if (entryActivities) updatedEntry.activities = entryActivities;
-                if (entryText) updatedEntry.text = entryText;
+                if (entryMood) updatedEntry.mood = await evervault.encrypt(entryMood);
+                if (entryEmotion) updatedEntry.emotion = await evervault.encrypt(entryEmotion);
+                if (entryCategories) updatedEntry.categories = await evervault.encrypt(entryCategories);
+                if (entryActivities) updatedEntry.activities = await evervault.encrypt(entryActivities);
+                if (entryText) updatedEntry.text = await evervault.encrypt(entryText);
                 if (linkedEntry) updatedEntry.linkedEntry = linkedEntry;
 
                 // Populate the dateUpdated field of the journal entry
@@ -478,6 +481,15 @@ module.exports = class JournalService {
                 // Emit journalEntriesFetched event
                 journalServiceEvents.emit('journalEntriesFetched');
 
+                // Decrypt all fields of each entry in entries
+                // entries.forEach(entry => {
+                //     if (entry.mood) entry.mood = await evervault.decrypt(entry.mood);
+                //     if (entry.emotion) entry.emotion = await evervault.decrypt(entry.emotion);
+                //     if (entry.categories) entry.categories = await evervault.decrypt(entry.categories);
+                //     if (entry.activities) entry.activities = await evervault.decrypt(entry.activities);
+                //     if (entry.text) entry.text = await evervault.decrypt(entry.text);
+                // });
+                    
                 // Log success
                 logger.info(`Journal entries retrieved successfully for user ${userId}`);
                 
