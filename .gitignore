@@ -16,3 +16,4 @@ passwordlessLogin.html
 userMigration.js
 mixpanelTest.js
 createUser.js
+nodemon.json

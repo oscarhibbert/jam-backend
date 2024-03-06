@@ -124,6 +124,9 @@ module.exports = class JournalService {
                 // Add journal details to newEntry object
                 newEntry.text = await evervault.encrypt(entryText);
 
+                // Log encryption
+                logger.info(`New journal entry encryption completed for user ${userId}`);
+
                 // Only add linkedEntry if linkedEntry present
                 if (linkedEntry) newEntry.linkedEntry = linkedEntry;
 
@@ -243,6 +246,9 @@ module.exports = class JournalService {
                 if (entryCategories) updatedEntry.categories = await evervault.encrypt(entryCategories);
                 if (entryActivities) updatedEntry.activities = await evervault.encrypt(entryActivities);
                 if (entryText) updatedEntry.text = await evervault.encrypt(entryText);
+
+                logger.info(`Journal entry edit encryption completed for user ${userId}`);
+
                 if (linkedEntry) updatedEntry.linkedEntry = linkedEntry;
 
                 // Populate the dateUpdated field of the journal entry
@@ -482,13 +488,23 @@ module.exports = class JournalService {
                 journalServiceEvents.emit('journalEntriesFetched');
 
                 // Decrypt all fields of each entry in entries
-                // entries.forEach(entry => {
-                //     if (entry.mood) entry.mood = await evervault.decrypt(entry.mood);
-                //     if (entry.emotion) entry.emotion = await evervault.decrypt(entry.emotion);
-                //     if (entry.categories) entry.categories = await evervault.decrypt(entry.categories);
-                //     if (entry.activities) entry.activities = await evervault.decrypt(entry.activities);
-                //     if (entry.text) entry.text = await evervault.decrypt(entry.text);
-                // });
+                async function decryptEntries(entries) {
+                    await Promise.all(entries.map(async (entry) => {
+                        if (entry.mood) entry.mood = await evervault.decrypt(entry.mood);
+                        if (entry.emotion) entry.emotion = await evervault.decrypt(entry.emotion);
+                        if (entry.categories) entry.categories = await evervault.decrypt(entry.categories);
+                        if (entry.activities) entry.activities = await evervault.decrypt(entry.activities);
+                        if (entry.text) entry.text = await evervault.decrypt(entry.text);
+                    }));
+                };
+
+                await decryptEntries(entries)
+                    .then(() => {
+                        logger.info(`Journal entries decryption completed for user ${userId}`);
+                    })
+                    .catch(err => {
+                        logger.error("Error during decryption:", err);
+                    });
                     
                 // Log success
                 logger.info(`Journal entries retrieved successfully for user ${userId}`);
@@ -611,11 +627,20 @@ module.exports = class JournalService {
                     }
                 );
 
+                // Log success
+                logger.info(`Entry retrieved successfully for user ${userId}`);
+
                 // Emit journalEntryFetched event
                 journalServiceEvents.emit('journalEntryFetched');
 
-                // Log success
-                logger.info(`Entry retrieved successfully for user ${userId}`);
+                // Decrypt each journal entry field
+                if (entry.mood) entry.mood = await evervault.decrypt(entry.mood);
+                if (entry.emotion) entry.emotion = await evervault.decrypt(entry.emotion);
+                if (entry.categories) entry.categories = await evervault.decrypt(entry.categories);
+                if (entry.activities) entry.activities = await evervault.decrypt(entry.activities);
+                if (entry.text) entry.text = await evervault.decrypt(entry.text);
+
+                logger.info(`Entry decryption completed for user ${userId}`);
 
                 // Set response
                 success = true;
@@ -658,6 +683,20 @@ module.exports = class JournalService {
                 .find({ user: userId })
                 .limit(1)
                 .sort({ dateCreated: -1 });
+            
+            // Decrypt each journal entry field
+            if (mostRecentEntry.mood) mostRecentEntry.mood =
+                await evervault.decrypt(mostRecentEntry.mood);
+            if (mostRecentEntry.emotion) mostRecentEntry.emotion =
+                await evervault.decrypt(mostRecentEntry.emotion);
+            if (mostRecentEntry.categories) mostRecentEntry.categories =
+                await evervault.decrypt(mostRecentEntry.categories);
+            if (mostRecentEntry.activities) mostRecentEntry.activities =
+                await evervault.decrypt(mostRecentEntry.activities);
+            if (mostRecentEntry.text) mostRecentEntry.text =
+                await evervault.decrypt(mostRecentEntry.text);
+
+            logger.info(`Entry decryption completed for user ${userId}`);
             
             // If mostRecentEntry is an empty array add an object with the user property
             if (mostRecentEntry.length === 0) mostRecentEntry = [{ user: userId }];
@@ -777,6 +816,20 @@ module.exports = class JournalService {
             // Log success
             logger.info(`Closest matching entry retrieved successfully for user ${userId}`);
 
+            // Decrypt closestEntry encrypted values
+            if (closestEntry.mood) closestEntry.mood =
+                await evervault.decrypt(closestEntry.mood);
+            if (closestEntry.emotion) closestEntry.emotion =
+                await evervault.decrypt(closestEntry.emotion);
+            if (closestEntry.categories) closestEntry.categories =
+                await evervault.decrypt(closestEntry.categories);
+            if (closestEntry.activities) closestEntry.activities =
+                await evervault.decrypt(closestEntry.activities);
+            if (closestEntry.text) closestEntry.text =
+                await evervault.decrypt(closestEntry.text);
+
+            logger.info(`Entry decryption completed for user ${userId}`);
+            
             // Add userId to closestEntry object
             closestEntry.user = userId;
             
