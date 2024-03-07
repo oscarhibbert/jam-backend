@@ -750,7 +750,7 @@ module.exports = class JournalService {
             // Get closestEntry to checkEntry
             // Mood, emotion, categories, activities. Priority high to low
             // Get the newest match
-            const closestEntryOld = await Entry.aggregate(
+            const closestEntry = await Entry.aggregate(
                 [
                     // Pipeline stage 1
                     // Get records from the Entry model
@@ -807,39 +807,28 @@ module.exports = class JournalService {
                     { $limit: 1 }
                 ]
             );
-            
-            // Fetch all entries for the current user
-            const entries = "";
-            
-            // Find closest matching entry logic
-            const closestEntry = null;
-            
-            for (const entry of entries) {
-                try {
-                    const decryptedEntry = {
-                        ...entry,
-                        mood: await evervault.decrypt(entry.mood),
-                        emotion: await evervault.decrypt(entry.emotion)
-                    };
 
-                    // Calculate rankings based on entry fields
-                    let rank = 0;
-
-                    rank += decryptedEntry.mood === checkEntry.mood ? 4 : 0;
-                    rank += decryptedEntry.emotion === checkEntry.emotion ? 3 : 0;
-                    rank += decryptedEntry.categories.some(
-                        cat => checkEntry.categories.includes(cat)) ? 2 : 0;
-                    rank += decryptedEntry.categories.some(
-                        cat => checkEntry.activities.includes(cat)) ? 1 : 0;
-
-                } catch (err) {
-                    logger.error("Error decrypting entry:", err);
-                    throw err;
-                }
-            };
+            // // If closestEntry doesn't have any results, throw error.
+            // if (closestEntry.length === 0) {
+            //     throw new Error('Get closest journal entry failed - no results found.');
+            // }
 
             // Log success
             logger.info(`Closest matching entry retrieved successfully for user ${userId}`);
+
+            // // Decrypt closestEntry encrypted values
+            // if (closestEntry.mood) closestEntry.mood =
+            //     await evervault.decrypt(closestEntry.mood);
+            // if (closestEntry.emotion) closestEntry.emotion =
+            //     await evervault.decrypt(closestEntry.emotion);
+            // if (closestEntry.categories) closestEntry.categories =
+            //     await evervault.decrypt(closestEntry.categories);
+            // if (closestEntry.activities) closestEntry.activities =
+            //     await evervault.decrypt(closestEntry.activities);
+            // if (closestEntry.text) closestEntry.text =
+            //     await evervault.decrypt(closestEntry.text);
+
+            logger.info(`Entry decryption completed for user ${userId}`);
             
             // Add userId to closestEntry object
             closestEntry.user = userId;
