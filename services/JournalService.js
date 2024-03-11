@@ -735,8 +735,10 @@ module.exports = class JournalService {
             checkEntry.emotion = await evervault.decrypt(checkEntry.emotion);
             checkEntry.text = await evervault.decrypt(checkEntry.text);
             
-            // Fetch all entries for the current user
-            const entries = await Entry.find({ user: userId }).lean();
+            /* Fetch all entries for the current user 
+            where dateCreated is before check dateCreated */
+            const entries = await Entry.find(
+                { user: userId, dateCreated: { $lt: checkEntry.dateCreated } }).lean();
 
             // If journal entry not found
             if (!entries) {
@@ -745,25 +747,31 @@ module.exports = class JournalService {
             
             // Find closest matching entry logic
             let closestEntry = null;
+            // Initialise rank for closest match
+            let closestRank = 0;
             
             for (const entry of entries) {
                 try {
-                    // Decrypted encrypted values
+                    // Skip the current record if ids are the same
+                    if (entry._id.toString() === journalId) continue;
+
+                    // Decrypted encrypted values for the current entry
                     const decryptedEntry = {
                         ...entry,
                         mood: await evervault.decrypt(entry.mood),
                         emotion: await evervault.decrypt(entry.emotion)
                     };
 
-                    // Ensure other values required for ranking exist in decryptedEntry
+                    // Ensure other values required for ranking exist for the current entry
                     if (entry.categories) decryptedEntry.categories = entry.categories;
                     if (entry.activities) decryptedEntry.activities = entry.activities;
                     if (entry.dateCreated) decryptedEntry.dateCreated = entry.dateCreated;
 
-                    // Ranking logic
+                    // Track the rank for the current entry
                     let rank = 0;
 
-                    // Award points for exact matches
+                    /* Award points for exact matches between the current entry
+                    and the supplied entry */
                     rank += (decryptedEntry.mood === checkEntry.mood) ? 4 : 0;
                     rank += (decryptedEntry.emotion === checkEntry.emotion) ? 3 : 0;
 
@@ -775,16 +783,13 @@ module.exports = class JournalService {
                             cat => checkEntry.activities.includes(cat)) ? 1 : 0;
                     };
 
-                    // Add rank to decryptedEntry object
-                    decryptedEntry.rank = rank;
-                    
-                    // Update closest entry based on rank and dateCreated
-                    if (!closestEntry ||
-                        decryptedEntry.rank > closestEntry.rank ||
-                        (decryptedEntry.rank === closestEntry.rank
-                            && decryptedEntry.dateCreated > closestEntry.dateCreated
-                        || decryptedEntry._id !== closestEntry._id)) {
+                    // Award point for dateCreated being before current record
+                    // rank += entry.dateCreated < checkEntry.dateCreated ? 2 : 0;
+
+                    // Update closestEntry based on rank and dateCreated (simplified)
+                    if (rank > closestRank || (rank === closestRank)) {
                         closestEntry = decryptedEntry;
+                        closestRank = rank;
                     };
 
                 } catch (err) {
@@ -793,11 +798,12 @@ module.exports = class JournalService {
                 }
             };
 
+            if (closestEntry.mood !== checkEntry.mood) {
+                throw new Error('Get closest journal entry failed – no result found.')
+            };
+
             // Log success
             logger.info(`Closest matching entry retrieved successfully for user ${userId}`);
-            
-            // Remove rank from the closestEntry object
-            delete closestEntry.rank;
 
             // Add userId to closestEntry object
             closestEntry.user = userId;
