@@ -116,16 +116,13 @@ module.exports = class JournalService {
                 newEntry.emotion = await evervault.encrypt(entryEmotion);
 
                 // Only add categories array if categories present
-                if (entryCategories) newEntry.categories = await evervault.encrypt(entryCategories);
+                if (entryCategories) newEntry.categories = entryCategories;
 
                 // Only add activities arrary if activities present
-                if (entryActivities) newEntry.activities = await evervault.encrypt(entryActivities);
+                if (entryActivities) newEntry.activities = entryActivities;
 
                 // Add journal details to newEntry object
                 newEntry.text = await evervault.encrypt(entryText);
-
-                // Log encryption
-                logger.info(`New journal entry encryption completed for user ${userId}`);
 
                 // Only add linkedEntry if linkedEntry present
                 if (linkedEntry) newEntry.linkedEntry = linkedEntry;
@@ -243,11 +240,9 @@ module.exports = class JournalService {
                 // Add objects to newEntry object if found
                 if (entryMood) updatedEntry.mood = await evervault.encrypt(entryMood);
                 if (entryEmotion) updatedEntry.emotion = await evervault.encrypt(entryEmotion);
-                if (entryCategories) updatedEntry.categories = await evervault.encrypt(entryCategories);
-                if (entryActivities) updatedEntry.activities = await evervault.encrypt(entryActivities);
+                if (entryCategories) updatedEntry.categories = entryCategories;
+                if (entryActivities) updatedEntry.activities = entryActivities;
                 if (entryText) updatedEntry.text = await evervault.encrypt(entryText);
-
-                logger.info(`Journal entry edit encryption completed for user ${userId}`);
 
                 if (linkedEntry) updatedEntry.linkedEntry = linkedEntry;
 
@@ -492,15 +487,13 @@ module.exports = class JournalService {
                     await Promise.all(entries.map(async (entry) => {
                         if (entry.mood) entry.mood = await evervault.decrypt(entry.mood);
                         if (entry.emotion) entry.emotion = await evervault.decrypt(entry.emotion);
-                        if (entry.categories) entry.categories = await evervault.decrypt(entry.categories);
-                        if (entry.activities) entry.activities = await evervault.decrypt(entry.activities);
                         if (entry.text) entry.text = await evervault.decrypt(entry.text);
                     }));
                 };
 
                 await decryptEntries(entries)
                     .then(() => {
-                        logger.info(`Journal entries decryption completed for user ${userId}`);
+
                     })
                     .catch(err => {
                         logger.error("Error during decryption:", err);
@@ -636,11 +629,7 @@ module.exports = class JournalService {
                 // Decrypt each journal entry field
                 if (entry.mood) entry.mood = await evervault.decrypt(entry.mood);
                 if (entry.emotion) entry.emotion = await evervault.decrypt(entry.emotion);
-                if (entry.categories) entry.categories = await evervault.decrypt(entry.categories);
-                if (entry.activities) entry.activities = await evervault.decrypt(entry.activities);
                 if (entry.text) entry.text = await evervault.decrypt(entry.text);
-
-                logger.info(`Entry decryption completed for user ${userId}`);
 
                 // Set response
                 success = true;
@@ -689,14 +678,8 @@ module.exports = class JournalService {
                 await evervault.decrypt(mostRecentEntry.mood);
             if (mostRecentEntry.emotion) mostRecentEntry.emotion =
                 await evervault.decrypt(mostRecentEntry.emotion);
-            if (mostRecentEntry.categories) mostRecentEntry.categories =
-                await evervault.decrypt(mostRecentEntry.categories);
-            if (mostRecentEntry.activities) mostRecentEntry.activities =
-                await evervault.decrypt(mostRecentEntry.activities);
             if (mostRecentEntry.text) mostRecentEntry.text =
                 await evervault.decrypt(mostRecentEntry.text);
-
-            logger.info(`Entry decryption completed for user ${userId}`);
             
             // If mostRecentEntry is an empty array add an object with the user property
             if (mostRecentEntry.length === 0) mostRecentEntry = [{ user: userId }];
@@ -747,93 +730,65 @@ module.exports = class JournalService {
                 throw new Error(`Get closest journal entry failed - journal entry not found. ${userId}`);
             };
 
-            // Get closestEntry to checkEntry
-            // Mood, emotion, categories, activities. Priority high to low
-            // Get the newest match
-            const closestEntryOld = await Entry.aggregate(
-                [
-                    // Pipeline stage 1
-                    // Get records from the Entry model
-                    // That have the same mood as checkEntry
-                    {
-                        $match: {
-                            // $text: {
-                            //     $search: "unpleasant"
-                            // }
-                            $and: [
-                                { user: { $eq: userId } },
-                                { mood: { $eq: checkEntry.mood } },
-                                { linkedEntry: { $exists: true } }
-                            ],
-                            // $or: [
-                            //     { "emotion": { $eq: checkEntry.emotion } },
-                            //     { "categories": { $eq: checkEntry.categories } },
-                            //     { "activities": { $eq: checkEntry.activities } },
-                            // ]
-                        }
-                    },
-
-                    // Pipeline stage 2
-                    // Add field to each record named rank
-                    // Where the the current record and checkEntry field are equal
-                    // Add to the rank for the current record
-                    {
-                        $addFields: {
-                            rank: {
-                                $sum: [
-                                    { $cond: [{ $eq: ["$mood", checkEntry.mood] }, 4, 0] },
-                                    { $cond: [{ $eq: ["$emotion", checkEntry.emotion] }, 3, 0] },
-                                    { $cond: [{ $eq: ["$categories", checkEntry.categories] }, 2, 0] },
-                                    { $cond: [{ $eq: ["$activities", checkEntry.activities] }, 1, 0] }
-                                ]
-                            }
-                        }
-                    },
-
-                    // Pipeline stage 3
-                    // Match all records in the pipeline that have a rank greater than 0
-                    { $match: { rank: { $gt: 0 } } },
-
-                    // Pipeline stage 4
-                    // Match all records that don't have the same ID as checkEntry.id
-                    { $match: { _id: { $ne: checkEntry._id } } },
-
-                    // Pipeline stage 5
-                    // Sort the records highest to lowest rank and newest to oldest
-                    { $sort: { rank: -1, dateCreated: -1 } },
-
-                    // Pipeline stage 6
-                    // Return only the first record
-                    { $limit: 1 }
-                ]
-            );
+            // Decrypt checkEntry fields
+            checkEntry.mood = await evervault.decrypt(checkEntry.mood);
+            checkEntry.emotion = await evervault.decrypt(checkEntry.emotion);
+            checkEntry.text = await evervault.decrypt(checkEntry.text);
             
             // Fetch all entries for the current user
-            const entries = "";
+            const entries = await Entry.find({ user: userId }).lean();
+
+            // If journal entry not found
+            if (!entries) {
+                throw new Error(`Get closest journal entry failed - journal entries not found. ${userId}`);
+            };
             
             // Find closest matching entry logic
-            const closestEntry = null;
+            let closestEntry = null;
             
             for (const entry of entries) {
                 try {
+                    // Decrypted encrypted values
                     const decryptedEntry = {
                         ...entry,
                         mood: await evervault.decrypt(entry.mood),
                         emotion: await evervault.decrypt(entry.emotion)
                     };
 
-                    // Calculate rankings based on entry fields
+                    // Ensure other values required for ranking exist in decryptedEntry
+                    if (entry.categories) decryptedEntry.categories = entry.categories;
+                    if (entry.activities) decryptedEntry.activities = entry.activities;
+                    if (entry.dateCreated) decryptedEntry.dateCreated = entry.dateCreated;
+
+                    // Ranking logic
                     let rank = 0;
 
-                    rank += decryptedEntry.mood === checkEntry.mood ? 4 : 0;
-                    rank += decryptedEntry.emotion === checkEntry.emotion ? 3 : 0;
-                    rank += decryptedEntry.categories.some(
-                        cat => checkEntry.categories.includes(cat)) ? 2 : 0;
-                    rank += decryptedEntry.categories.some(
-                        cat => checkEntry.activities.includes(cat)) ? 1 : 0;
+                    // Award points for exact matches
+                    rank += (decryptedEntry.mood === checkEntry.mood) ? 4 : 0;
+                    rank += (decryptedEntry.emotion === checkEntry.emotion) ? 3 : 0;
+
+                    // Award points for category or activity overlap (if categories exist)
+                    if (decryptedEntry.categories && checkEntry.categories) {
+                        rank += decryptedEntry.categories.some(
+                            cat => checkEntry.categories.includes(cat)) ? 2 : 0;
+                        rank += decryptedEntry.categories.some(
+                            cat => checkEntry.activities.includes(cat)) ? 1 : 0;
+                    };
+
+                    // Add rank to decryptedEntry object
+                    decryptedEntry.rank = rank;
+                    
+                    // Update closest entry based on rank and dateCreated
+                    if (!closestEntry ||
+                        decryptedEntry.rank > closestEntry.rank ||
+                        (decryptedEntry.rank === closestEntry.rank
+                            && decryptedEntry.dateCreated > closestEntry.dateCreated
+                        || decryptedEntry._id !== closestEntry._id)) {
+                        closestEntry = decryptedEntry;
+                    };
 
                 } catch (err) {
-                    logger.error("Error decrypting entry:", err);
+                    logger.error("Error ranking entry:", err);
                     throw err;
                 }
             };
@@ -841,11 +796,14 @@ module.exports = class JournalService {
             // Log success
             logger.info(`Closest matching entry retrieved successfully for user ${userId}`);
             
+            // Remove rank from the closestEntry object
+            delete closestEntry.rank;
+
             // Add userId to closestEntry object
             closestEntry.user = userId;
             
             // Return data
-            return {data: closestEntry, user: userId};
+            return { data: closestEntry, user: userId };
 
         } catch (err) {
             logger.error(err.message);
