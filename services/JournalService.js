@@ -771,7 +771,7 @@ module.exports = class JournalService {
                     let rank = 0;
 
                     /* Award points for exact matches between the current entry
-                    and the supplied entry */
+                    and the supplied entry  */
                     rank += (decryptedEntry.mood === checkEntry.mood) ? 4 : 0;
                     rank += (decryptedEntry.emotion === checkEntry.emotion) ? 3 : 0;
 
