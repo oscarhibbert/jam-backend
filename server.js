@@ -63,7 +63,7 @@ app.use((err, req, res, next) => {
 });
 
 // Port config
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 9000;
 
 // Set Server Var
 let server;
