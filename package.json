@@ -10,6 +10,7 @@
   "author": "Oscar Hibbert",
   "license": "ISC",
   "dependencies": {
+    "@evervault/sdk": "^6.0.0",
     "@google-cloud/logging-winston": "^4.1.0",
     "@sentry/node": "^6.11.0",
     "@sentry/tracing": "^6.11.0",
@@ -24,6 +25,7 @@
     "express-validator": "^6.12.1",
     "jsonwebtoken": "^8.5.1",
     "jwks-rsa": "^2.0.4",
+    "mixpanel": "^0.18.0",
     "mongodb-client-encryption": "^1.2.6",
     "mongoose": "^5.13.7",
     "percent-round": "^2.2.1",
