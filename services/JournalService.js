@@ -485,9 +485,12 @@ module.exports = class JournalService {
                 // Decrypt all fields of each entry in entries
                 async function decryptEntries(entries) {
                     await Promise.all(entries.map(async (entry) => {
-                        if (entry.mood) entry.mood = await evervault.decrypt(entry.mood);
-                        if (entry.emotion) entry.emotion = await evervault.decrypt(entry.emotion);
-                        if (entry.text) entry.text = await evervault.decrypt(entry.text);
+                        const decryptedEntry = await evervault.decrypt(entry);
+
+                        entry = decryptedEntry;
+                        // if (entry.mood) entry.mood = await evervault.decrypt(entry.mood);
+                        // if (entry.emotion) entry.emotion = await evervault.decrypt(entry.emotion);
+                        // if (entry.text) entry.text = await evervault.decrypt(entry.text);
                     }));
                 };
 
@@ -626,16 +629,18 @@ module.exports = class JournalService {
                 // Emit journalEntryFetched event
                 journalServiceEvents.emit('journalEntryFetched');
 
+                const decryptedEntry = await evervault.decrypt(entry);
+
                 // Decrypt each journal entry field
-                if (entry.mood) entry.mood = await evervault.decrypt(entry.mood);
-                if (entry.emotion) entry.emotion = await evervault.decrypt(entry.emotion);
-                if (entry.text) entry.text = await evervault.decrypt(entry.text);
+                // if (entry.mood) entry.mood = await evervault.decrypt(entry.mood);
+                // if (entry.emotion) entry.emotion = await evervault.decrypt(entry.emotion);
+                // if (entry.text) entry.text = await evervault.decrypt(entry.text);
 
                 // Set response
                 success = true;
                 authorise = true;
                 msg = 'Journal entry found'
-                data = entry;
+                data = decryptedEntry;
             };
 
             // Build response
@@ -673,13 +678,16 @@ module.exports = class JournalService {
                 .limit(1)
                 .sort({ dateCreated: -1 });
             
+            // Decrypt most recent journal entry
+            const decryptedEntry = await evervault.decrypt(mostRecentEntry);
+            
             // Decrypt each journal entry field
-            if (mostRecentEntry.mood) mostRecentEntry.mood =
-                await evervault.decrypt(mostRecentEntry.mood);
-            if (mostRecentEntry.emotion) mostRecentEntry.emotion =
-                await evervault.decrypt(mostRecentEntry.emotion);
-            if (mostRecentEntry.text) mostRecentEntry.text =
-                await evervault.decrypt(mostRecentEntry.text);
+            // if (mostRecentEntry.mood) mostRecentEntry.mood =
+            //     await evervault.decrypt(mostRecentEntry.mood);
+            // if (mostRecentEntry.emotion) mostRecentEntry.emotion =
+            //     await evervault.decrypt(mostRecentEntry.emotion);
+            // if (mostRecentEntry.text) mostRecentEntry.text =
+            //     await evervault.decrypt(mostRecentEntry.text);
             
             // If mostRecentEntry is an empty array add an object with the user property
             if (mostRecentEntry.length === 0) mostRecentEntry = [{ user: userId }];
@@ -716,7 +724,7 @@ module.exports = class JournalService {
             // Get entry for checking
             // Check if the journal entry exists in the database
             // Check against userId, journalId
-            const checkEntry = await Entry.findOne(
+            const fetchEntry = await Entry.findOne(
                 {
                     $and: [
                         { _id: journalId },
@@ -726,14 +734,16 @@ module.exports = class JournalService {
             );
 
             // If journal entry not found
-            if (!checkEntry) {
+            if (!fetchEntry) {
                 throw new Error(`Get closest journal entry failed - journal entry not found. ${userId}`);
             };
 
-            // Decrypt checkEntry fields
-            checkEntry.mood = await evervault.decrypt(checkEntry.mood);
-            checkEntry.emotion = await evervault.decrypt(checkEntry.emotion);
-            checkEntry.text = await evervault.decrypt(checkEntry.text);
+            const checkEntry = await evervault.decrypt(fetchEntry);
+
+            // // Decrypt checkEntry fields
+            // checkEntry.mood = await evervault.decrypt(checkEntry.mood);
+            // checkEntry.emotion = await evervault.decrypt(checkEntry.emotion);
+            // checkEntry.text = await evervault.decrypt(checkEntry.text);
             
             /* Fetch all entries for the current user 
             where dateCreated is before check dateCreated */
@@ -744,28 +754,36 @@ module.exports = class JournalService {
             if (!entries) {
                 throw new Error(`Get closest journal entry failed - journal entries not found. ${userId}`);
             };
+
+            // Decrypt all entries
+            const decryptedEntries = await evervault.decrypt(entries);
             
             // Find closest matching entry logic
             let closestEntry = null;
             // Initialise rank for closest match
             let closestRank = 0;
             
-            for (const entry of entries) {
+            for (const entry of decryptedEntries) {
                 try {
                     // Skip the current record if ids are the same
                     if (entry._id.toString() === journalId) continue;
 
+                    const decryptedEntry = entry;
+
+                    // // Decrypted encrypted values for the current entry
+                    // const decryptedEntry = await evervault.decrypt(entry);
+
                     // Decrypted encrypted values for the current entry
-                    const decryptedEntry = {
-                        ...entry,
-                        mood: await evervault.decrypt(entry.mood),
-                        emotion: await evervault.decrypt(entry.emotion)
-                    };
+                    // const decryptedEntry = {
+                    //     ...entry,
+                    //     mood: await evervault.decrypt(entry.mood),
+                    //     emotion: await evervault.decrypt(entry.emotion)
+                    // };
 
                     // Ensure other values required for ranking exist for the current entry
-                    if (entry.categories) decryptedEntry.categories = entry.categories;
-                    if (entry.activities) decryptedEntry.activities = entry.activities;
-                    if (entry.dateCreated) decryptedEntry.dateCreated = entry.dateCreated;
+                    // if (entry.categories) decryptedEntry.categories = entry.categories;
+                    // if (entry.activities) decryptedEntry.activities = entry.activities;
+                    // if (entry.dateCreated) decryptedEntry.dateCreated = entry.dateCreated;
 
                     // Track the rank for the current entry
                     let rank = 0;
