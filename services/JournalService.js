@@ -940,9 +940,11 @@ module.exports = class JournalService {
             };
 
             // Get records
-            const getRecords = await Entry.aggregate(
+            const encryptedRecords = await Entry.aggregate(
                 aggregationPipeline
             );
+
+            const getRecords = await evervault.decrypt(encryptedRecords);
 
             // Set counts variable
             let counts = {
