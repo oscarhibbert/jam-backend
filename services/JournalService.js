@@ -632,21 +632,27 @@ module.exports = class JournalService {
     };
 
     /**
-     * @desc                         Get single journal entry method.
-     * @param {string} userId        String containing user ID.
-     * @param {string} journalId     String containing journal ID.
-     * @return                       Object containing response. If authorisation fails includes authorise: false.
+     * Get a specific journal entry for the specified user.
+     * Provide userId and journalId.
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const journalService = new JournalService({
+     *   userId: "",
+     *   journalId: ""
+     * });
+     * 
+     * await journalService.getEntry();
      */
-    async getEntry(userId, journalId) {
+    async getEntry() {
         try {
             // Check userId parameter exists
-            if (!userId) {
+            if (!this._userId) {
                 throw new Error('Get journal entry failed - userId parameter empty. Must be supplied');
             };
 
             // Check journalId parameter exists
-            if (!journalId) {
-                throw new Error(`Get journal entry failed - journalId parameter empty. Must be supplied. ${userId}`);
+            if (!this._journalId) {
+                throw new Error(`Get journal entry failed - journalId parameter empty. Must be supplied. ${this._userId}`);
             };
 
             // Create response obj
@@ -661,8 +667,8 @@ module.exports = class JournalService {
             let check = await Entry.countDocuments(
                 {
                     $and: [
-                        { _id: journalId },
-                        { user: userId }
+                        { _id: this._journalId },
+                        { user: this._userId }
                     ]
                 }
             );
@@ -680,14 +686,14 @@ module.exports = class JournalService {
                 const entry = await Entry.findOne(
                     {
                         $and: [
-                            { _id: journalId },
-                            { user: userId }
+                            { _id: this._journalId },
+                            { user: this._userId }
                         ]
                     }
                 );
 
                 // Log success
-                logger.info(`Entry retrieved successfully for user ${userId}`);
+                logger.info(`Entry retrieved successfully for user ${this._userId}`);
 
                 // Emit journalEntryFetched event
                 journalServiceEvents.emit('journalEntryFetched');
