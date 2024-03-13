@@ -78,42 +78,47 @@ module.exports = class JournalService {
     };
 
     /**
-     * @desc                                       Create a journal entry method.
-     * @param {string}    userId                   String containing user ID.
-     * @param {string}    entryMood                String containing journal entry mood.
-     * @param {string}    entryEmotion             String containing journal entry text.
-     * @param {array}     entryCategories          Array containing journal entry categories. Can be null.
-     * @param {array}     entryActivities          Array containing journal entry activities. Can be null.
-     * @param {string}    entryText                String containing journal entry text.
-     * @param {string}    linkedEntry              String containing the linkedEntry ID. Only allowed for unpleasant mood type. Can be null.
-     * @return                                     Object containing response.
+     * Creates a new journal entry using the journalId, entryMood, entryText, and linkedEntry (optional) properties from the constructor.
+     * 
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const journalService = new JournalService({
+     *   userId: "",
+     *   entryMood: "",
+     *   entryCategories: [{}],
+     *   entryActivities: [{}],
+     *   entryText: "",
+     *   linkedEntry: ""
+     * });
+     * 
+     * await journalService.createEntry();
      */
-    async createEntry(userId, entryMood, entryEmotion, entryCategories, entryActivities, entryText, linkedEntry) {
+    async createEntry() {
         try {
             // Check userId parameter exists
-            if (!userId) {
+            if (!this._userId) {
                 throw new Error('Add journal entry failed - userId parameter empty. Must be supplied');
             };
 
             // Check entryMood parameter exists
-            if (!entryMood) {
-                throw new Error(`Add journal entry failed - entryMood parameter empty. Must be supplied. ${userId}`);
+            if (!this._entryMood) {
+                throw new Error(`Add journal entry failed - entryMood parameter empty. Must be supplied. ${this._userId}`);
             };
 
             // Check entryEmotion parameter exists
-            if (!entryEmotion) {
-                throw new Error(`Add journal entry failed - entryEmotion parameter empty. Must be supplied. ${userId}`);
+            if (!this._entryEmotion) {
+                throw new Error(`Add journal entry failed - entryEmotion parameter empty. Must be supplied. ${this._userId}`);
             };
 
             // Check entryText parameter exists
-            if (!entryText) {
-                throw new Error(`Add journal entry failed - entryText parameter empty. Must be supplied. ${userId}`);
+            if (!this._entryText) {
+                throw new Error(`Add journal entry failed - entryText parameter empty. Must be supplied. ${this._userId}`);
             };
 
             // If linkedEntry parameter exists and entry mood parameter is unpleasant
             // Throw error
-            if (linkedEntry && entryMood.includes('Pleasant')) {
-                throw new Error(`Add journal entry failed - cannot link an entry when current entry mood type is pleasant. ${userId}`);
+            if (this._linkedEntry && this._entryMood.includes('Pleasant')) {
+                throw new Error(`Add journal entry failed - cannot link an entry when current entry mood type is pleasant. ${this._userId}`);
             };
 
             // Create response obj
@@ -124,7 +129,7 @@ module.exports = class JournalService {
             let data;
 
             // Check if specified user ID exists in the DB
-            const check = await User.countDocuments({ auth0UserId: userId });
+            const check = await User.countDocuments({ auth0UserId: this._userId });
 
             // If user is not found
             if (check !== 1) {
@@ -140,21 +145,21 @@ module.exports = class JournalService {
                 const newEntry = {};
 
                 // Add journal details to newEntry object
-                newEntry.user = userId; 
-                newEntry.mood = await evervault.encrypt(entryMood);
-                newEntry.emotion = await evervault.encrypt(entryEmotion);
+                newEntry.user = this._userId;
+                newEntry.mood = await evervault.encrypt(this._entryMood);
+                newEntry.emotion = await evervault.encrypt(this._entryEmotion);
 
                 // Only add categories array if categories present
-                if (entryCategories) newEntry.categories = entryCategories;
+                if (this._entryCategories) newEntry.categories = this._entryCategories;
 
                 // Only add activities arrary if activities present
-                if (entryActivities) newEntry.activities = entryActivities;
+                if (this._entryActivities) newEntry.activities = this._entryActivities;
 
                 // Add journal details to newEntry object
-                newEntry.text = await evervault.encrypt(entryText);
+                newEntry.text = await evervault.encrypt(this._entryText);
 
                 // Only add linkedEntry if linkedEntry present
-                if (linkedEntry) newEntry.linkedEntry = linkedEntry;
+                if (this._linkedEntry) newEntry.linkedEntry = this._linkedEntry;
 
                 // Add journal entry to the database
                 let entry = new Entry(newEntry);
@@ -164,7 +169,7 @@ module.exports = class JournalService {
                 journalServiceEvents.emit('journalEntryCreated');
 
                 // Log success
-                logger.info(`New journal entry created successfully for user ${userId}`);
+                logger.info(`New journal entry created successfully for user ${this._userId}`);
 
                 // Set response
                 success = true;
@@ -172,7 +177,7 @@ module.exports = class JournalService {
                 (msg = 'New journal entry created successfully'),
                     (data = {
                     _id: entry._id,
-                    user: userId,
+                    user: this._userId,
                     mood: newEntry.mood,
                     emotion: newEntry.emotion,
                     categories: newEntry.categories,
