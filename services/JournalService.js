@@ -22,8 +22,20 @@ const checkIsoDate = require('../helpers/checkIsoDate');
  */
 module.exports = class JournalService {
     /**
-     * Represents the AuraService instance constructor.
+     * Represents the JournalService instance constructor.
      * @constructor
+     * @param {Object} params - An object containing parameters for the instance.
+     *   @param {string}  params.userId - A string containing the userId
+     *   @param {string}  params.journalId - A string containing the journalId
+     *   @param {string}  params.entryMood - A string containing the entry mood type
+     *   @param {string}  params.entryEmotion - A string containing the entry emotion type
+     *   @param {[]}      params.entryCategories - An array of objects containing entry categories
+     *   @param {[]}      params.entryActivities - An array of objects containing entry activities
+     *   @param {string}  params.entryText - A string containing entry text
+     *   @param {string}  params.linkedEntry - A string containing the journalId of the entry to link
+     *   @param {string}  params.startDateTime - A string containing a start date and time in ISO8601 in UTC for querying
+     *   @param {string}  params.endDateTime - A string containing an end date and time in ISO8601 in UTC for querying
+     *   @param {string}  params.categoryId - A string containing the categoryId for querying
      */
     constructor(params = {}) {
         // User properties
@@ -46,7 +58,7 @@ module.exports = class JournalService {
         /** Sets the only accepted mood types for the JournalService.
          * As an array of moodType objects.
          */
-        this.moodTypes = [
+        this._moodTypes = [
             {
                 moodType: "High Energy, Unpleasant"
             },
