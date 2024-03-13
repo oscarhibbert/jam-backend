@@ -12,10 +12,29 @@ const Mixpanel = require('mixpanel');
  */
 module.exports = class MixpanelService {
     /**
-     * Represents a Mixpanel Service constructor
+     * Represents a Mixpanel Service instance constructor.
      * @constructor
+     * @param {Object} params - An object containing parameters for the instance.
+     *   @param {string}  params.userId - A string containing the user ID
+     *   @param {string}  params.firstName - A string containing user first name
+     *   @param {string}  params.lastName - A string containing the user last name
+     *   @param {string}  params.email - A string containing the user email
+     *   @param {string}  params.dateCreated - A string containing the user dateCreated in ISO8601 Zulu time
+     *   @param {string}  params.eventName - A string containing the event name
+     *   @param {{}}      params.properties - An object containing additional event properties
      */
-    constructor() {
+    constructor(params = {}) {
+        // Mixpanel user properties
+        this._userId = params.userId;
+        this._firstName = params.firstName;
+        this._lastname = params.lastName;
+        this._email = params.email;
+        this._dateCreated = params.dateCreated;
+
+        // Mixpanel event properties
+        this._eventName = params.eventName;
+        this._properties = params.properties;
+
         /**The Mixpanel API token should be specified in the .env file*/
         this.mixpanelToken = config.get('mixpanelToken');
         /** The Mixpanel client instance */
