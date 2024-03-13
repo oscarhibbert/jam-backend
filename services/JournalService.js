@@ -224,7 +224,7 @@ module.exports = class JournalService {
      *   linkedEntry: ""
      * });
      * 
-     * await journalService.createEntry();
+     * await journalService.editEntry();
      */
     async editEntry() {
         try {
@@ -344,21 +344,27 @@ module.exports = class JournalService {
     };
 
     /**
-     * @desc                         Delete a journal entry method.
-     * @param {string} userId        String containing user ID.
-     * @param {string} journalId     String containing journal ID.
-     * @return                       Object containing response. If authorisation fails includes authorise: false.
+     * Delete a journal entry provide the userId, journalId.
+     * 
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const journalService = new JournalService({
+     *   userId: "",
+     *   journalId, ""
+     * });
+     * 
+     * await journalService.deleteEntry();
      */
-    async deleteEntry(userId, journalId) {
+    async deleteEntry() {
         try {
             // Check userId parameter exists
-            if (!userId) {
+            if (!this._userId) {
                 throw new Error('Delete journal entry failed - userId parameter empty. Must be supplied');
             };
 
             // Check journalId parameter exists
-            if (!journalId) {
-                throw new Error(`Delete journal entry failed - journalId parameter empty. Must be supplied. ${userId}`);
+            if (!this._journalId) {
+                throw new Error(`Delete journal entry failed - journalId parameter empty. Must be supplied. ${this._userId}`);
             };
 
             // Create response obj
@@ -372,8 +378,8 @@ module.exports = class JournalService {
             let check = await Entry.countDocuments(
                 {
                     $and: [
-                        { _id: journalId },
-                        { user: userId }
+                        { _id: this._journalId },
+                        { user: this._userId }
                     ]
                 }
             );
@@ -391,8 +397,8 @@ module.exports = class JournalService {
                 await Entry.deleteOne(
                     {
                         $and: [
-                            { _id: journalId },
-                            { user: userId }
+                            { _id: this._journalId },
+                            { user: this._userId }
                         ]
                     }
                 );
@@ -401,12 +407,12 @@ module.exports = class JournalService {
                 journalServiceEvents.emit('journalEntryDeleted');
 
                 // Log success
-                logger.info(`Journal entry deleted successfully for user ${userId}`);
+                logger.info(`Journal entry deleted successfully for user ${this._userId}`);
 
                 // Set response
                 success = true;
                 authorise = true;
-                msg = `Journal entry successfully deleted with ID ${journalId}`;
+                msg = `Journal entry successfully deleted with ID ${this._journalId}`;
             };
 
             // Build response
@@ -414,7 +420,7 @@ module.exports = class JournalService {
                 success: success,
                 authorise: authorise,
                 msg: msg,
-                user: userId
+                user: this._userId
             };
 
             // Return response object
