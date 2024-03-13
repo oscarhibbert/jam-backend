@@ -45,7 +45,7 @@ module.exports = class JournalService {
         this._userId = params.userId;
 
         // Journal entry properties
-        this.journalId = params.journalId;
+        this._journalId = params.journalId;
         this._entryMood = params.entryMood;
         this._entryEmotion = params.entryEmotion;
         this._entryCategories = params.entryCategories;
@@ -78,13 +78,15 @@ module.exports = class JournalService {
     };
 
     /**
-     * Creates a new journal entry using the journalId, entryMood, entryText, and linkedEntry (optional) properties from the constructor.
+     * Creates a new journal entry using the journalId, 
+     * entryMood, entryText, and linkedEntry (optional) properties from the constructor.
      * 
      * @returns {Promise<Object>} - A promise that resolves to a response object
      * @example
      * const journalService = new JournalService({
      *   userId: "",
      *   entryMood: "",
+     *   entryEmotion: "",
      *   entryCategories: [{}],
      *   entryActivities: [{}],
      *   entryText: "",
@@ -204,40 +206,48 @@ module.exports = class JournalService {
         };
     };
 
-    /**
-     * @desc                                         Edit a journal entry method.
-     * @param {string}   userId                      String containing user ID.
-     * @param {string}   journalId                   String containing journal ID.
-     * @param {string}   entryMood                   String containing journal entry mood. Can be null.
-     * @param {string}   entyEmotion                 String containing journal entry mood. Can be null.
-     * @param {array}    entryCategories             Array containing journal entry categories. Can be null.
-     * @param {array}    entryActivities             Array containing journal entry activities. Can be null.
-     * @param {string}   entryText                   String containing journal entry text. Can be null.
-     * @param {string}   linkedEntry                 String containing the linkedEntry ID. Only allowed for unpleasant mood type. Can be null.
-     * @return                                       Object containing response. If authorisation fails includes authorise: false.
+   /**
+     * Edit a journal entry provide the userId, journalId.
+     * Optionally provide entryMood, entryEmotion, entryText, 
+     * entryCategories, entryActivities and linkedEntry properties from the constructor.
+     * 
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const journalService = new JournalService({
+     *   userId: "",
+     *   journalId, "",
+     *   entryMood: "",
+     *   entryEmotion: "",
+     *   entryCategories: [{}],
+     *   entryActivities: [{}],
+     *   entryText: "",
+     *   linkedEntry: ""
+     * });
+     * 
+     * await journalService.createEntry();
      */
-    async editEntry(userId, journalId, entryMood, entryEmotion, entryCategories, entryActivities, entryText, linkedEntry) {
+    async editEntry() {
         try {
             // Check userId parameter exists
-            if (!userId) {
+            if (!this._userId) {
                 throw new Error('Edit journal entry failed - userId parameter empty. Must be supplied');
             };
 
             // Check journalId parameter exists
-            if (!journalId) {
-                throw new Error(`Edit journal entry failed - journalId parameter empty. Must be supplied. ${userId}`);
+            if (!this._journalId) {
+                throw new Error(`Edit journal entry failed - journalId parameter empty. Must be supplied. ${this._userId}`);
             };
 
             // If linkedEntry exists and entryMood does not exists
             // Throw error
-            if (linkedEntry && !entryMood) {
-                throw new Error(`Add journal entry failed - cannot link an entry when current entry mood type parameter is empty. ${userId}`);
+            if (this._linkedEntry && !this._entryMood) {
+                throw new Error(`Add journal entry failed - cannot link an entry when current entry mood type parameter is empty. ${this._userId}`);
             }
 
             // If linkedEntry parameter exists and entry mood parameter is pleasant
             // Throw error
-            if (linkedEntry && entryMood.includes('Pleasant')) {
-                throw new Error(`Add journal entry failed - cannot link an entry when current entry mood type is pleasant. ${userId}`);
+            if (this._linkedEntry && this._entryMood.includes('Pleasant')) {
+                throw new Error(`Add journal entry failed - cannot link an entry when current entry mood type is pleasant. ${this._userId}`);
             };
 
             // Create response obj
@@ -252,8 +262,8 @@ module.exports = class JournalService {
             let check = await Entry.countDocuments(
                 {
                     $and: [
-                        { _id: journalId },
-                        { user: userId }
+                        { _id: this._journalId },
+                        { user: this._userId }
                     ]
                 }
             );
@@ -272,13 +282,13 @@ module.exports = class JournalService {
                 const updatedEntry = {};
 
                 // Add objects to newEntry object if found
-                if (entryMood) updatedEntry.mood = await evervault.encrypt(entryMood);
-                if (entryEmotion) updatedEntry.emotion = await evervault.encrypt(entryEmotion);
-                if (entryCategories) updatedEntry.categories = entryCategories;
-                if (entryActivities) updatedEntry.activities = entryActivities;
-                if (entryText) updatedEntry.text = await evervault.encrypt(entryText);
+                if (this._entryMood) updatedEntry.mood = await evervault.encrypt(this._entryMood);
+                if (this._entryEmotion) updatedEntry.emotion = await evervault.encrypt(this._entryEmotion);
+                if (this._entryCategories) updatedEntry.categories = this._entryCategories;
+                if (this._entryActivities) updatedEntry.activities = this._entryActivities;
+                if (this._entryText) updatedEntry.text = await evervault.encrypt(this._entryText);
 
-                if (linkedEntry) updatedEntry.linkedEntry = linkedEntry;
+                if (this._linkedEntry) updatedEntry.linkedEntry = this._linkedEntry;
 
                 // Populate the dateUpdated field of the journal entry
                 updatedEntry.dateUpdated = Date.now();
@@ -287,8 +297,8 @@ module.exports = class JournalService {
                 await Entry.findOneAndUpdate(
                     {
                         $and: [
-                            { _id: journalId },
-                            { user: userId }
+                            { _id: this._journalId },
+                            { user: this._userId }
                         ]
                     },
                     { $set: updatedEntry },
@@ -299,14 +309,14 @@ module.exports = class JournalService {
                 journalServiceEvents.emit('journalEntryUpdated');
 
                 // Log success
-                logger.info(`Journal entry edited successfully for user ${userId}`);
+                logger.info(`Journal entry edited successfully for user ${this._userId}`);
 
                 // Set response
                 success = true;
                 authorise = true;
-                msg = `Journal entry successfully updated with ID ${journalId}`;
+                msg = `Journal entry successfully updated with ID ${this._journalId}`;
                 data = {
-                    user: userId,
+                    user: this._userId,
                     mood: updatedEntry.mood,
                     emotion: updatedEntry.emotion,
                     categories: updatedEntry.categories,
