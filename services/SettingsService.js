@@ -52,44 +52,52 @@ module.exports = class SettingsService {
         /** Set allowed activity types. */
         this.activityTypes = ["Coping"];
     };
+
     /**
-       * @desc                                  Attempt to get the settings object for the specified user.
-       * @param      {string}        userId     String containing the UserId.
-       * @return                                Settings object.
-       */
-    async getSettings(userId) {
+     * Gets settings for the user
+     * from the constructor via the userId property.
+     * 
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const SettingsService = new SettingsService({
+     *   userId: ""
+     * });
+     * 
+     * await SettingsService.getSettings();
+     */
+    async getSettings() {
         try {
             // Check userId parameter exists
-            if (!userId) {
+            if (!this._userId) {
                 throw new Error(`Get settings failed - userId parameter empty. Must be supplied`);
             };
 
             // Check the settings object exists for this user
             const settings = await Setting.findOne(
-                { user: userId }
+                { user: this._userId }
             ).lean();
 
             // If settings object for user not found throw error
             if (!settings) {
-                throw new Error(`Get settings failed - settings object for user not found - ${userId}`);
+                throw new Error(`Get settings failed - settings object for user not found - ${this._userId}`);
             };
 
             // Get the user's categories and add them to the setting object
             // (as originally categories was contained in the settings object)
-            const categories = await Categories.find({ user: userId });
+            const categories = await Categories.find({ user: this._userId });
 
             // Add categories as a property of the settings object
             settings.categories = categories;
 
             // Get the user's activities and add them to the setting object
             // (as originally activities was contained in the settings object)
-            const activities = await Activities.find({ user: userId });
+            const activities = await Activities.find({ user: this._userId });
 
             // Add categories as a property of the settings object
             settings.activities = activities;
 
             // Log success
-            logger.info(`Settings retrieved successfully for user ${userId}`);
+            logger.info(`Settings retrieved successfully for user ${this._userId}`);
 
             // Return data
             return settings;
@@ -100,38 +108,45 @@ module.exports = class SettingsService {
         };
     };
 
-        /**
-       * @desc                                  Attempt to check the settings setup status for the specified user.
-       * @param      {string}        userId     String containing the UserId.
-       * @return                                Object with success boolean and key called data with key status and boolean value.
-       */
-    async checkSettingsSetupStatus(userId) {
+    /**
+     * Checks the status of the current user settings setup
+     * via the userId property of the class constructor.
+     * 
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const SettingsService = new SettingsService({
+     *   userId: ""
+     * });
+     * 
+     * await SettingsService.checkSettingsSetupStatus();
+     */
+    async checkSettingsSetupStatus() {
         try {
             // Check userId parameter exists
-            if (!userId) {
+            if (!this._userId) {
                 throw new Error(`Check settings setup status - userId parameter empty. Must be supplied`);
             };
 
             // Check the settings object exists for this user
             const settings = await Setting.findOne(
-                { user: userId }
+                { user: this._userId }
             );
 
             // If settings object for user not found throw error
             if (!settings) {
-                throw new Error(`Check settings setup status - settings object for user not found - ${userId}`);
+                throw new Error(`Check settings setup status - settings object for user not found - ${this._userId}`);
             };
 
             // Get status
             const status = settings.settingsSetupComplete;
 
             // Log success
-            logger.info(`Settings setup status retrieved successfully for user ${userId}`);
+            logger.info(`Settings setup status retrieved successfully for user ${this._userId}`);
 
             return {
                 success: true,
                 data: {
-                    user: userId,
+                    user: this._userId,
                     status: status
                 }
             };
@@ -142,44 +157,51 @@ module.exports = class SettingsService {
         };
     };
 
-        /**
-       * @desc                                  Attempt to change the settings setup status for the specified user.
-       * @param      {string}        userId     String containing the UserId.
-       * @param      {boolean}       status     Boolean true or false.
-       * @return                                Object with success boolean.
-       */
-    async editSettingsSetupStatus(userId, status) {
+    /**
+         * Edit the settings setup status for the specified user
+         * via the userId property of the class constructor.
+         * 
+         * @returns {Promise<Object>} - A promise that resolves to a response object
+         * @example
+         * const SettingsService = new SettingsService({
+         *   userId: "",
+         *   status: true
+         * });
+         * 
+         * await SettingsService.editSettingsSetupStatus();
+         */
+    async editSettingsSetupStatus() {
         try {
             // Check userId parameter exists
-            if (!userId) {
+            if (!this._userId) {
                 throw new Error('Check settings setup status - userId parameter empty. Must be supplied');
             };
 
             // Check status parameter is a boolean value
-            if (typeof status !== "boolean") {
-                throw new Error(`Check settings setup status - status parameter must be a boolean value. ${userId}`);
+            if (typeof this._status !== "boolean") {
+                throw new Error(`Check settings setup status - status parameter must be a boolean value. ${this._userId}`);
             };
 
             // Check the settings object exists for this user
             const settings = await Setting.findOne(
-                { user: userId }
+                { user: this._userId }
             );
 
             // If settings object for user not found throw error
             if (!settings) {
-                throw new Error(`Check settings setup status - settings object for user not found. ${userId}`);
+                throw new Error(`Check settings setup status - settings object for user not found. ${this._userId}`);
             };
 
             // Update status for profileSetupComplete in the user settings object.
             await Setting.findOneAndUpdate(
-                { user: userId },
-                { settingsSetupComplete: status }
+                { user: this._userId },
+                { settingsSetupComplete: this._status }
             );
 
-            logger.info(`Settings setup status edited successfully for user ${userId}`);
+            logger.info(`Settings setup status edited successfully for user ${this._userId}`);
 
             // Return response
-            return { success: true, user: userId };
+            return { success: true, user: this._userId };
 
         } catch (err) {
             logger.error(err.message);
@@ -187,43 +209,50 @@ module.exports = class SettingsService {
         };
     };
 
-    async setReflectionAlertTime() {
-    };
+    // async setReflectionAlertTime() {
+    // };
 
     /**
-       * @desc                                                                        Attempt to create default categories for the specified user.
-       * @param  {string}                                              userId         String containing the UserId.
-       * @return                                                                      Object with success boolean and data containing the new default categories.
-       */
-    async createDefaultCategories(userId) {
+         * Create default categories for the specified user
+         * via the userId property of the class constructor.
+         * 
+         * @returns {Promise<Object>} - A promise that resolves to a response object
+         * @example
+         * const SettingsService = new SettingsService({
+         *   userId: ""
+         * });
+         * 
+         * await SettingsService.createDefaultCategories();
+         */
+    async createDefaultCategories() {
         try {
             // Check userId parameter exists
-            if (!userId) {
+            if (!this._userId) {
                 throw new Error('Create default categories failed - userId parameter empty. Must be supplied')
             };
 
             // Get the existing categories and convert cursor to array for the specified user
-            const existingCategories = await Categories.find({ user: userId }).lean();
+            const existingCategories = await Categories.find({ user: this._userId }).lean();
 
             // Create the default categories array and put them into the newCategories variable
             const newCategories = [
                     {
-                        user: userId,
+                        user: this._userId,
                         name: "Home 🏠",
                         type: "General"
                     },
                     {
-                        user: userId,
+                        user: this._userId,
                         name: "Work 💻",
                         type: "General"
                     },
                     {
-                        user: userId,
+                        user: this._userId,
                         name: "Hobbies 💃",
                         type: "General"
                     },
                     {
-                        user: userId,
+                        user: this._userId,
                         name: "Self-Care 🥰",
                         type: "General"
                     }
@@ -234,19 +263,19 @@ module.exports = class SettingsService {
                 
                 // Check category name exists
                 if (!newCategory.name) {
-                    throw new Error(`Create default categories failed - category missing name. Must be supplied. ${userId}`);
+                    throw new Error(`Create default categories failed - category missing name. Must be supplied. ${this._userId}`);
                 };
 
                 // Check category type exists
                 if (!newCategory.type) {
-                    throw new Error(`Create default categories failed - category '${newCategory.name}' missing type. Must be supplied. ${userId}`);
+                    throw new Error(`Create default categories failed - category '${newCategory.name}' missing type. Must be supplied. ${this._userId}`);
                 };
 
                 // Check activity type for newCategory is valid
                 /* Check newCategory.type is correct activity. If categoryTypes
                     does not include newCategory.type, throw error. */
                 if (!this.categoryTypes.includes(newCategory.type)) {
-                    throw new Error(`Create default categories failed - type '${newCategory.type}' for category '${newCategory.name}' is invalid. ${userId}`);
+                    throw new Error(`Create default categories failed - type '${newCategory.type}' for category '${newCategory.name}' is invalid. ${this._userId}`);
                 };
                 continue;
             };
@@ -255,7 +284,7 @@ module.exports = class SettingsService {
             for (const existingCategory of existingCategories) {
                 for (const newCategory of newCategories) {
                     if (existingCategory.name === newCategory.name) {
-                        throw new Error(`Create default categories failed - category name '${newCategory.name}' is already in use. Check value for key 'name'. ${userId}`);
+                        throw new Error(`Create default categories failed - category name '${newCategory.name}' is already in use. Check value for key 'name'. ${this._userId}`);
                     };
                     continue;
                 };
@@ -267,10 +296,10 @@ module.exports = class SettingsService {
                 newCategories
             );
 
-            logger.info(`Default categories created successfully for user ${userId}`);
+            logger.info(`Default categories created successfully for user ${this._userId}`);
 
             // Return response
-            return { success: true, user: userId, data: newCategories };
+            return { success: true, user: this._userId, data: newCategories };
 
         } catch (err) {
             logger.error(err.message);
@@ -279,47 +308,56 @@ module.exports = class SettingsService {
     };
 
     /**
-       * @desc                                                                        Attempt to add categories to the user's settings.
-       * @param  {string}                                              userId         String containing the UserId.
-       * @param  {[{"name":"Example Name","type":"General"}]}          categories     Array containing categories as objects.
-       * @return                                                                      Object with success boolean.
-       */
-    async addCategories(userId, categories) {
+         * Add categories for the specified user
+         * via the userId and categories property of the class constructor.
+         * 
+         * @returns {Promise<Object>} - A promise that resolves to a response object
+         * @example
+         * const SettingsService = new SettingsService({
+         *   userId: "",
+         *   categories: [
+         *      { "name": "Example Name", "type": "General" }
+         *   ]
+         * });
+         * 
+         * await SettingsService.addCategories();
+         */
+    async addCategories() {
         try {
             // Check userId parameter exists
-            if (!userId) {
+            if (!this._userId) {
                 throw new Error('Add categories failed - userId parameter empty. Must be supplied')
             };
 
             // Check categories parameter exists
-            if (!categories) {
-                throw new Error(`Add categories failed - categories parameter empty. Must be supplied. ${userId}`);
+            if (!this._categories) {
+                throw new Error(`Add categories failed - categories parameter empty. Must be supplied. ${this._userId}`);
             };
 
             // Get the existing categories and convert cursor to array for the specified user
-            const existingCategories = await Categories.find({ user: userId }).lean();
+            const existingCategories = await Categories.find({ user: this._userId }).lean();
 
             // Get new categories array and put them into the newCategories variable
-            let newCategories = categories;
+            let newCategories = this._categories;
                 
             /* Check newCategories array of category objects for errors */
             for (const newCategory of newCategories) {
                 
                 // Check category name exists
                 if (!newCategory.name) {
-                    throw new Error(`Add categories failed - category missing name. Must be supplied. ${userId}`);
+                    throw new Error(`Add categories failed - category missing name. Must be supplied. ${this._userId}`);
                 };
 
                 // Check category type exists
                 if (!newCategory.type) {
-                    throw new Error(`Add categories failed - category '${newCategory.name}' missing type. Must be supplied. ${userId}`);
+                    throw new Error(`Add categories failed - category '${newCategory.name}' missing type. Must be supplied. ${this._userId}`);
                 };
 
                 // Check activity type for newCategory is valid
                 /* Check newCategory.type is correct activity. If categoryTypes
                     does not include newCategory.type, throw error. */
                 if (!this.categoryTypes.includes(newCategory.type)) {
-                    throw new Error(`Add categories failed - type '${newCategory.type}' for category '${newCategory.name}' is invalid. ${userId}`);
+                    throw new Error(`Add categories failed - type '${newCategory.type}' for category '${newCategory.name}' is invalid. ${this._userId}`);
                 };
                 continue;
             };
@@ -328,7 +366,7 @@ module.exports = class SettingsService {
             for (const existingCategory of existingCategories) {
                 for (const newCategory of newCategories) {
                     if (existingCategory.name === newCategory.name) {
-                        throw new Error(`Add categories failed - category name '${newCategory.name}' is already in use. Check value for key 'name'. ${userId}`);
+                        throw new Error(`Add categories failed - category name '${newCategory.name}' is already in use. Check value for key 'name'. ${this._userId}`);
                     };
                     continue;
                 };
@@ -339,7 +377,7 @@ module.exports = class SettingsService {
             for (const [index, newCategory] of newCategories.entries()) {
                 // Reorder current newCategory object
                 newCategories[index] = {
-                    user: userId,
+                    user: this._userId,
                     name: newCategory.name,
                     type: newCategory.type
                 };
@@ -352,10 +390,10 @@ module.exports = class SettingsService {
                 newCategories
             );
 
-            logger.info(`New categories created successfully for user ${userId}`);
+            logger.info(`New categories created successfully for user ${this._userId}`);
 
             // Return response
-            return { success: true, user: userId };
+            return { success: true, user: this._userId };
 
         } catch (err) {
             logger.error(err.message);
