@@ -55,30 +55,38 @@ module.exports = class Auth0Service {
     };
 
     /**
-     * @desc                                                   Create a new passwordless user in Auth0
-     * @param {string}                      email              The email address of the new user
-     * @param {string}                      firstName          The first name of the new user
-     * @param {string}                      lastName           The surname of the new user
-     * @param {string}                      setEmailVerified   (optional) Can be set to true when new user will be linked to existing user
-     * @return                                                 Object with msg and data
+     * Creates a new passwordless user in Auth0 
+     * using email, firstName, lastName and
+     * optionally setEmailVerified from the constructor.
+     * 
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const Auth0Service = new Auth0Service({
+     *   email: "",
+     *   firstName: "",
+     *   lastName: "",
+     *   setEmailVerified: true
+     * });
+     * 
+     * await Auth0Service.createUser();
      */
-    async createUser(email, firstName, lastName, setEmailVerified) {
+    async createUser() {
         try {
 
             // Set email verified var
             let emailVerified = false;
 
-            if (setEmailVerified) {
-                if (setEmailVerified === true) emailVerified = true;
+            if (this._setEmailVerified) {
+                if (this._setEmailVerified === true) emailVerified = true;
             }
 
             // Create the user using the email connection type
             // (magic link)
-            const newUser = await this.auth0.createUser(
+            const newUser = await this._auth0.createUser(
                 {
-                    email: email,
-                    given_name: firstName,
-                    family_name: lastName,
+                    email: this._email,
+                    given_name: this._firstName,
+                    family_name: this._lastName,
                     connection: "email",
                     email_verified: emailVerified
                 }
