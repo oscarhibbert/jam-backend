@@ -12,8 +12,17 @@ const ManagementClient = require('auth0').ManagementClient;
  */
 module.exports = class Auth0Service {
     /**
-     * Represents the Auth0 instance constructor
+     * Represents the Auth0 instance constructor.
      * @constructor
+     * @param {Object} params - An object containing parameters for the instance.
+     *   @param {string}  params.email - A string containing the user email
+     *   @param {string}  params.firstName - A string containing user first name
+     *   @param {string}  params.lastName - A string containing the user last name
+     *   @param {string}  params.mainUserId - A string containing the user main Auth0 ID
+     *   @param {string}  params.secondaryUserId - A string containing the user secondary Auth0 ID
+     *   @param {string}  params.provider - The identity provider of the user secondary account 
+     *   @param {boolean} params.setEmailVerified - A boolean value for setting whether email is verified
+     *   @param {{}}      params.newInfo - An object containing user profile properties
      */
     constructor(params = {}) {
         // User profile properties
