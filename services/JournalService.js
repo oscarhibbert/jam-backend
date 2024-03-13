@@ -673,13 +673,15 @@ module.exports = class JournalService {
             };
 
             // Get most recent journal entry
-            let mostRecentEntry = await Entry
+            let fetchMostRecentEntry = await Entry
                 .find({ user: userId })
                 .limit(1)
                 .sort({ dateCreated: -1 });
             
             // Decrypt most recent journal entry
-            const decryptedEntry = await evervault.decrypt(mostRecentEntry);
+            const decryptedEntry = await evervault.decrypt(fetchMostRecentEntry);
+
+            const mostRecentEntry = decryptedEntry;
             
             // Decrypt each journal entry field
             // if (mostRecentEntry.mood) mostRecentEntry.mood =
