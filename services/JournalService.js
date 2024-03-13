@@ -21,7 +21,7 @@ const percentRound = require('percent-round');
 const checkIsoDate = require('../helpers/checkIsoDate');
 
 /**
- * @description Create an instance of the JournalService class.
+ * @description Create an instance of the JournalService class for handling journal entries.
  */
 module.exports = class JournalService {
     /**
@@ -730,20 +730,26 @@ module.exports = class JournalService {
     };
 
     /**
-     * @desc                         Get the most recent journal entry for the specified user.
-     * @param {string}     userId    String containing user ID.
-     * @return                       Returns array with the most recent journal entry. If no entries, will be an empty array.
+     * Get the most recent journal entry for the specified user.
+     * If no journal entries exist, returned array will be empty.
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const journalService = new JournalService({
+     *   userId: ""
+     * });
+     * 
+     * await journalService.getMostRecentEntry();
      */
-    async getMostRecentEntry(userId) {
+    async getMostRecentEntry() {
         try {
             // Check userId parameter exists
-            if (!userId) {
+            if (!this._userId) {
                 throw new Error('Get most recent journal entry failed - userId parameter empty. Must be supplied');
             };
 
             // Get most recent journal entry
             let fetchMostRecentEntry = await Entry
-                .find({ user: userId })
+                .find({ user: this._userId })
                 .limit(1)
                 .sort({ dateCreated: -1 });
             
@@ -760,13 +766,24 @@ module.exports = class JournalService {
             // if (mostRecentEntry.text) mostRecentEntry.text =
             //     await evervault.decrypt(mostRecentEntry.text);
             
+            // Set response
+            let response;
+
             // If mostRecentEntry is an empty array add an object with the user property
-            if (mostRecentEntry.length === 0) mostRecentEntry = [{ user: userId }];
+            if (mostRecentEntry.length === 0) response = [{ user: this._userId, data: [] }]
+
+                // Else add mostRecentEntry to the response object
+            else {
+                response = {
+                    user: this._userId,
+                    data: mostRecentEntry
+                }
+            };
             
             // Log success
-            logger.info(`Most recent entry retrieved successfully for user ${userId}`);
+            logger.info(`Most recent entry retrieved successfully for user ${this._userId}`);
 
-            return mostRecentEntry;
+            return response;
 
         } catch (err) {
             logger.error(err.message);
@@ -775,21 +792,27 @@ module.exports = class JournalService {
     };
 
     /**
-     * @desc                                      Get the closest matching journal entry for the specified user to the specified entry.
-     * @param {string} userId                     String containing user ID.
-     * @param {string}  journalId                 String containing journal ID.
-     * @return                                    Returns array with closest matched journal entry. If no match, array will be empty.
+     * Get the closest matching && most recent journal entry in the past,
+     *  for the specified userId and journalId.
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const journalService = new JournalService({
+     *   userId: "",
+     *   journalId: ""
+     * });
+     * 
+     * await journalService.getclosestEntry();
      */
-    async getClosestEntry(userId, journalId) {
+    async getClosestEntry() {
         try {
             // Check userId parameter exists
-            if (!userId) {
+            if (!this._userId) {
                 throw new Error('Get closest journal entry failed - userId parameter empty. Must be supplied');
             };
 
             // Check journalId parameter exists
-            if (!journalId) {
-                throw new Error(`Get closest journal entry failed - journalId parameter empty. Must be supplied. ${userId}`);
+            if (!this._journalId) {
+                throw new Error(`Get closest journal entry failed - journalId parameter empty. Must be supplied. ${this._userId}`);
             };
 
             // Get entry for checking
@@ -798,15 +821,15 @@ module.exports = class JournalService {
             const fetchEntry = await Entry.findOne(
                 {
                     $and: [
-                        { _id: journalId },
-                        { user: userId }
+                        { _id: this._journalId },
+                        { user: this._userId }
                     ]
                 }
             );
 
             // If journal entry not found
             if (!fetchEntry) {
-                throw new Error(`Get closest journal entry failed - journal entry not found. ${userId}`);
+                throw new Error(`Get closest journal entry failed - journal entry not found. ${this._userId}`);
             };
 
             const checkEntry = await evervault.decrypt(fetchEntry);
@@ -819,11 +842,11 @@ module.exports = class JournalService {
             /* Fetch all entries for the current user 
             where dateCreated is before check dateCreated */
             const entries = await Entry.find(
-                { user: userId, dateCreated: { $lt: checkEntry.dateCreated } }).lean();
+                { user: this._userId, dateCreated: { $lt: checkEntry.dateCreated } }).lean();
 
             // If journal entry not found
             if (!entries) {
-                throw new Error(`Get closest journal entry failed - journal entries not found. ${userId}`);
+                throw new Error(`Get closest journal entry failed - journal entries not found. ${this._userId}`);
             };
 
             // Decrypt all entries
@@ -837,7 +860,7 @@ module.exports = class JournalService {
             for (const entry of decryptedEntries) {
                 try {
                     // Skip the current record if ids are the same
-                    if (entry._id.toString() === journalId) continue;
+                    if (entry._id.toString() === this._journalId) continue;
 
                     const decryptedEntry = entry;
 
@@ -892,13 +915,13 @@ module.exports = class JournalService {
             };
 
             // Log success
-            logger.info(`Closest matching entry retrieved successfully for user ${userId}`);
+            logger.info(`Closest matching entry retrieved successfully for user ${this._userId}`);
 
             // Add userId to closestEntry object
-            closestEntry.user = userId;
+            closestEntry.user = this._userId;
             
             // Return data
-            return { data: closestEntry, user: userId };
+            return { user: this._userId, data: closestEntry };
 
         } catch (err) {
             logger.error(err.message);
@@ -907,46 +930,52 @@ module.exports = class JournalService {
     };
 
     /**
-     * @desc                                                                 Get stats on journalling between a start dateTime and end dateTime
-     * @param {string}                         userId                        String containing user ID
-     * @param {"2021-08-27T00:00:00.000Z"}     startDateTime                 A start dateTime. Must be an ISO 8601 string in Zulu time
-     * @param {"2021-08-27T00:00:00.000Z"}     endDateTime                   An end dateTime. Must be an ISO 8601 string in Zulu time
-     * @param {string}                         categoryId                    A category Id, for filtering stats. Optional
-     * @return                                                               Returns object with stats
+     * Get journalling stats for the specified userId,
+     *  between a startDateTime and endDateTime. Optionally provide a categoryId for filtering.
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const journalService = new JournalService({
+     *   userId: "",
+     *   startDateTime: "",
+     *   endDateTime: "",
+     *   categoryId: ""
+     * });
+     * 
+     * await journalService.getclosestEntry();
      */
-    async getStats(userId, startDateTime, endDateTime, categoryId) {
+    async getStats() {
         try {
             // Check userId parameter exists
-            if (!userId) {
+            if (!this._userId) {
                 throw new Error('Get stats failed - userId parameter empty. Must be supplied');
             };
 
             // Check startDateTime parameter exists
-            if (!startDateTime) {
-                throw new Error(`Get stats failed - startDateTime parameter empty. Must be supplied. ${userId}`);
+            if (!this._startDateTime) {
+                throw new Error(`Get stats failed - startDateTime parameter empty. Must be supplied. ${this._userId}`);
             };
 
             // Check endDateTime parameter exists
-            if (!endDateTime) {
-                throw new Error(`Get stats failed - endDateTime parameter empty. Must be supplied. ${userId}`);
+            if (!this._endDateTime) {
+                throw new Error(`Get stats failed - endDateTime parameter empty. Must be supplied. ${this._userId}`);
             };
 
             // Check startDateTime and endDateTime is ISO 8601 formatted
-            if (!checkIsoDate(startDateTime)) {
-                throw new Error(`Get stats failed - startDateTime parameter must be an ISO 8601 string in Zulu time. ${userId}`);
+            if (!checkIsoDate(this._startDateTime)) {
+                throw new Error(`Get stats failed - startDateTime parameter must be an ISO 8601 string in Zulu time. ${this._userId}`);
             };
 
-            if (!checkIsoDate(endDateTime)) {
-                throw new Error(`Get stats failed - endDateTime parameter must be an ISO 8601 string in Zulu time. ${userId}`);
+            if (!checkIsoDate(this._endDateTime)) {
+                throw new Error(`Get stats failed - endDateTime parameter must be an ISO 8601 string in Zulu time. ${this._userId}`);
             };
 
             // If the categoryId parameter has been provided
             // Check it exists in the database
-            if (categoryId) {
-                const checkCategory = await Categories.find({ _id: categoryId }).lean();
+            if (this._categoryId) {
+                const checkCategory = await Categories.find({ _id: this._categoryId }).lean();
 
                 if (checkCategory.length === 0) {
-                    throw new Error(`Get stats failed - specified categoryId not found. ${userId}`);
+                    throw new Error(`Get stats failed - specified categoryId not found. ${this._userId}`);
                 };
             };
 
@@ -957,8 +986,8 @@ module.exports = class JournalService {
                 {
                     $match: {
                         $and: [
-                            { user: { $eq: userId } },
-                            { dateCreated: { $gte: new Date(startDateTime), $lt: new Date(endDateTime) } },
+                            { user: { $eq: this._userId } },
+                            { dateCreated: { $gte: new Date(this._startDateTime), $lt: new Date(this._endDateTime) } },
                         ],
                     },
                 },
@@ -999,13 +1028,13 @@ module.exports = class JournalService {
             ];
 
             // If categoryId parameter exists
-            if (categoryId) {
+            if (this._categoryId) {
                 // Add pipeline stage to start of aggregationPipeline array
                 aggregationPipeline.unshift(
                     // Pipeline stage
-                    // Match records where categories.0._id === categoryId parameter
+                    // Match records where categories.0._id === this._categoryId parameter
                     {
-                        $match: { "categories.0._id": { $eq: categoryId } }
+                        $match: { "categories.0._id": { $eq: this._categoryId } }
                     }
                 );
             };
@@ -1029,7 +1058,7 @@ module.exports = class JournalService {
             };
 
             // Get copingActivities
-            let copingActivities = await Activities.find({ user: userId }).lean();
+            let copingActivities = await Activities.find({ user: this._userId }).lean();
             //     [
             //         // Pipeline stage
             //         // Get records by userId
@@ -1142,8 +1171,8 @@ module.exports = class JournalService {
             // Else, if moodCountCheck is false
             else {
                 highestMood = {
-                    moodType: '',
-                    count: ''
+                    moodType: "",
+                    count: ""
                 };
             };
 
@@ -1152,12 +1181,12 @@ module.exports = class JournalService {
 
                 // Start and end time/date
                 timePeriod: {
-                    startDate: startDateTime,
-                    endDate: endDateTime
+                    startDate: this._startDateTime,
+                    endDate: this._endDateTime
                 },
 
                 // Category filter Id
-                categoryFilterId: categoryId,
+                categoryFilterId: this._categoryId,
 
                 // Mood stats
                 moodStats: {
@@ -1178,7 +1207,7 @@ module.exports = class JournalService {
             };
             
             // Return the stats object
-            return { success: true, data: stats, user: userId };
+            return { success: true, user: this._userId, data: stats };
 
         } catch (err) {
             logger.error(err.message);
