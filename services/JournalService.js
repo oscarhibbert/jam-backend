@@ -25,7 +25,24 @@ module.exports = class JournalService {
      * Represents the AuraService instance constructor.
      * @constructor
      */
-    constructor() {
+    constructor(params = {}) {
+        // User properties
+        this._userId = params.userId;
+
+        // Journal entry properties
+        this.journalId = params.journalId;
+        this._entryMood = params.entryMood;
+        this._entryEmotion = params.entryEmotion;
+        this._entryCategories = params.entryCategories;
+        this._entryActivities = params.entryActivities;
+        this._entryText = params.entryText;
+        this._linkedEntry = params.linkedEntry;
+
+        // Journal query properties
+        this._startDateTime = params.startDateTime;
+        this._endDateTime = params.endDateTime;
+        this._categoryId = params.categoryId;
+        
         /** Sets the only accepted mood types for the JournalService.
          * As an array of moodType objects.
          */
