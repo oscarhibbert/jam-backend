@@ -587,33 +587,39 @@ module.exports = class JournalService {
         };
     };
 
-        /**
-     * @desc                         Delete all journal entries method.
-     * @param {string} userId        String containing user ID.
-     * @return                       Object containing response.
+    /**
+     * Delete all journal entries for the specified user provide the userId.
+     * 
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const journalService = new JournalService({
+     *   userId: ""
+     * });
+     * 
+     * await journalService.deleteAllEntries();
      */
-    async deleteAllEntries(userId) {
+    async deleteAllEntries() {
         try {
             // Check userId parameter exists
-            if (!userId) {
+            if (!this._userId) {
                 throw new Error('Delete journal entry failed - userId parameter empty. Must be supplied');
             };
 
             // Delete all journal entries for the specified user from the database
             await Entry.deleteMany(
                 {
-                    user: userId
+                    user: this._userId
                 }
             );
 
             // Log success
-            logger.info(`All journal entries deleted successfully for user ${userId}`);
+            logger.info(`All journal entries deleted successfully for user ${this._userId}`);
 
             // Build response
             const response = {
                 success: true,
                 msg: `All journal entries delete successfully`,
-                user: userId
+                user: this._userId
             };
 
             // Return response object
