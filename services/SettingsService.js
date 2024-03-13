@@ -14,10 +14,41 @@ module.exports = class SettingsService {
     /**
      * Represents the SettingsService constructor.
      * @constructor
+     * @param {Object} params - An object containing parameters for the instance.
+     *   @param {string}  params.userId - A string containing the userId
+     *   @param {boolean} params.status - A boolean value denoting the setup status of user settings
+     *   @param {string}  params.categoryId - A string value denoting the categoryId
+     *   @param {string}  params.categoryName - A string value denoting the category name
+     *   @param {string}  params.categoryType - A string value denoting the category type
+     *   @param {[{}]}    params.categories - An array of objects containing categories
+     *   @param {string}  params.activityId - A string value denoting the activityId
+     *   @param {string}  params.activityName - A string value denoting the activityName
+     *   @param {string}  params.activityType - A string value denoting the activityType
+     *   @param {[{}]}    params.activities - An array of objects containing activities
+     * 
      */
-    constructor() {
+    constructor(params = {}) {
+        // User properties
+        this._userId = params.userId;
+
+        // Settings properties
+        this._status = params.status;
+
+        // Category properties
+        this._categoryId = params.categoryId;
+        this._categoryName = params.categoryName;
+        this._categoryType = params.categoryType;
+        this._categories = params.categories;
+
         /** Set allowed category types. */
         this.categoryTypes = ["General"];
+
+        // Activity properties
+        this._activityId = params.activityId;
+        this._activityName = params.activityName;
+        this._activityType = params.activityType;
+        this.activities = params.activities;
+        
         /** Set allowed activity types. */
         this.activityTypes = ["Coping"];
     };
