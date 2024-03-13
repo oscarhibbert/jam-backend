@@ -731,7 +731,7 @@ module.exports = class JournalService {
 
     /**
      * Get the most recent journal entry for the specified user.
-     * If no journal entries exist, returned array will be empty.
+     *  If no journal entries exist, returned array will be empty.
      * @returns {Promise<Object>} - A promise that resolves to a response object
      * @example
      * const journalService = new JournalService({

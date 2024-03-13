@@ -15,21 +15,33 @@ module.exports = class Auth0Service {
      * Represents the Auth0 instance constructor
      * @constructor
      */
-    constructor() {
-        /** Sets the Auth0 domain */
-        this.auth0Domain = config.auth0.domain;
-        /** Sets the Auth0 application client ID */
-        this.auth0ClientId = config.auth0.clientId;
-        /** Sets the Auth0 application client secret */
-        this.auth0ClientSecret = config.auth0.clientSecret;
-        /** Sets the Auth0 passwordless email connection ID */
-        this.auth0EmailConnectionId = config.auth0.emailConnectionId;
+    constructor(params = {}) {
+        // User profile properties
+        this._email = params.email;
+        this._firstName = params.firstName;
+        this._lastName = params.lastName;
+        this._mainUserId = params.mainUserId;
+        this._secondaryUserId = params.secondaryUserId;
+        this._provider = params.provider;
+        this._setEmailVerified = params.setEmailVerified;
+
+        // User profile as an object property
+        this._newInfo = params.newInfo;
         
-        /** Instantiate the Auth0 management client */
-        this.auth0 = new ManagementClient({
-            domain: this.auth0Domain,
-            clientId: this.auth0ClientId,
-            clientSecret: this.auth0ClientSecret
+        /** Auth0 instance properties */
+        this._auth0Domain = config.auth0.domain;
+        /** Sets the Auth0 application client ID */
+        this._auth0ClientId = config.auth0.clientId;
+        /** Sets the Auth0 application client secret */
+        this._auth0ClientSecret = config.auth0.clientSecret;
+        /** Sets the Auth0 passwordless email connection ID */
+        this._auth0EmailConnectionId = config.auth0.emailConnectionId;
+        
+        /** Set the Auth0 management instance property */
+        this._auth0 = new ManagementClient({
+            domain: this._auth0Domain,
+            clientId: this._auth0ClientId,
+            clientSecret: this._auth0ClientSecret
         });
     };
 
