@@ -433,44 +433,51 @@ module.exports = class JournalService {
     };
 
     /**
-     * @desc                                                    Get all journal entries method
-     * @param {string}                         userId           String containing user ID
-     * @param {"2021-01-01T00:00:00.000Z"}     startDateTime    A start dateTime. Must be an ISO 8601 string in Zulu time (optional)
-     * @param {"2022-01-01T00:00:00.000Z"}     endDateTime      An end dateTime. Must be an ISO 8601 string in Zulu time (optional, must be included with startDateTime)
-     * @param {string}                         categoryId       A categoryId, for filtering. Optional
-     * @return                                                  Object containing response. If authorisation fails includes authorise: false
+     * Fetch all journal entries for the specified user provide the userId, startDateTime
+     * and endDateTime. Optionally provide a categoryId for filtering.
+     * 
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const journalService = new JournalService({
+     *   userId: "",
+     *   startDateTime: "",
+     *   endDateTime: "",
+     *   categoryId: ""
+     * });
+     * 
+     * await journalService.getAllEntries();
      */
-    async getAllEntries(userId, startDateTime, endDateTime, categoryId) {
+    async getAllEntries() {
         try {
             // Check userId parameter exists
-            if (!userId) {
+            if (!this._userId) {
                 throw new Error('Get all journal entries failed - userId parameter empty. Must be supplied');
             };
 
             // If startDateTime parameter exists and endDateTime parameter doesn't exist
-            if (startDateTime && !endDateTime) {
-                throw new Error(`Get all journal entries failed - endDateTime parameter empty. Must be supplied with startDateTime parameter. ${userId}`);
+            if (this._startDateTime && !this._endDateTime) {
+                throw new Error(`Get all journal entries failed - endDateTime parameter empty. Must be supplied with startDateTime parameter. ${this._userId}`);
             };
 
             // If startDateTime & endDateTime parameters exists
-            if (startDateTime && endDateTime) {
+            if (this._startDateTime && this._endDateTime) {
                 // Check startDateTime and endDateTime is ISO 8601 formatted
-                if (!checkIsoDate(startDateTime)) {
-                    throw new Error(`Get all journal entries failed - startDateTime parameter must be an ISO 8601 string in Zulu time. ${userId}`);
+                if (!checkIsoDate(this._startDateTime)) {
+                    throw new Error(`Get all journal entries failed - startDateTime parameter must be an ISO 8601 string in Zulu time. ${this._userId}`);
                 };
 
-                if (!checkIsoDate(endDateTime)) {
-                    throw new Error(`Get all journal entries failed - endDateTime parameter must be an ISO 8601 string in Zulu time. ${userId}`);
+                if (!checkIsoDate(this._endDateTime)) {
+                    throw new Error(`Get all journal entries failed - endDateTime parameter must be an ISO 8601 string in Zulu time. ${this._userId}`);
                 };
             };
 
             // If the categoryId parameter has been provided
             // Check it exists in the database
-            if (categoryId) {
-                const checkCategory = await Categories.find({ _id: categoryId }).lean();
+            if (this._categoryId) {
+                const checkCategory = await Categories.find({ _id: this._categoryId }).lean();
 
                 if (checkCategory.length === 0) {
-                    throw new Error(`Get all journal entries failed - specified categoryId not found. ${userId}`);
+                    throw new Error(`Get all journal entries failed - specified categoryId not found. ${this._userId}`);
                 };
             };
 
@@ -482,7 +489,7 @@ module.exports = class JournalService {
             let data;
 
             // Check if the user exists
-            let check = await User.countDocuments({ auth0UserId: userId });
+            let check = await User.countDocuments({ auth0UserId: this._userId });
 
             // If the user is not found
             if (check !== 1) {
@@ -497,24 +504,24 @@ module.exports = class JournalService {
                 const stages = [
                     // Get records by userId
                     {
-                        $match: { user: { $eq: userId } }
+                        $match: { user: { $eq: this._userId } }
                     }
                 ];
 
                 // Conditional aggregation pipeline stages
                 // Category filter (add to start of stages array)
-                if (categoryId) {
+                if (this._categoryId) {
                     stages.unshift(
                         {
-                            $match: { "categories.0._id": { $eq: categoryId } }
+                            $match: { "categories.0._id": { $eq: this._categoryId } }
                         }
                     )
                 };
                 // startDateTime & endDateTime filter (add to end of stages array)
-                if (startDateTime && endDateTime) {
+                if (this._startDateTime && this._endDateTime) {
                     stages.push(
                         {
-                            $match: { dateCreated: { $gte: new Date(startDateTime), $lt: new Date(endDateTime) } }
+                            $match: { dateCreated: { $gte: new Date(this._startDateTime), $lt: new Date(this._endDateTime) } }
                         }
                     )
                 };
@@ -553,7 +560,7 @@ module.exports = class JournalService {
                     });
                     
                 // Log success
-                logger.info(`Journal entries retrieved successfully for user ${userId}`);
+                logger.info(`Journal entries retrieved successfully for user ${this._userId}`);
                 
                 // Set response
                 success = true;
@@ -568,7 +575,7 @@ module.exports = class JournalService {
                 authorise: authorise,
                 msg: msg,
                 data: data,
-                user: userId
+                user: this._userId
             };
 
             // Return response object
