@@ -57,7 +57,7 @@ module.exports = class Auth0Service {
     /**
      * Creates a new passwordless user in Auth0 
      * using email, firstName, lastName and
-     * optionally setEmailVerified from the constructor.
+     * optionally setEmailVerified properties from the constructor.
      * 
      * @returns {Promise<Object>} - A promise that resolves to a response object
      * @example
@@ -105,31 +105,38 @@ module.exports = class Auth0Service {
     };
 
     /**
-     * @desc                                                Get an Auth0 user by email address
-     * @param {string}                      email           The email address of the user
-     * @return                                              Object with msg and data
+     * Get an Auth0 user by email address
+     * using the email property from the constructor.
+     * 
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const Auth0Service = new Auth0Service({
+     *   email: ""
+     * });
+     * 
+     * await Auth0Service.getUserByEmail();
      */
-    async getUserByEmail(email) {
+    async getUserByEmail() {
         try {
             // Try fetch the user profile from Auth0
-            const user = await this.auth0.getUsersByEmail(email);
+            const user = await this._auth0.getUsersByEmail(this._email);
 
             if (user.length === 0) throw new Error('No user found');
             
             // Log success
-            logger.info(`Auth0 user found successfully with email address ${email}`);
+            logger.info(`Auth0 user found successfully with email address ${this._email}`);
 
             // Return message and data
-            return { msg: `User profile found for email address ${email}`, data: user[0] };
+            return { msg: `User profile found for email address ${this._email}`, data: user[0] };
             
         } catch (err) {
             // If error not found return message empty data
             if (err.message === 'No user found') {
-                return {msg: `No user found with email address ${email}`};
+                return {msg: `No user found with email address ${this._email}`};
             };
 
             if (err.message.includes("Object didn't pass validation for format email")) {
-                return {msg: `Incorrect email syntax for email address ${email}`};
+                return {msg: `Incorrect email syntax for email address ${this._email}`};
             };
 
             // Log error
@@ -138,9 +145,15 @@ module.exports = class Auth0Service {
     };
 
     /**
-     * @desc                                       Get a user profile from Auth0
-     * @param {string}    userId                   String containing user ID
-     * @return                                     Object with msg and data
+     * Get an Auth0 user profile
+     * by userId property from the constructor.
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const Auth0Service = new Auth0Service({
+     *   userId: ""
+     * });
+     * 
+     * await Auth0Service.getUserProfile();
      */
     async getUserProfile(userId) {
         try {
@@ -166,21 +179,28 @@ module.exports = class Auth0Service {
     };
 
     /**
-     * @desc                                                Get a user profile from Auth0
-     * @param {string}                      userId          String containing user ID
-     * @param {object}                      newInfo         Object containing user data to update
-     * @return                                              Object with msg
+     * Update an Auth0 user profile
+     * by userId and newInfo properties from the constructor.
+     * 
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const Auth0Service = new Auth0Service({
+     *   userId: "",
+     *   newInfo: {}
+     * });
+     * 
+     * await Auth0Service.updateUser();
      */
-    async updateUser(userId, newInfo) {
+    async updateUser() {
         try {
             // Try fetch the user profile from Auth0
-            let updateProfile = await this.auth0.updateUser(
-                { id: userId },
-                newInfo
+            let updateProfile = await this._auth0.updateUser(
+                { id: this._userId },
+                this._newInfo
             );
 
             // Log success
-            logger.info(`Auth0 user updated successfully ${userId}`);
+            logger.info(`Auth0 user updated successfully ${this._userId}`);
 
             // Return message and data
             return {msg: "Profile updated successfully", data: updateProfile};
@@ -204,25 +224,32 @@ module.exports = class Auth0Service {
     };
 
     /**
-     * @desc                                                Get a user from Auth0
-     * @param {string}                      userId          String containing user ID
-     * @return                                              Object with msg
+     * Delete an Auth0 user
+     * by the userId property from the constructor.
+     * 
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const Auth0Service = new Auth0Service({
+     *   userId: ""
+     * });
+     * 
+     * await Auth0Service.deleteUser();
      */
-    async deleteUser(userId) {
+    async deleteUser() {
         try {
             // Try to get the user profile so error throws if not found
             // There is a small bug with the Auth0 
-            const { msg } = await this.getUserProfile(userId);
+            const { msg } = await this.getUserProfile(this._userId);
 
             if (msg === 'User profile not found') {
                 return {msg: "User profile not found"};
             };
 
             // Try to delete the user from Auth0
-            const deleteUser = await this.auth0.deleteUser({id: userId});
+            await this._auth0.deleteUser({id: this._userId});
             
             // Log success
-            logger.info(`Auth0 user deleted successfully ${userId}`);
+            logger.info(`Auth0 user deleted successfully ${this._userId}`);
 
             // Return message and data
             return {msg: "Success - user deleted"};
@@ -240,27 +267,35 @@ module.exports = class Auth0Service {
     };
 
     /**
-     * @desc                                                   Link an existing user to another user
-     * @param {string}                      mainUserId         String containing main user ID
-     * @param {string}                      secondaryUserId    String containing the user ID of the secondary account
-     * @param {string}                      provider           String containing the identity provider of the secondary account 
-     * @return                                                 Object with msg
+     * Link a pimary Auth0 user with a secondary Auth0 user profile
+     * by mainUserId, secondaryUserId and provider of the second account
+     * properties of the constructor.
+     * 
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const Auth0Service = new Auth0Service({
+     *   mainUserId: "",
+     *   secondaryUserId: "",
+     *   provider: ""
+     * });
+     * 
+     * await Auth0Service.linkUsers();
      */
-    async linkUsers(mainUserId, secondaryUserId, provider) {
+    async linkUsers() {
         try {
             // Try to link the
-            await this.auth0.linkUsers(
+            await this._auth0.linkUsers(
                 // Main account
-                mainUserId,
+                this._mainUserId,
                 // User to link to the main account
                 {
-                    user_id: secondaryUserId,
-                    connection_id: this.auth0EmailConnectionId,
-                    provider: provider
+                    user_id: this._secondaryUserId,
+                    connection_id: this._auth0EmailConnectionId,
+                    provider: this._provider
                 }
             );
 
-            return { msg: `Auth0 user ${mainUserId} linked successfully to ${secondaryUserId}` };
+            return { msg: `Auth0 user ${this._mainUserId} linked successfully to ${this._secondaryUserId}` };
 
         } catch (err) {
             // Log error
