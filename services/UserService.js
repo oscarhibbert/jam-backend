@@ -43,9 +43,9 @@ module.exports = class UserService {
      * @returns {Promise<Object>} - A promise that resolves to a response object
      * @example
      * const SettingsService = new UserService({
-     *   email: "",
-     *   firstName: "",
-     *   lastName: ""
+     *   email: " ",
+     *   firstName: " ",
+     *   lastName: " "
      * });
      * 
      * await SettingsService.createUser();
@@ -120,7 +120,7 @@ module.exports = class UserService {
      * @returns {Promise<Object>} - A promise that resolves to a response object
      * @example
      * const SettingsService = new UserService({
-     *   userId: ""
+     *   userId: " "
      * });
      * 
      * await SettingsService.getUserProfile();
@@ -165,7 +165,7 @@ module.exports = class UserService {
      * @returns {Promise<Object>} - A promise that resolves to a response object
      * @example
      * const SettingsService = new UserService({
-     *   userId: ""
+     *   userId: " "
      * });
      * 
      * await SettingsService.deleteUser();
