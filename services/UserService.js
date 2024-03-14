@@ -42,7 +42,7 @@ module.exports = class UserService {
     };
 
     /**
-     * Creates a new Jam user
+     * Creates a new Jam user.
      * 
      * @returns {Promise<Object>} - A promise that resolves to a response object
      * @example
@@ -105,19 +105,25 @@ module.exports = class UserService {
     };
 
     /**
-     * @desc                                       Get a user profile method.
-     * @param {string}    userId                   String containing user ID.
-     * @return                                     Object containing message object and data object.
+     * Gets a Jam user.
+     * 
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const SettingsService = new UserService({
+     *   userId: ""
+     * });
+     * 
+     * await SettingsService.getUserProfile();
      */
-    async getUserProfile(userId) {
+    async getUserProfile() {
         try {
             // Check userId parameter exists
-            if (!userId) {
+            if (!this._userId) {
                 throw new Error('Get user profile failed - userId parameter empty. Must be supplied');
             };
             
             // Attempt to get user profile via the Auth0 Service
-            let userProfile = await Auth0ServiceInstance.getUserProfile(userId);
+            let userProfile = await Auth0ServiceInstance.getUserProfile(this._userId);
 
             // Destructure desired properties from data
             const { email, name, given_name, family_name } = userProfile.data;
@@ -139,54 +145,60 @@ module.exports = class UserService {
     };
 
     /**
-     * @desc                                       Delete a user method.
-     * @param {string}    userId                   String containing user ID.
-     * @return                                     Object containing message object and data object.
+     * Deletes a Jam user.
+     * 
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const SettingsService = new UserService({
+     *   userId: ""
+     * });
+     * 
+     * await SettingsService.deleteUser();
      */
-    async deleteUser(userId) {
+    async deleteUser() {
         try {
             // Check userId parameter exists
-            if (!userId) {
+            if (!this._userId) {
                 throw new Error('Delete user failed - userId parameter empty. Must be supplied');
             };
 
             // Check the user object exists for this user
             const user = await User.findOne(
-                { auth0UserId: userId }
+                { auth0UserId: this._userId }
             ).lean();
 
             // If settings object for user not found throw error
             if (!user) {
-                throw new Error(`Delete user failed - user object for user not found - ${userId}`);
+                throw new Error(`Delete user failed - user object for user not found - ${this._userId}`);
             };
 
             // Attempt to delete all journal entries for the user via the Journal Service
-            await JournalServiceInstance.deleteAllEntries(userId);
+            await JournalServiceInstance.deleteAllEntries(this._userId);
 
             // Attempt to delete all categories for the user via the Settings Service
-            await SettingsServiceInstance.deleteAllCategories(userId);
+            await SettingsServiceInstance.deleteAllCategories(this._userId);
 
             // Attempt to delete all activities for the user via the Settings Service
-            await SettingsServiceInstance.deleteAllActivities(userId);
+            await SettingsServiceInstance.deleteAllActivities(this._userId);
 
             // Attempt to delete the settings object for the user
-            await SettingsServiceInstance.deleteSettings(userId);
+            await SettingsServiceInstance.deleteSettings(this._userId);
 
             // Attempt to delete user from Mixpanel
-            MixpanelServiceInstance.deleteUser(userId);
+            MixpanelServiceInstance.deleteUser(this._userId);
 
             // Attempt to delete the user from the MongoDB user collection
             await User.deleteOne(
                 {
-                    auth0UserId: userId
+                    auth0UserId: this._userId
                 }
             );
 
             // Attempt to delete Auth0 user via the Auth0 Service
-            await Auth0ServiceInstance.deleteUser(userId);
+            await Auth0ServiceInstance.deleteUser(this._userId);
 
             // Log success
-            logger.info(`Aura user deleted successfully ${userId}`);
+            logger.info(`Aura user deleted successfully ${this._userId}`);
             
             // Return
             return;
@@ -199,19 +211,25 @@ module.exports = class UserService {
     };
 
     /**
-     * @desc                                       Delete a user by email address method
-     * @param {string}    email                    String containing user email address
-     * @return                                     Object containing message object and data object
+     * Deletes a Jam user by email address.
+     * 
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const SettingsService = new UserService({
+     *   email: ""
+     * });
+     * 
+     * await SettingsService.deleteUserByEmail();
      */
-    async deleteUserByEmail(email) {
+    async deleteUserByEmail() {
         try {
             // Check userId parameter exists
-            if (!email) {
+            if (!this._email) {
                 throw new Error('Delete user by email failed - email parameter empty. Must be supplied');
             };
 
             // Get the user by email address
-            const { data } = await Auth0ServiceInstance.getUserByEmail(email);
+            const { data } = await Auth0ServiceInstance.getUserByEmail(this._email);
 
             if (!data) throw new Error('Delete user by email failed - user does not exists')
 
