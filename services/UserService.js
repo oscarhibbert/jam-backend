@@ -246,7 +246,7 @@ module.exports = class UserService {
      * @returns {Promise<Object>} - A promise that resolves to a response object
      * @example
      * const SettingsService = new UserService({
-     *   email: ""
+     *   email: " "
      * });
      * 
      * await SettingsService.deleteUserByEmail();
