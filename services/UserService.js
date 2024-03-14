@@ -25,6 +25,23 @@ const JournalServiceInstance = new JournalService();
  */
 module.exports = class UserService {
     /**
+     * Represents the UserService constructor.
+     * @constructor
+     * @param {Object} params - An object containing parameters for the instance.
+     *   @param {string} params.userId - A string containing the userId
+     *   @param {string} params.firstName - A string containing the user first name
+     *   @param {string} params.lastName - A string containing the user last name
+     *   @param {string} params.email - A string containing the user email address
+     */
+    constructor(params = {}) {
+        // User properties
+        this._userId = params.userId;
+        this._firstName = params.firstName;
+        this._lastName = params.lastName;
+        this._email = params.email;
+    };
+
+    /**
      * @desc                                                Create a new Aura Journal user
      * @param {string}                      email           The email address of the new user
      * @param {string}                      firstName       The first name of the new user
