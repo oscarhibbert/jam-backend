@@ -6,19 +6,15 @@ const User = require('../models/User');
 
 // Auth0 Service Import
 const Auth0Service = require('../services/Auth0Service');
-const Auth0ServiceInstance = new Auth0Service();
 
 // Mixpanel Service Import
 const MixpanelService = require('../services/MixpanelService');
-const MixpanelServiceInstance = new MixpanelService();
 
 // Settings Service Import
 const SettingsService = require('../services/SettingsService');
-const SettingsServiceInstance = new SettingsService();
 
 // Journal Service Import
 const JournalService = require('../services/JournalService');
-const JournalServiceInstance = new JournalService();
 
 /**
  * @description Create an instance of the UserService class.
@@ -71,31 +67,45 @@ module.exports = class UserService {
                 throw new Error('Create new user failed - lastName parameter empty. Must be supplied');
             };
 
-            // Create the new user in Auth0
-            const newUser = await Auth0ServiceInstance.createUser(this._email, this._firstName, this._lastName);
 
-            // Create a new user in Mixpanel
-            MixpanelServiceInstance.createOrUpdateUser(
-                newUser.data.user_id,
-                newUser.data.given_name,
-                newUser.data.family_name,
-                newUser.data.email,
-                newUser.data.created_at
-            );
-
-            // Create Mixpanel Event New User
-            MixpanelServiceInstance.createEvent(
-                'New User',
-                newUser.data.user_id,
+            // Create Auth0 Service Instance
+            const Auth0Instance = new Auth0Service(
                 {
-                    $time: newUser.data.created_at
+                    email: this._email,
+                    firstName: this._firstName,
+                    lastName: this._lastName
                 }
             );
+
+            // Create the new user in Auth0
+            const createAuth0User = await Auth0Instance.createUser();
+            
+            // Create Mixpanel Service Instance
+            const MixpanelInstance = new MixpanelService(
+                {
+                    userId: createAuth0User.data.user_id,
+                    firstName: createAuth0User.data.given_name,
+                    lastName: createAuth0User.data.family_name,
+                    email: createAuth0User.data.email,
+                    eventName: "New User",
+                    dateCreated: createAuth0User.data.created_at,
+                    properties: {
+                        $time: createAuth0User.data.created_at
+                    }
+                }
+
+            );
+
+            // Create a new user in Mixpanel
+            await MixpanelInstance.createOrUpdateUser();
+
+            // Create Mixpanel Event New User
+            await MixpanelInstance.createEvent();
 
             // Log success
             logger.info(`New Aura Journal user created successfully`);
 
-            return { msg: 'New Aura Journal user created successfully', data: newUser.data };
+            return { msg: 'New Aura Journal user created successfully', data: createAuth0User.data };
 
         } catch (err) {
             // Log error
@@ -121,9 +131,14 @@ module.exports = class UserService {
             if (!this._userId) {
                 throw new Error('Get user profile failed - userId parameter empty. Must be supplied');
             };
+
+            // Create Auth0 Instance
+            const Auth0Instance = new Auth0Service(
+                { userId: this._userId }
+            );
             
             // Attempt to get user profile via the Auth0 Service
-            let userProfile = await Auth0ServiceInstance.getUserProfile(this._userId);
+            let userProfile = await Auth0Instance.getUserProfile();
 
             // Destructure desired properties from data
             const { email, name, given_name, family_name } = userProfile.data;
