@@ -12,10 +12,29 @@ const Mixpanel = require('mixpanel');
  */
 module.exports = class MixpanelService {
     /**
-     * Represents a Mixpanel Service constructor
+     * Represents a Mixpanel Service instance constructor.
      * @constructor
+     * @param {Object} params - An object containing parameters for the instance.
+     *   @param {string}  params.userId - A string containing the user ID
+     *   @param {string}  params.firstName - A string containing user first name
+     *   @param {string}  params.lastName - A string containing the user last name
+     *   @param {string}  params.email - A string containing the user email
+     *   @param {string}  params.dateCreated - A string containing the user dateCreated in ISO8601 Zulu time
+     *   @param {string}  params.eventName - A string containing the event name
+     *   @param {{}}      params.properties - An object containing additional event properties
      */
-    constructor() {
+    constructor(params = {}) {
+        // Mixpanel user properties
+        this._userId = params.userId;
+        this._firstName = params.firstName;
+        this._lastName = params.lastName;
+        this._email = params.email;
+        this._dateCreated = params.dateCreated;
+
+        // Mixpanel event properties
+        this._eventName = params.eventName;
+        this._properties = params.properties;
+
         /**The Mixpanel API token should be specified in the .env file*/
         this.mixpanelToken = config.get('mixpanelToken');
         /** The Mixpanel client instance */
@@ -25,29 +44,37 @@ module.exports = class MixpanelService {
     };
 
     /**
-       * @desc                                      Creates a Mixpanel event
-       * @param      {string}        eventName      The event name as a string
-       * @param      {string}        userId         The UserId as a string
-       * @param      {object}        properties     Any additional properties as an object
-       * @return                                    
-    */
-    createEvent(eventName, userId, properties) {
+     * Creates a Mixpanel event
+     * using eventName, userId and any additional properties
+     * as an object via the constructor.
+     * 
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const MixpanelService = new MixpanelService({
+     *   eventName: "",
+     *   userId: "",
+     *   properties: ""
+     * });
+     * 
+     * await Mixpanel.createEvent();
+     */
+    createEvent() {
         try {
             // Create propertiesObject
             let propertiesObj;
 
             /* If the properties object exists
             let propertiesObj equal properties */
-            if (properties) {
-                propertiesObj = properties
+            if (this._properties) {
+                propertiesObj = this._properties
             };
 
             // Add distinct_id property to the propertiesObj
-            propertiesObj.distinct_id = userId;
+            propertiesObj.distinct_id = this._userId;
 
             // Create the event in Mixpanel
             this.mixpanelClient.track(
-                eventName,
+                this._eventName,
                 propertiesObj
             );
 
@@ -59,32 +86,40 @@ module.exports = class MixpanelService {
     };
 
     /**
-       * @desc                                        Creates a new user in Mixpanel
-       * @param      {string}        userId           The UserId as a string
-       * @param      {string}        firstName        The first name of the user (optional)
-       * @param      {string}        lastName         The surname of the user (optional)
-       * @param      {string}        email            The email address of the user (optional)
-       * @param      {Date}          dateCreated      The date the user was created in Zulu time (optional)
-       * @return                                    
-    */
-    createOrUpdateUser(userId, firstName, lastName, email, dateCreated) {
+     * Create or update a user in Mixpanel using userId,
+     * firstName, lastName, email and dateCreated via constructor
+     * properties.
+     * 
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const MixpanelService = new MixpanelService({
+     *   userId: "",
+     *   firstName: "",
+     *   lastName: "",
+     *   email: "",
+     *   dateCreated: ""
+     * });
+     * 
+     * await MixpanelService.createOrUpdateUser();
+     */
+    createOrUpdateUser() {
         try {
             // Create properties object
             let properties = {};
 
             // If the properties are provided add them to properties object
-            if (firstName) properties.$first_name = firstName;
-            if (lastName) properties.$last_name = lastName;
-            if (email) properties.$email = email;
-            if (dateCreated) properties.dateCreated = dateCreated;
+            if (this._firstName) properties.$first_name = this._firstName;
+            if (this._lastName) properties.$last_name = this._lastName;
+            if (this._email) properties.$email = this._email;
+            if (this._dateCreated) properties.dateCreated = this._dateCreated;
 
             // Create or update the existing user in Mixpanel
             this.mixpanelClient.people.set(
-                userId,
+                this._userId,
                 properties,
             );
 
-            logger.info(`Mixpanel user profile created successfully ${userId}`);
+            logger.info(`Mixpanel user profile created successfully ${this._userId}`);
 
             return { success: true };
 
@@ -94,18 +129,25 @@ module.exports = class MixpanelService {
     };
 
     /**
-       * @desc                                        Deletes an existing user from Mixpanel
-       * @param      {string}        userId           The UserId as a string
-       * @return                                    
-    */
-    deleteUser(userId) {
+     * Delete a user in Mixpanel using the userId property
+     * via the constructor.
+     * 
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const MixpanelService = new MixpanelService({
+     *   userId: "",
+     * });
+     * 
+     * await MixpanelService.deleteUser();
+     */
+    deleteUser() {
         try {
             // Remove the existing user from Mixpanel
             this.mixpanelClient.people.delete_user(
-                userId
+                this._userId
             );
 
-            logger.info(`Mixpanel user profile deleted successfully ${userId}`);
+            logger.info(`Mixpanel user profile deleted successfully ${this._userId}`);
 
             return { success: true };
 

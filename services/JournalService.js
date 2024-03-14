@@ -21,18 +21,47 @@ const percentRound = require('percent-round');
 const checkIsoDate = require('../helpers/checkIsoDate');
 
 /**
- * @description Create an instance of the JournalService class.
+ * @description Create an instance of the JournalService class for handling journal entries.
  */
 module.exports = class JournalService {
     /**
-     * Represents the AuraService instance constructor.
+     * Represents the JournalService instance constructor.
      * @constructor
+     * @param {Object} params - An object containing parameters for the instance.
+     *   @param {string}  params.userId - A string containing the userId
+     *   @param {string}  params.journalId - A string containing the journalId
+     *   @param {string}  params.entryMood - A string containing the entry mood type
+     *   @param {string}  params.entryEmotion - A string containing the entry emotion type
+     *   @param {[]}      params.entryCategories - An array of objects containing entry categories
+     *   @param {[]}      params.entryActivities - An array of objects containing entry activities
+     *   @param {string}  params.entryText - A string containing entry text
+     *   @param {string}  params.linkedEntry - A string containing the journalId of the entry to link
+     *   @param {string}  params.startDateTime - A string containing a start date and time in ISO8601 in UTC for querying
+     *   @param {string}  params.endDateTime - A string containing an end date and time in ISO8601 in UTC for querying
+     *   @param {string}  params.categoryId - A string containing the categoryId for querying
      */
-    constructor() {
+    constructor(params = {}) {
+        // User properties
+        this._userId = params.userId;
+
+        // Journal entry properties
+        this._journalId = params.journalId;
+        this._entryMood = params.entryMood;
+        this._entryEmotion = params.entryEmotion;
+        this._entryCategories = params.entryCategories;
+        this._entryActivities = params.entryActivities;
+        this._entryText = params.entryText;
+        this._linkedEntry = params.linkedEntry;
+
+        // Journal query properties
+        this._startDateTime = params.startDateTime;
+        this._endDateTime = params.endDateTime;
+        this._categoryId = params.categoryId;
+        
         /** Sets the only accepted mood types for the JournalService.
          * As an array of moodType objects.
          */
-        this.moodTypes = [
+        this._moodTypes = [
             {
                 moodType: "High Energy, Unpleasant"
             },
@@ -49,42 +78,49 @@ module.exports = class JournalService {
     };
 
     /**
-     * @desc                                       Create a journal entry method.
-     * @param {string}    userId                   String containing user ID.
-     * @param {string}    entryMood                String containing journal entry mood.
-     * @param {string}    entryEmotion             String containing journal entry text.
-     * @param {array}     entryCategories          Array containing journal entry categories. Can be null.
-     * @param {array}     entryActivities          Array containing journal entry activities. Can be null.
-     * @param {string}    entryText                String containing journal entry text.
-     * @param {string}    linkedEntry              String containing the linkedEntry ID. Only allowed for unpleasant mood type. Can be null.
-     * @return                                     Object containing response.
+     * Creates a new journal entry using the journalId, 
+     * entryMood, entryText, and linkedEntry (optional) properties from the constructor.
+     * 
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const journalService = new JournalService({
+     *   userId: "",
+     *   entryMood: "",
+     *   entryEmotion: "",
+     *   entryCategories: [{}],
+     *   entryActivities: [{}],
+     *   entryText: "",
+     *   linkedEntry: ""
+     * });
+     * 
+     * await journalService.createEntry();
      */
-    async createEntry(userId, entryMood, entryEmotion, entryCategories, entryActivities, entryText, linkedEntry) {
+    async createEntry() {
         try {
             // Check userId parameter exists
-            if (!userId) {
+            if (!this._userId) {
                 throw new Error('Add journal entry failed - userId parameter empty. Must be supplied');
             };
 
             // Check entryMood parameter exists
-            if (!entryMood) {
-                throw new Error(`Add journal entry failed - entryMood parameter empty. Must be supplied. ${userId}`);
+            if (!this._entryMood) {
+                throw new Error(`Add journal entry failed - entryMood parameter empty. Must be supplied. ${this._userId}`);
             };
 
             // Check entryEmotion parameter exists
-            if (!entryEmotion) {
-                throw new Error(`Add journal entry failed - entryEmotion parameter empty. Must be supplied. ${userId}`);
+            if (!this._entryEmotion) {
+                throw new Error(`Add journal entry failed - entryEmotion parameter empty. Must be supplied. ${this._userId}`);
             };
 
             // Check entryText parameter exists
-            if (!entryText) {
-                throw new Error(`Add journal entry failed - entryText parameter empty. Must be supplied. ${userId}`);
+            if (!this._entryText) {
+                throw new Error(`Add journal entry failed - entryText parameter empty. Must be supplied. ${this._userId}`);
             };
 
             // If linkedEntry parameter exists and entry mood parameter is unpleasant
             // Throw error
-            if (linkedEntry && entryMood.includes('Pleasant')) {
-                throw new Error(`Add journal entry failed - cannot link an entry when current entry mood type is pleasant. ${userId}`);
+            if (this._linkedEntry && this._entryMood.includes('Pleasant')) {
+                throw new Error(`Add journal entry failed - cannot link an entry when current entry mood type is pleasant. ${this._userId}`);
             };
 
             // Create response obj
@@ -95,7 +131,7 @@ module.exports = class JournalService {
             let data;
 
             // Check if specified user ID exists in the DB
-            const check = await User.countDocuments({ auth0UserId: userId });
+            const check = await User.countDocuments({ auth0UserId: this._userId });
 
             // If user is not found
             if (check !== 1) {
@@ -111,21 +147,21 @@ module.exports = class JournalService {
                 const newEntry = {};
 
                 // Add journal details to newEntry object
-                newEntry.user = userId; 
-                newEntry.mood = await evervault.encrypt(entryMood);
-                newEntry.emotion = await evervault.encrypt(entryEmotion);
+                newEntry.user = this._userId;
+                newEntry.mood = await evervault.encrypt(this._entryMood);
+                newEntry.emotion = await evervault.encrypt(this._entryEmotion);
 
                 // Only add categories array if categories present
-                if (entryCategories) newEntry.categories = entryCategories;
+                if (this._entryCategories) newEntry.categories = this._entryCategories;
 
                 // Only add activities arrary if activities present
-                if (entryActivities) newEntry.activities = entryActivities;
+                if (this._entryActivities) newEntry.activities = this._entryActivities;
 
                 // Add journal details to newEntry object
-                newEntry.text = await evervault.encrypt(entryText);
+                newEntry.text = await evervault.encrypt(this._entryText);
 
                 // Only add linkedEntry if linkedEntry present
-                if (linkedEntry) newEntry.linkedEntry = linkedEntry;
+                if (this._linkedEntry) newEntry.linkedEntry = this._linkedEntry;
 
                 // Add journal entry to the database
                 let entry = new Entry(newEntry);
@@ -135,7 +171,7 @@ module.exports = class JournalService {
                 journalServiceEvents.emit('journalEntryCreated');
 
                 // Log success
-                logger.info(`New journal entry created successfully for user ${userId}`);
+                logger.info(`New journal entry created successfully for user ${this._userId}`);
 
                 // Set response
                 success = true;
@@ -143,7 +179,7 @@ module.exports = class JournalService {
                 (msg = 'New journal entry created successfully'),
                     (data = {
                     _id: entry._id,
-                    user: userId,
+                    user: this._userId,
                     mood: newEntry.mood,
                     emotion: newEntry.emotion,
                     categories: newEntry.categories,
@@ -170,40 +206,48 @@ module.exports = class JournalService {
         };
     };
 
-    /**
-     * @desc                                         Edit a journal entry method.
-     * @param {string}   userId                      String containing user ID.
-     * @param {string}   journalId                   String containing journal ID.
-     * @param {string}   entryMood                   String containing journal entry mood. Can be null.
-     * @param {string}   entyEmotion                 String containing journal entry mood. Can be null.
-     * @param {array}    entryCategories             Array containing journal entry categories. Can be null.
-     * @param {array}    entryActivities             Array containing journal entry activities. Can be null.
-     * @param {string}   entryText                   String containing journal entry text. Can be null.
-     * @param {string}   linkedEntry                 String containing the linkedEntry ID. Only allowed for unpleasant mood type. Can be null.
-     * @return                                       Object containing response. If authorisation fails includes authorise: false.
+   /**
+     * Edit a journal entry provide the userId, journalId.
+     * Optionally provide entryMood, entryEmotion, entryText, 
+     * entryCategories, entryActivities and linkedEntry properties from the constructor.
+     * 
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const journalService = new JournalService({
+     *   userId: "",
+     *   journalId, "",
+     *   entryMood: "",
+     *   entryEmotion: "",
+     *   entryCategories: [{}],
+     *   entryActivities: [{}],
+     *   entryText: "",
+     *   linkedEntry: ""
+     * });
+     * 
+     * await journalService.editEntry();
      */
-    async editEntry(userId, journalId, entryMood, entryEmotion, entryCategories, entryActivities, entryText, linkedEntry) {
+    async editEntry() {
         try {
             // Check userId parameter exists
-            if (!userId) {
+            if (!this._userId) {
                 throw new Error('Edit journal entry failed - userId parameter empty. Must be supplied');
             };
 
             // Check journalId parameter exists
-            if (!journalId) {
-                throw new Error(`Edit journal entry failed - journalId parameter empty. Must be supplied. ${userId}`);
+            if (!this._journalId) {
+                throw new Error(`Edit journal entry failed - journalId parameter empty. Must be supplied. ${this._userId}`);
             };
 
             // If linkedEntry exists and entryMood does not exists
             // Throw error
-            if (linkedEntry && !entryMood) {
-                throw new Error(`Add journal entry failed - cannot link an entry when current entry mood type parameter is empty. ${userId}`);
+            if (this._linkedEntry && !this._entryMood) {
+                throw new Error(`Add journal entry failed - cannot link an entry when current entry mood type parameter is empty. ${this._userId}`);
             }
 
             // If linkedEntry parameter exists and entry mood parameter is pleasant
             // Throw error
-            if (linkedEntry && entryMood.includes('Pleasant')) {
-                throw new Error(`Add journal entry failed - cannot link an entry when current entry mood type is pleasant. ${userId}`);
+            if (this._linkedEntry && this._entryMood.includes('Pleasant')) {
+                throw new Error(`Add journal entry failed - cannot link an entry when current entry mood type is pleasant. ${this._userId}`);
             };
 
             // Create response obj
@@ -218,8 +262,8 @@ module.exports = class JournalService {
             let check = await Entry.countDocuments(
                 {
                     $and: [
-                        { _id: journalId },
-                        { user: userId }
+                        { _id: this._journalId },
+                        { user: this._userId }
                     ]
                 }
             );
@@ -238,13 +282,13 @@ module.exports = class JournalService {
                 const updatedEntry = {};
 
                 // Add objects to newEntry object if found
-                if (entryMood) updatedEntry.mood = await evervault.encrypt(entryMood);
-                if (entryEmotion) updatedEntry.emotion = await evervault.encrypt(entryEmotion);
-                if (entryCategories) updatedEntry.categories = entryCategories;
-                if (entryActivities) updatedEntry.activities = entryActivities;
-                if (entryText) updatedEntry.text = await evervault.encrypt(entryText);
+                if (this._entryMood) updatedEntry.mood = await evervault.encrypt(this._entryMood);
+                if (this._entryEmotion) updatedEntry.emotion = await evervault.encrypt(this._entryEmotion);
+                if (this._entryCategories) updatedEntry.categories = this._entryCategories;
+                if (this._entryActivities) updatedEntry.activities = this._entryActivities;
+                if (this._entryText) updatedEntry.text = await evervault.encrypt(this._entryText);
 
-                if (linkedEntry) updatedEntry.linkedEntry = linkedEntry;
+                if (this._linkedEntry) updatedEntry.linkedEntry = this._linkedEntry;
 
                 // Populate the dateUpdated field of the journal entry
                 updatedEntry.dateUpdated = Date.now();
@@ -253,8 +297,8 @@ module.exports = class JournalService {
                 await Entry.findOneAndUpdate(
                     {
                         $and: [
-                            { _id: journalId },
-                            { user: userId }
+                            { _id: this._journalId },
+                            { user: this._userId }
                         ]
                     },
                     { $set: updatedEntry },
@@ -265,14 +309,14 @@ module.exports = class JournalService {
                 journalServiceEvents.emit('journalEntryUpdated');
 
                 // Log success
-                logger.info(`Journal entry edited successfully for user ${userId}`);
+                logger.info(`Journal entry edited successfully for user ${this._userId}`);
 
                 // Set response
                 success = true;
                 authorise = true;
-                msg = `Journal entry successfully updated with ID ${journalId}`;
+                msg = `Journal entry successfully updated with ID ${this._journalId}`;
                 data = {
-                    user: userId,
+                    user: this._userId,
                     mood: updatedEntry.mood,
                     emotion: updatedEntry.emotion,
                     categories: updatedEntry.categories,
@@ -300,21 +344,27 @@ module.exports = class JournalService {
     };
 
     /**
-     * @desc                         Delete a journal entry method.
-     * @param {string} userId        String containing user ID.
-     * @param {string} journalId     String containing journal ID.
-     * @return                       Object containing response. If authorisation fails includes authorise: false.
+     * Delete a journal entry provide the userId, journalId.
+     * 
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const journalService = new JournalService({
+     *   userId: "",
+     *   journalId, ""
+     * });
+     * 
+     * await journalService.deleteEntry();
      */
-    async deleteEntry(userId, journalId) {
+    async deleteEntry() {
         try {
             // Check userId parameter exists
-            if (!userId) {
+            if (!this._userId) {
                 throw new Error('Delete journal entry failed - userId parameter empty. Must be supplied');
             };
 
             // Check journalId parameter exists
-            if (!journalId) {
-                throw new Error(`Delete journal entry failed - journalId parameter empty. Must be supplied. ${userId}`);
+            if (!this._journalId) {
+                throw new Error(`Delete journal entry failed - journalId parameter empty. Must be supplied. ${this._userId}`);
             };
 
             // Create response obj
@@ -328,8 +378,8 @@ module.exports = class JournalService {
             let check = await Entry.countDocuments(
                 {
                     $and: [
-                        { _id: journalId },
-                        { user: userId }
+                        { _id: this._journalId },
+                        { user: this._userId }
                     ]
                 }
             );
@@ -347,8 +397,8 @@ module.exports = class JournalService {
                 await Entry.deleteOne(
                     {
                         $and: [
-                            { _id: journalId },
-                            { user: userId }
+                            { _id: this._journalId },
+                            { user: this._userId }
                         ]
                     }
                 );
@@ -357,12 +407,12 @@ module.exports = class JournalService {
                 journalServiceEvents.emit('journalEntryDeleted');
 
                 // Log success
-                logger.info(`Journal entry deleted successfully for user ${userId}`);
+                logger.info(`Journal entry deleted successfully for user ${this._userId}`);
 
                 // Set response
                 success = true;
                 authorise = true;
-                msg = `Journal entry successfully deleted with ID ${journalId}`;
+                msg = `Journal entry successfully deleted with ID ${this._journalId}`;
             };
 
             // Build response
@@ -370,7 +420,7 @@ module.exports = class JournalService {
                 success: success,
                 authorise: authorise,
                 msg: msg,
-                user: userId
+                user: this._userId
             };
 
             // Return response object
@@ -383,44 +433,51 @@ module.exports = class JournalService {
     };
 
     /**
-     * @desc                                                    Get all journal entries method
-     * @param {string}                         userId           String containing user ID
-     * @param {"2021-01-01T00:00:00.000Z"}     startDateTime    A start dateTime. Must be an ISO 8601 string in Zulu time (optional)
-     * @param {"2022-01-01T00:00:00.000Z"}     endDateTime      An end dateTime. Must be an ISO 8601 string in Zulu time (optional, must be included with startDateTime)
-     * @param {string}                         categoryId       A categoryId, for filtering. Optional
-     * @return                                                  Object containing response. If authorisation fails includes authorise: false
+     * Fetch all journal entries for the specified user provide the userId, startDateTime
+     * and endDateTime. Optionally provide a categoryId for filtering.
+     * 
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const journalService = new JournalService({
+     *   userId: "",
+     *   startDateTime: "",
+     *   endDateTime: "",
+     *   categoryId: ""
+     * });
+     * 
+     * await journalService.getAllEntries();
      */
-    async getAllEntries(userId, startDateTime, endDateTime, categoryId) {
+    async getAllEntries() {
         try {
             // Check userId parameter exists
-            if (!userId) {
+            if (!this._userId) {
                 throw new Error('Get all journal entries failed - userId parameter empty. Must be supplied');
             };
 
             // If startDateTime parameter exists and endDateTime parameter doesn't exist
-            if (startDateTime && !endDateTime) {
-                throw new Error(`Get all journal entries failed - endDateTime parameter empty. Must be supplied with startDateTime parameter. ${userId}`);
+            if (this._startDateTime && !this._endDateTime) {
+                throw new Error(`Get all journal entries failed - endDateTime parameter empty. Must be supplied with startDateTime parameter. ${this._userId}`);
             };
 
             // If startDateTime & endDateTime parameters exists
-            if (startDateTime && endDateTime) {
+            if (this._startDateTime && this._endDateTime) {
                 // Check startDateTime and endDateTime is ISO 8601 formatted
-                if (!checkIsoDate(startDateTime)) {
-                    throw new Error(`Get all journal entries failed - startDateTime parameter must be an ISO 8601 string in Zulu time. ${userId}`);
+                if (!checkIsoDate(this._startDateTime)) {
+                    throw new Error(`Get all journal entries failed - startDateTime parameter must be an ISO 8601 string in Zulu time. ${this._userId}`);
                 };
 
-                if (!checkIsoDate(endDateTime)) {
-                    throw new Error(`Get all journal entries failed - endDateTime parameter must be an ISO 8601 string in Zulu time. ${userId}`);
+                if (!checkIsoDate(this._endDateTime)) {
+                    throw new Error(`Get all journal entries failed - endDateTime parameter must be an ISO 8601 string in Zulu time. ${this._userId}`);
                 };
             };
 
             // If the categoryId parameter has been provided
             // Check it exists in the database
-            if (categoryId) {
-                const checkCategory = await Categories.find({ _id: categoryId }).lean();
+            if (this._categoryId) {
+                const checkCategory = await Categories.find({ _id: this._categoryId }).lean();
 
                 if (checkCategory.length === 0) {
-                    throw new Error(`Get all journal entries failed - specified categoryId not found. ${userId}`);
+                    throw new Error(`Get all journal entries failed - specified categoryId not found. ${this._userId}`);
                 };
             };
 
@@ -432,7 +489,7 @@ module.exports = class JournalService {
             let data;
 
             // Check if the user exists
-            let check = await User.countDocuments({ auth0UserId: userId });
+            let check = await User.countDocuments({ auth0UserId: this._userId });
 
             // If the user is not found
             if (check !== 1) {
@@ -447,24 +504,24 @@ module.exports = class JournalService {
                 const stages = [
                     // Get records by userId
                     {
-                        $match: { user: { $eq: userId } }
+                        $match: { user: { $eq: this._userId } }
                     }
                 ];
 
                 // Conditional aggregation pipeline stages
                 // Category filter (add to start of stages array)
-                if (categoryId) {
+                if (this._categoryId) {
                     stages.unshift(
                         {
-                            $match: { "categories.0._id": { $eq: categoryId } }
+                            $match: { "categories.0._id": { $eq: this._categoryId } }
                         }
                     )
                 };
                 // startDateTime & endDateTime filter (add to end of stages array)
-                if (startDateTime && endDateTime) {
+                if (this._startDateTime && this._endDateTime) {
                     stages.push(
                         {
-                            $match: { dateCreated: { $gte: new Date(startDateTime), $lt: new Date(endDateTime) } }
+                            $match: { dateCreated: { $gte: new Date(this._startDateTime), $lt: new Date(this._endDateTime) } }
                         }
                     )
                 };
@@ -503,7 +560,7 @@ module.exports = class JournalService {
                     });
                     
                 // Log success
-                logger.info(`Journal entries retrieved successfully for user ${userId}`);
+                logger.info(`Journal entries retrieved successfully for user ${this._userId}`);
                 
                 // Set response
                 success = true;
@@ -518,7 +575,7 @@ module.exports = class JournalService {
                 authorise: authorise,
                 msg: msg,
                 data: data,
-                user: userId
+                user: this._userId
             };
 
             // Return response object
@@ -530,33 +587,39 @@ module.exports = class JournalService {
         };
     };
 
-        /**
-     * @desc                         Delete all journal entries method.
-     * @param {string} userId        String containing user ID.
-     * @return                       Object containing response.
+    /**
+     * Delete all journal entries for the specified user provide the userId.
+     * 
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const journalService = new JournalService({
+     *   userId: ""
+     * });
+     * 
+     * await journalService.deleteAllEntries();
      */
-    async deleteAllEntries(userId) {
+    async deleteAllEntries() {
         try {
             // Check userId parameter exists
-            if (!userId) {
+            if (!this._userId) {
                 throw new Error('Delete journal entry failed - userId parameter empty. Must be supplied');
             };
 
             // Delete all journal entries for the specified user from the database
             await Entry.deleteMany(
                 {
-                    user: userId
+                    user: this._userId
                 }
             );
 
             // Log success
-            logger.info(`All journal entries deleted successfully for user ${userId}`);
+            logger.info(`All journal entries deleted successfully for user ${this._userId}`);
 
             // Build response
             const response = {
                 success: true,
                 msg: `All journal entries delete successfully`,
-                user: userId
+                user: this._userId
             };
 
             // Return response object
@@ -569,21 +632,27 @@ module.exports = class JournalService {
     };
 
     /**
-     * @desc                         Get single journal entry method.
-     * @param {string} userId        String containing user ID.
-     * @param {string} journalId     String containing journal ID.
-     * @return                       Object containing response. If authorisation fails includes authorise: false.
+     * Get a specific journal entry for the specified user.
+     * Provide userId and journalId.
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const journalService = new JournalService({
+     *   userId: "",
+     *   journalId: ""
+     * });
+     * 
+     * await journalService.getEntry();
      */
-    async getEntry(userId, journalId) {
+    async getEntry() {
         try {
             // Check userId parameter exists
-            if (!userId) {
+            if (!this._userId) {
                 throw new Error('Get journal entry failed - userId parameter empty. Must be supplied');
             };
 
             // Check journalId parameter exists
-            if (!journalId) {
-                throw new Error(`Get journal entry failed - journalId parameter empty. Must be supplied. ${userId}`);
+            if (!this._journalId) {
+                throw new Error(`Get journal entry failed - journalId parameter empty. Must be supplied. ${this._userId}`);
             };
 
             // Create response obj
@@ -598,8 +667,8 @@ module.exports = class JournalService {
             let check = await Entry.countDocuments(
                 {
                     $and: [
-                        { _id: journalId },
-                        { user: userId }
+                        { _id: this._journalId },
+                        { user: this._userId }
                     ]
                 }
             );
@@ -617,14 +686,14 @@ module.exports = class JournalService {
                 const entry = await Entry.findOne(
                     {
                         $and: [
-                            { _id: journalId },
-                            { user: userId }
+                            { _id: this._journalId },
+                            { user: this._userId }
                         ]
                     }
                 );
 
                 // Log success
-                logger.info(`Entry retrieved successfully for user ${userId}`);
+                logger.info(`Entry retrieved successfully for user ${this._userId}`);
 
                 // Emit journalEntryFetched event
                 journalServiceEvents.emit('journalEntryFetched');
@@ -661,20 +730,26 @@ module.exports = class JournalService {
     };
 
     /**
-     * @desc                         Get the most recent journal entry for the specified user.
-     * @param {string}     userId    String containing user ID.
-     * @return                       Returns array with the most recent journal entry. If no entries, will be an empty array.
+     * Get the most recent journal entry for the specified user.
+     *  If no journal entries exist, returned array will be empty.
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const journalService = new JournalService({
+     *   userId: ""
+     * });
+     * 
+     * await journalService.getMostRecentEntry();
      */
-    async getMostRecentEntry(userId) {
+    async getMostRecentEntry() {
         try {
             // Check userId parameter exists
-            if (!userId) {
+            if (!this._userId) {
                 throw new Error('Get most recent journal entry failed - userId parameter empty. Must be supplied');
             };
 
             // Get most recent journal entry
             let fetchMostRecentEntry = await Entry
-                .find({ user: userId })
+                .find({ user: this._userId })
                 .limit(1)
                 .sort({ dateCreated: -1 });
             
@@ -691,13 +766,24 @@ module.exports = class JournalService {
             // if (mostRecentEntry.text) mostRecentEntry.text =
             //     await evervault.decrypt(mostRecentEntry.text);
             
+            // Set response
+            let response;
+
             // If mostRecentEntry is an empty array add an object with the user property
-            if (mostRecentEntry.length === 0) mostRecentEntry = [{ user: userId }];
+            if (mostRecentEntry.length === 0) response = [{ user: this._userId, data: [] }]
+
+                // Else add mostRecentEntry to the response object
+            else {
+                response = {
+                    user: this._userId,
+                    data: mostRecentEntry
+                }
+            };
             
             // Log success
-            logger.info(`Most recent entry retrieved successfully for user ${userId}`);
+            logger.info(`Most recent entry retrieved successfully for user ${this._userId}`);
 
-            return mostRecentEntry;
+            return response;
 
         } catch (err) {
             logger.error(err.message);
@@ -706,21 +792,27 @@ module.exports = class JournalService {
     };
 
     /**
-     * @desc                                      Get the closest matching journal entry for the specified user to the specified entry.
-     * @param {string} userId                     String containing user ID.
-     * @param {string}  journalId                 String containing journal ID.
-     * @return                                    Returns array with closest matched journal entry. If no match, array will be empty.
+     * Get the closest matching && most recent journal entry in the past,
+     *  for the specified userId and journalId.
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const journalService = new JournalService({
+     *   userId: "",
+     *   journalId: ""
+     * });
+     * 
+     * await journalService.getclosestEntry();
      */
-    async getClosestEntry(userId, journalId) {
+    async getClosestEntry() {
         try {
             // Check userId parameter exists
-            if (!userId) {
+            if (!this._userId) {
                 throw new Error('Get closest journal entry failed - userId parameter empty. Must be supplied');
             };
 
             // Check journalId parameter exists
-            if (!journalId) {
-                throw new Error(`Get closest journal entry failed - journalId parameter empty. Must be supplied. ${userId}`);
+            if (!this._journalId) {
+                throw new Error(`Get closest journal entry failed - journalId parameter empty. Must be supplied. ${this._userId}`);
             };
 
             // Get entry for checking
@@ -729,15 +821,15 @@ module.exports = class JournalService {
             const fetchEntry = await Entry.findOne(
                 {
                     $and: [
-                        { _id: journalId },
-                        { user: userId }
+                        { _id: this._journalId },
+                        { user: this._userId }
                     ]
                 }
             );
 
             // If journal entry not found
             if (!fetchEntry) {
-                throw new Error(`Get closest journal entry failed - journal entry not found. ${userId}`);
+                throw new Error(`Get closest journal entry failed - journal entry not found. ${this._userId}`);
             };
 
             const checkEntry = await evervault.decrypt(fetchEntry);
@@ -750,11 +842,11 @@ module.exports = class JournalService {
             /* Fetch all entries for the current user 
             where dateCreated is before check dateCreated */
             const entries = await Entry.find(
-                { user: userId, dateCreated: { $lt: checkEntry.dateCreated } }).lean();
+                { user: this._userId, dateCreated: { $lt: checkEntry.dateCreated } }).lean();
 
             // If journal entry not found
             if (!entries) {
-                throw new Error(`Get closest journal entry failed - journal entries not found. ${userId}`);
+                throw new Error(`Get closest journal entry failed - journal entries not found. ${this._userId}`);
             };
 
             // Decrypt all entries
@@ -768,7 +860,7 @@ module.exports = class JournalService {
             for (const entry of decryptedEntries) {
                 try {
                     // Skip the current record if ids are the same
-                    if (entry._id.toString() === journalId) continue;
+                    if (entry._id.toString() === this._journalId) continue;
 
                     const decryptedEntry = entry;
 
@@ -823,13 +915,13 @@ module.exports = class JournalService {
             };
 
             // Log success
-            logger.info(`Closest matching entry retrieved successfully for user ${userId}`);
+            logger.info(`Closest matching entry retrieved successfully for user ${this._userId}`);
 
             // Add userId to closestEntry object
-            closestEntry.user = userId;
+            closestEntry.user = this._userId;
             
             // Return data
-            return { data: closestEntry, user: userId };
+            return { user: this._userId, data: closestEntry };
 
         } catch (err) {
             logger.error(err.message);
@@ -838,46 +930,52 @@ module.exports = class JournalService {
     };
 
     /**
-     * @desc                                                                 Get stats on journalling between a start dateTime and end dateTime
-     * @param {string}                         userId                        String containing user ID
-     * @param {"2021-08-27T00:00:00.000Z"}     startDateTime                 A start dateTime. Must be an ISO 8601 string in Zulu time
-     * @param {"2021-08-27T00:00:00.000Z"}     endDateTime                   An end dateTime. Must be an ISO 8601 string in Zulu time
-     * @param {string}                         categoryId                    A category Id, for filtering stats. Optional
-     * @return                                                               Returns object with stats
+     * Get journalling stats for the specified userId,
+     *  between a startDateTime and endDateTime. Optionally provide a categoryId for filtering.
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const journalService = new JournalService({
+     *   userId: "",
+     *   startDateTime: "",
+     *   endDateTime: "",
+     *   categoryId: ""
+     * });
+     * 
+     * await journalService.getclosestEntry();
      */
-    async getStats(userId, startDateTime, endDateTime, categoryId) {
+    async getStats() {
         try {
             // Check userId parameter exists
-            if (!userId) {
+            if (!this._userId) {
                 throw new Error('Get stats failed - userId parameter empty. Must be supplied');
             };
 
             // Check startDateTime parameter exists
-            if (!startDateTime) {
-                throw new Error(`Get stats failed - startDateTime parameter empty. Must be supplied. ${userId}`);
+            if (!this._startDateTime) {
+                throw new Error(`Get stats failed - startDateTime parameter empty. Must be supplied. ${this._userId}`);
             };
 
             // Check endDateTime parameter exists
-            if (!endDateTime) {
-                throw new Error(`Get stats failed - endDateTime parameter empty. Must be supplied. ${userId}`);
+            if (!this._endDateTime) {
+                throw new Error(`Get stats failed - endDateTime parameter empty. Must be supplied. ${this._userId}`);
             };
 
             // Check startDateTime and endDateTime is ISO 8601 formatted
-            if (!checkIsoDate(startDateTime)) {
-                throw new Error(`Get stats failed - startDateTime parameter must be an ISO 8601 string in Zulu time. ${userId}`);
+            if (!checkIsoDate(this._startDateTime)) {
+                throw new Error(`Get stats failed - startDateTime parameter must be an ISO 8601 string in Zulu time. ${this._userId}`);
             };
 
-            if (!checkIsoDate(endDateTime)) {
-                throw new Error(`Get stats failed - endDateTime parameter must be an ISO 8601 string in Zulu time. ${userId}`);
+            if (!checkIsoDate(this._endDateTime)) {
+                throw new Error(`Get stats failed - endDateTime parameter must be an ISO 8601 string in Zulu time. ${this._userId}`);
             };
 
             // If the categoryId parameter has been provided
             // Check it exists in the database
-            if (categoryId) {
-                const checkCategory = await Categories.find({ _id: categoryId }).lean();
+            if (this._categoryId) {
+                const checkCategory = await Categories.find({ _id: this._categoryId }).lean();
 
                 if (checkCategory.length === 0) {
-                    throw new Error(`Get stats failed - specified categoryId not found. ${userId}`);
+                    throw new Error(`Get stats failed - specified categoryId not found. ${this._userId}`);
                 };
             };
 
@@ -888,8 +986,8 @@ module.exports = class JournalService {
                 {
                     $match: {
                         $and: [
-                            { user: { $eq: userId } },
-                            { dateCreated: { $gte: new Date(startDateTime), $lt: new Date(endDateTime) } },
+                            { user: { $eq: this._userId } },
+                            { dateCreated: { $gte: new Date(this._startDateTime), $lt: new Date(this._endDateTime) } },
                         ],
                     },
                 },
@@ -930,13 +1028,13 @@ module.exports = class JournalService {
             ];
 
             // If categoryId parameter exists
-            if (categoryId) {
+            if (this._categoryId) {
                 // Add pipeline stage to start of aggregationPipeline array
                 aggregationPipeline.unshift(
                     // Pipeline stage
-                    // Match records where categories.0._id === categoryId parameter
+                    // Match records where categories.0._id === this._categoryId parameter
                     {
-                        $match: { "categories.0._id": { $eq: categoryId } }
+                        $match: { "categories.0._id": { $eq: this._categoryId } }
                     }
                 );
             };
@@ -960,7 +1058,7 @@ module.exports = class JournalService {
             };
 
             // Get copingActivities
-            let copingActivities = await Activities.find({ user: userId }).lean();
+            let copingActivities = await Activities.find({ user: this._userId }).lean();
             //     [
             //         // Pipeline stage
             //         // Get records by userId
@@ -1073,8 +1171,8 @@ module.exports = class JournalService {
             // Else, if moodCountCheck is false
             else {
                 highestMood = {
-                    moodType: '',
-                    count: ''
+                    moodType: "",
+                    count: ""
                 };
             };
 
@@ -1083,12 +1181,12 @@ module.exports = class JournalService {
 
                 // Start and end time/date
                 timePeriod: {
-                    startDate: startDateTime,
-                    endDate: endDateTime
+                    startDate: this._startDateTime,
+                    endDate: this._endDateTime
                 },
 
                 // Category filter Id
-                categoryFilterId: categoryId,
+                categoryFilterId: this._categoryId,
 
                 // Mood stats
                 moodStats: {
@@ -1109,7 +1207,7 @@ module.exports = class JournalService {
             };
             
             // Return the stats object
-            return { success: true, data: stats, user: userId };
+            return { success: true, user: this._userId, data: stats };
 
         } catch (err) {
             logger.error(err.message);

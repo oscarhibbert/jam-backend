@@ -12,52 +12,81 @@ const ManagementClient = require('auth0').ManagementClient;
  */
 module.exports = class Auth0Service {
     /**
-     * Represents the Auth0 instance constructor
+     * Represents the Auth0 instance constructor.
      * @constructor
+     * @param {Object} params - An object containing parameters for the instance.
+     *   @param {string}  params.email - A string containing the user email
+     *   @param {string}  params.firstName - A string containing user first name
+     *   @param {string}  params.lastName - A string containing the user last name
+     *   @param {string}  params.mainUserId - A string containing the user main Auth0 ID
+     *   @param {string}  params.secondaryUserId - A string containing the user secondary Auth0 ID
+     *   @param {string}  params.provider - The identity provider of the user secondary account 
+     *   @param {boolean} params.setEmailVerified - A boolean value for setting whether email is verified
+     *   @param {{}}      params.newInfo - An object containing user profile properties
      */
-    constructor() {
-        /** Sets the Auth0 domain */
-        this.auth0Domain = config.auth0.domain;
-        /** Sets the Auth0 application client ID */
-        this.auth0ClientId = config.auth0.clientId;
-        /** Sets the Auth0 application client secret */
-        this.auth0ClientSecret = config.auth0.clientSecret;
-        /** Sets the Auth0 passwordless email connection ID */
-        this.auth0EmailConnectionId = config.auth0.emailConnectionId;
+    constructor(params = {}) {
+        // User profile properties
+        this._email = params.email;
+        this._firstName = params.firstName;
+        this._lastName = params.lastName;
+        this._mainUserId = params.mainUserId;
+        this._secondaryUserId = params.secondaryUserId;
+        this._provider = params.provider;
+        this._setEmailVerified = params.setEmailVerified;
+
+        // User profile as an object property
+        this._newInfo = params.newInfo;
         
-        /** Instantiate the Auth0 management client */
-        this.auth0 = new ManagementClient({
-            domain: this.auth0Domain,
-            clientId: this.auth0ClientId,
-            clientSecret: this.auth0ClientSecret
+        /** Auth0 instance properties */
+        this._auth0Domain = config.auth0.domain;
+        /** Sets the Auth0 application client ID */
+        this._auth0ClientId = config.auth0.clientId;
+        /** Sets the Auth0 application client secret */
+        this._auth0ClientSecret = config.auth0.clientSecret;
+        /** Sets the Auth0 passwordless email connection ID */
+        this._auth0EmailConnectionId = config.auth0.emailConnectionId;
+        
+        /** Set the Auth0 management instance property */
+        this._auth0 = new ManagementClient({
+            domain: this._auth0Domain,
+            clientId: this._auth0ClientId,
+            clientSecret: this._auth0ClientSecret
         });
     };
 
     /**
-     * @desc                                                   Create a new passwordless user in Auth0
-     * @param {string}                      email              The email address of the new user
-     * @param {string}                      firstName          The first name of the new user
-     * @param {string}                      lastName           The surname of the new user
-     * @param {string}                      setEmailVerified   (optional) Can be set to true when new user will be linked to existing user
-     * @return                                                 Object with msg and data
+     * Creates a new passwordless user in Auth0 
+     * using email, firstName, lastName and
+     * optionally setEmailVerified properties from the constructor.
+     * 
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const Auth0Service = new Auth0Service({
+     *   email: "",
+     *   firstName: "",
+     *   lastName: "",
+     *   setEmailVerified: true
+     * });
+     * 
+     * await Auth0Service.createUser();
      */
-    async createUser(email, firstName, lastName, setEmailVerified) {
+    async createUser() {
         try {
 
             // Set email verified var
             let emailVerified = false;
 
-            if (setEmailVerified) {
-                if (setEmailVerified === true) emailVerified = true;
+            if (this._setEmailVerified) {
+                if (this._setEmailVerified === true) emailVerified = true;
             }
 
             // Create the user using the email connection type
             // (magic link)
-            const newUser = await this.auth0.createUser(
+            const newUser = await this._auth0.createUser(
                 {
-                    email: email,
-                    given_name: firstName,
-                    family_name: lastName,
+                    email: this._email,
+                    given_name: this._firstName,
+                    family_name: this._lastName,
                     connection: "email",
                     email_verified: emailVerified
                 }
@@ -76,31 +105,38 @@ module.exports = class Auth0Service {
     };
 
     /**
-     * @desc                                                Get an Auth0 user by email address
-     * @param {string}                      email           The email address of the user
-     * @return                                              Object with msg and data
+     * Get an Auth0 user by email address
+     * using the email property from the constructor.
+     * 
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const Auth0Service = new Auth0Service({
+     *   email: ""
+     * });
+     * 
+     * await Auth0Service.getUserByEmail();
      */
-    async getUserByEmail(email) {
+    async getUserByEmail() {
         try {
             // Try fetch the user profile from Auth0
-            const user = await this.auth0.getUsersByEmail(email);
+            const user = await this._auth0.getUsersByEmail(this._email);
 
             if (user.length === 0) throw new Error('No user found');
             
             // Log success
-            logger.info(`Auth0 user found successfully with email address ${email}`);
+            logger.info(`Auth0 user found successfully with email address ${this._email}`);
 
             // Return message and data
-            return { msg: `User profile found for email address ${email}`, data: user[0] };
+            return { msg: `User profile found for email address ${this._email}`, data: user[0] };
             
         } catch (err) {
             // If error not found return message empty data
             if (err.message === 'No user found') {
-                return {msg: `No user found with email address ${email}`};
+                return {msg: `No user found with email address ${this._email}`};
             };
 
             if (err.message.includes("Object didn't pass validation for format email")) {
-                return {msg: `Incorrect email syntax for email address ${email}`};
+                return {msg: `Incorrect email syntax for email address ${this._email}`};
             };
 
             // Log error
@@ -109,9 +145,15 @@ module.exports = class Auth0Service {
     };
 
     /**
-     * @desc                                       Get a user profile from Auth0
-     * @param {string}    userId                   String containing user ID
-     * @return                                     Object with msg and data
+     * Get an Auth0 user profile
+     * by userId property from the constructor.
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const Auth0Service = new Auth0Service({
+     *   userId: ""
+     * });
+     * 
+     * await Auth0Service.getUserProfile();
      */
     async getUserProfile(userId) {
         try {
@@ -137,21 +179,28 @@ module.exports = class Auth0Service {
     };
 
     /**
-     * @desc                                                Get a user profile from Auth0
-     * @param {string}                      userId          String containing user ID
-     * @param {object}                      newInfo         Object containing user data to update
-     * @return                                              Object with msg
+     * Update an Auth0 user profile
+     * by userId and newInfo properties from the constructor.
+     * 
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const Auth0Service = new Auth0Service({
+     *   userId: "",
+     *   newInfo: {}
+     * });
+     * 
+     * await Auth0Service.updateUser();
      */
-    async updateUser(userId, newInfo) {
+    async updateUser() {
         try {
             // Try fetch the user profile from Auth0
-            let updateProfile = await this.auth0.updateUser(
-                { id: userId },
-                newInfo
+            let updateProfile = await this._auth0.updateUser(
+                { id: this._userId },
+                this._newInfo
             );
 
             // Log success
-            logger.info(`Auth0 user updated successfully ${userId}`);
+            logger.info(`Auth0 user updated successfully ${this._userId}`);
 
             // Return message and data
             return {msg: "Profile updated successfully", data: updateProfile};
@@ -175,25 +224,32 @@ module.exports = class Auth0Service {
     };
 
     /**
-     * @desc                                                Get a user from Auth0
-     * @param {string}                      userId          String containing user ID
-     * @return                                              Object with msg
+     * Delete an Auth0 user
+     * by the userId property from the constructor.
+     * 
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const Auth0Service = new Auth0Service({
+     *   userId: ""
+     * });
+     * 
+     * await Auth0Service.deleteUser();
      */
-    async deleteUser(userId) {
+    async deleteUser() {
         try {
             // Try to get the user profile so error throws if not found
             // There is a small bug with the Auth0 
-            const { msg } = await this.getUserProfile(userId);
+            const { msg } = await this.getUserProfile(this._userId);
 
             if (msg === 'User profile not found') {
                 return {msg: "User profile not found"};
             };
 
             // Try to delete the user from Auth0
-            const deleteUser = await this.auth0.deleteUser({id: userId});
+            await this._auth0.deleteUser({id: this._userId});
             
             // Log success
-            logger.info(`Auth0 user deleted successfully ${userId}`);
+            logger.info(`Auth0 user deleted successfully ${this._userId}`);
 
             // Return message and data
             return {msg: "Success - user deleted"};
@@ -211,27 +267,35 @@ module.exports = class Auth0Service {
     };
 
     /**
-     * @desc                                                   Link an existing user to another user
-     * @param {string}                      mainUserId         String containing main user ID
-     * @param {string}                      secondaryUserId    String containing the user ID of the secondary account
-     * @param {string}                      provider           String containing the identity provider of the secondary account 
-     * @return                                                 Object with msg
+     * Link a pimary Auth0 user with a secondary Auth0 user profile
+     * by mainUserId, secondaryUserId and provider of the second account
+     * properties of the constructor.
+     * 
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const Auth0Service = new Auth0Service({
+     *   mainUserId: "",
+     *   secondaryUserId: "",
+     *   provider: ""
+     * });
+     * 
+     * await Auth0Service.linkUsers();
      */
-    async linkUsers(mainUserId, secondaryUserId, provider) {
+    async linkUsers() {
         try {
             // Try to link the
-            await this.auth0.linkUsers(
+            await this._auth0.linkUsers(
                 // Main account
-                mainUserId,
+                this._mainUserId,
                 // User to link to the main account
                 {
-                    user_id: secondaryUserId,
-                    connection_id: this.auth0EmailConnectionId,
-                    provider: provider
+                    user_id: this._secondaryUserId,
+                    connection_id: this._auth0EmailConnectionId,
+                    provider: this._provider
                 }
             );
 
-            return { msg: `Auth0 user ${mainUserId} linked successfully to ${secondaryUserId}` };
+            return { msg: `Auth0 user ${this._mainUserId} linked successfully to ${this._secondaryUserId}` };
 
         } catch (err) {
             // Log error
