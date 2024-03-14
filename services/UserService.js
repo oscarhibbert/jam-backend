@@ -187,20 +187,35 @@ module.exports = class UserService {
                 throw new Error(`Delete user failed - user object for user not found - ${this._userId}`);
             };
 
+            // Create new journal service instance
+            const JournalServiceInstance = new JournalService(
+                { userId: this._userId }
+            );
+
+            // Create new journal service instance
+            const SettingsServiceInstance = new SettingsService(
+                { userId: this._userId }
+            );
+
+            // Create new journal service instance
+            const MixpanelServiceInstance = new MixpanelService(
+                { userId: this._userId }
+            );
+
             // Attempt to delete all journal entries for the user via the Journal Service
-            await JournalServiceInstance.deleteAllEntries(this._userId);
+            await JournalServiceInstance.deleteAllEntries();
 
             // Attempt to delete all categories for the user via the Settings Service
-            await SettingsServiceInstance.deleteAllCategories(this._userId);
+            await SettingsServiceInstance.deleteAllCategories();
 
             // Attempt to delete all activities for the user via the Settings Service
-            await SettingsServiceInstance.deleteAllActivities(this._userId);
+            await SettingsServiceInstance.deleteAllActivities();
 
             // Attempt to delete the settings object for the user
-            await SettingsServiceInstance.deleteSettings(this._userId);
+            await SettingsServiceInstance.deleteSettings();
 
             // Attempt to delete user from Mixpanel
-            MixpanelServiceInstance.deleteUser(this._userId);
+            await MixpanelServiceInstance.deleteUser();
 
             // Attempt to delete the user from the MongoDB user collection
             await User.deleteOne(
