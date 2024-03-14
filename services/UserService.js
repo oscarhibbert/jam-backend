@@ -42,31 +42,37 @@ module.exports = class UserService {
     };
 
     /**
-     * @desc                                                Create a new Aura Journal user
-     * @param {string}                      email           The email address of the new user
-     * @param {string}                      firstName       The first name of the new user
-     * @param {string}                      lastName        The surname of the new user
-     * @return                                              Object with msg and data
+     * Creates a new Jam user
+     * 
+     * @returns {Promise<Object>} - A promise that resolves to a response object
+     * @example
+     * const SettingsService = new UserService({
+     *   email: "",
+     *   firstName: "",
+     *   lastName: ""
+     * });
+     * 
+     * await SettingsService.createUser();
      */
-    async createUser(email, firstName, lastName) {
+    async createUser() {
         try {
             // Check email parameter exists
-            if (!email) {
+            if (!this._email) {
                 throw new Error('Create new user failed - email parameter empty. Must be supplied');
             };
 
             // Check firstName parameter exists
-            if (!firstName) {
+            if (!this._firstName) {
                 throw new Error('Create new user failed - firstName parameter empty. Must be supplied');
             };
 
             // Check lastName parameter exists
-            if (!lastName) {
+            if (!this._lastName) {
                 throw new Error('Create new user failed - lastName parameter empty. Must be supplied');
             };
 
             // Create the new user in Auth0
-            const newUser = await Auth0ServiceInstance.createUser(email, firstName, lastName);
+            const newUser = await Auth0ServiceInstance.createUser(this._email, this._firstName, this._lastName);
 
             // Create a new user in Mixpanel
             MixpanelServiceInstance.createOrUpdateUser(
