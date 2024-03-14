@@ -258,8 +258,13 @@ module.exports = class UserService {
                 throw new Error('Delete user by email failed - email parameter empty. Must be supplied');
             };
 
+            // Create Auth0 Service Instance
+            const Auth0ServiceInstance = new Auth0Service(
+                { email: this._email }
+            );
+
             // Get the user by email address
-            const { data } = await Auth0ServiceInstance.getUserByEmail(this._email);
+            const { data } = await Auth0ServiceInstance.getUserByEmail();
 
             if (!data) throw new Error('Delete user by email failed - user does not exists')
 
