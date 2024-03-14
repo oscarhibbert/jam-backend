@@ -144,7 +144,7 @@ module.exports = class UserService {
             const { email, name, given_name, family_name } = userProfile.data;
 
             // Overwrite userProfile.data to an empty object
-            userProfile.data = {};
+            userProfile.data = { };
 
             // Update userProfile.data to only include the desired properties
             userProfile.data = { email, name, given_name, family_name };
