@@ -5,7 +5,6 @@ const logger = require('../loaders/logger');
 
 // Service imports
 const JournalService = require('../services/JournalService');
-const JournalServiceInstance = new JournalService();
 
 // Controller methods
 // @desc   Create a journal entry
@@ -13,18 +12,24 @@ const JournalServiceInstance = new JournalService();
 // @access Private
 exports.createEntry = async (req, res) => {
   try {
-    const userID = req.user.sub;
+    const userId = req.user.sub;
     const { mood, emotion, categories, activities, text, linkedEntry } = req.body;
 
-    let response = await JournalServiceInstance.createEntry(
-      userID,
-      mood,
-      emotion,
-      categories,
-      activities,
-      text,
-      linkedEntry
+    // Instantiate the Journal Service Class and pass req.body values
+    const JournalServiceInstance = new JournalService(
+      {
+        userId: userId,
+        entryMood: mood,
+        entryEmotion: emotion,
+        entryCategories: categories,
+        entryActivities: activities,
+        entryText: text,
+        linkedEntry: linkedEntry
+      }
     );
+
+    // Create a journal entry
+    let response = await JournalServiceInstance.createEntry();
 
     if (response.authorise === false) {
       // Return a 401 authorisation denied
