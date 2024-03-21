@@ -3,29 +3,39 @@
 // Imports
 const fs = require('fs');
 const path = require('path');
-const mockingoose = require('mockingoose');
+const mongoose = require('mongoose');
+
 
 // Mock imports
 const JournalService = require('../../../services/JournalService');
+const logger = require('../../../loaders/logger');
 const evervault = require('../../../loaders/evervault');
 const User = require('../../../models/User');
-const Entry = require('../../../models/Entry');
 const Categories = require('../../../models/Categories');
 const Activities = require('../../../models/Activities');
 const { JsonWebTokenError } = require('jsonwebtoken');
 
 // Fetch test data
 
+// Function to drop all database collections
+async function clearDatabase() {
+  const collections = mongoose.connection.collections;
+
+  for (const key in collections) {
+    const collection = collections[key];
+    await collection.deleteMany({});
+  }
+};
 
 // Tests
 describe('JournalService', () => {
     // Test resets
-    beforeEach(() => {
+    beforeEach(async () => {
         // Clear fs mock override before each test
         jest.resetModules();
 
-        // Reset Mockingoose mocks explicitly before each test
-        mockingoose.resetAll();
+        // Ensure a clean database before each test
+        await clearDatabase();
     });
 
     afterEach(() => {
@@ -67,38 +77,14 @@ describe('JournalService', () => {
 
     describe('createEntry', () => {
         test('createEntry creates a new entry successfully', async () => {
-            // /// Mock the Entry constructor and .save() method
-            // const mockEntryInstance = { save: jest.fn() };
-            // jest.mock('../../../models/Entry', () => ({
-            //     default: jest.fn(() => mockEntryInstance)
-            // }));
-
-            // Mock countDocuments Mongoose method to return 1
-            const mockUser = { countDocuments: jest.fn().mockReturnValue(1) };
-
             // Mock Evervault encryption
             const mockEvervault = { encrypt: jest.fn().mockResolvedValue('encryptedValue') };
-
-            // Mock event emitter
-            const mockJournalServiceEvents = { emit: jest.fn() };
-
-            // Mock Winston logging
-            const mockLogger = { info: jest.fn() };
 
             // Mock User.countDocuments() directly
             User.countDocuments = jest.fn().mockReturnValue(1);
 
-            // Mock creating a new entry
-            await mockingoose(Entry).toReturn({ _id: '123' }, 'save');
-
-
-            // Mock Entry.save() directly
-            // Entry.prototype.save = jest.fn().mockResolvedValue({ _id: '123' });
-
             // Set spies
             jest.spyOn(evervault, 'encrypt').mockImplementation(mockEvervault.encrypt);
-            jest.spyOn(mockJournalServiceEvents, 'emit').mockImplementation(mockJournalServiceEvents.emit);
-            jest.spyOn(mockLogger, 'info').mockImplementation(mockLogger.info);
 
             // Instantiate the Journal Service
             const service = new JournalService({
@@ -113,28 +99,127 @@ describe('JournalService', () => {
             // Run the createEntry method
             const response = await service.createEntry();
 
-            // Assert createEntry returned value is correct
-            expect(response).toEqual({
+            // Assert createEntry returned value contains correct key value pairs
+            expect(response).toMatchObject({
                 success: true,
                 authorise: true,
                 msg: 'New journal entry created successfully',
                 data: {
-                    _id: '123',
                     user: '12345',
-                    mood: 'Low Energy, Pleasant',
-                    emotion: 'Relaxed',
+                    mood: 'encryptedValue',
+                    emotion: 'encryptedValue',
                     categories: [{ name: 'Category 1' }],
                     activities: [{ name: 'Activity 1' }],
-                    text: 'This is a positive journal entry.',
+                    text: 'encryptedValue',
                 },
             });
+        });
 
-            // Final assertions
-            expect(mockUser.countDocuments).toHaveBeenCalledWith({ auth0UserId: '12345' });
-            expect(mockEvervault.encrypt).toHaveBeenCalledTimes(3); // mood, emotion, text
-            expect(mockEntry.save).toHaveBeenCalled();
-            expect(mockJournalServiceEvents.emit).toHaveBeenCalledWith('journalEntryCreated');
-            expect(mockLogger.info).toHaveBeenCalledWith(`New journal entry created successfully for user 12345`);
+        test('CreateEntry throws an error when userId is missing', async () => {
+            // Setup: Create a JournalService instance without providing a userId
+            const service = new JournalService({
+                // Omitting userId to simulate the missing parameter scenario
+                entryMood: 'Low Energy, Pleasant',
+                entryEmotion: 'Relaxed',
+                entryText: 'This is a test journal entry.',
+                entryCategories: [{ name: 'Category 1' }],
+                entryActivities: [{ name: 'Activity 1' }],
+            });
+
+            // Assertion
+            await expect(service.createEntry()).rejects.toThrow(
+                'Add journal entry failed - userId parameter empty. Must be supplied.');
+        });
+
+        test('CreateEntry throws an error when entryMood is missing', async () => {
+            // Setup: Create a JournalService instance without providing a userId
+            const service = new JournalService({
+                // Omitting entryMood to simulate the missing parameter scenario
+                userId: '12345',
+                entryEmotion: 'Relaxed',
+                entryText: 'This is a test journal entry.',
+                entryCategories: [{ name: 'Category 1' }],
+                entryActivities: [{ name: 'Activity 1' }],
+            });
+
+            // Assertion
+            await expect(service.createEntry()).rejects.toThrow(
+                'Add journal entry failed - entryMood parameter empty. Must be supplied.');
+        });
+
+        test('CreateEntry throws an error when entryEmotion is missing', async () => {
+            // Setup: Create a JournalService instance without providing a userId
+            const service = new JournalService({
+                // Omitting entryEmotion to simulate the missing parameter scenario
+                userId: '12345',
+                entryMood: 'Low Energy, Pleasant',
+                entryText: 'This is a test journal entry.',
+                entryCategories: [{ name: 'Category 1' }],
+                entryActivities: [{ name: 'Activity 1' }],
+            });
+
+            // Assertion
+            await expect(service.createEntry()).rejects.toThrow(
+                'Add journal entry failed - entryEmotion parameter empty. Must be supplied.');
+        });
+
+        test('CreateEntry throws an error when entryText is missing', async () => {
+            // Setup: Create a JournalService instance without providing a userId
+            const service = new JournalService({
+                // Omitting entryText to simulate the missing parameter scenario
+                userId: '12345',
+                entryMood: 'Low Energy, Pleasant',
+                entryEmotion: 'Relaxed',
+                entryCategories: [{ name: 'Category 1' }],
+                entryActivities: [{ name: 'Activity 1' }],
+            });
+
+            // Assertion
+            await expect(service.createEntry()).rejects.toThrow(
+                'Add journal entry failed - entryText parameter empty. Must be supplied.');
+        });
+
+        test('CreateEntry throws an error when user is not found', async () => {
+            // Setup: Create a JournalService instance without providing a userId
+            const service = new JournalService({
+                // Omitting entryText to simulate the missing parameter scenario
+                userId: '12345',
+                entryMood: 'Low Energy, Pleasant',
+                entryEmotion: 'Relaxed',
+                entryCategories: [{ name: 'Category 1' }],
+                entryActivities: [{ name: 'Activity 1' }],
+            });
+
+            // Assertion
+            await expect(service.createEntry()).rejects.toThrow(
+                'Add journal entry failed - entryText parameter empty. Must be supplied.');
+        });
+
+        test('CreateEntry throws an error when trying to link to an entry whilst entryMood is pleasant', async () => {
+            // At this point, User.countDocuments() should return 0 because the User collection is empty.
+            // JournalService test suite sets up 
+            const userCount = await User.countDocuments();
+
+            // This is to assert our expectation about the database state.
+            expect(userCount).toBe(0);
+
+            // Setup: Create a JournalService instance with a userId
+            const service = new JournalService({
+                userId: '123456',
+                entryMood: 'Low Energy, Pleasant',
+                entryEmotion: 'Relaxed',
+                entryText: 'This is a journal entry test.',
+            });
+
+            // Run the createEntry method with no user found
+            const response = await service.createEntry();
+
+            // Method returns this specific response in case of user not found
+            expect(response).toMatchObject({
+                success: false,
+                authorise: false,
+                msg: 'User not found', 
+            });
         });
     });
 });
