@@ -3,7 +3,7 @@
 // Imports
 const fs = require('fs');
 const path = require('path');
-const Mockingoose = require('mockingoose');
+const mockingoose = require('mockingoose');
 
 // Mock imports
 const JournalService = require('../../../services/JournalService');
@@ -12,6 +12,7 @@ const User = require('../../../models/User');
 const Entry = require('../../../models/Entry');
 const Categories = require('../../../models/Categories');
 const Activities = require('../../../models/Activities');
+const { JsonWebTokenError } = require('jsonwebtoken');
 
 // Fetch test data
 
@@ -23,11 +24,13 @@ describe('JournalService', () => {
         // Clear fs mock override before each test
         jest.resetModules();
 
+        // Reset Mockingoose mocks explicitly before each test
+        mockingoose.resetAll();
+    });
+
+    afterEach(() => {
         // Resets all mocks before each test
         jest.clearAllMocks();
-
-        // Reset Mockingoose mocks explicitly before each test
-        Mockingoose.resetAll();
     });
 
     test('Journal Service constructor sets properties correctly', () => {
@@ -64,20 +67,33 @@ describe('JournalService', () => {
 
     describe('createEntry', () => {
         test('createEntry creates a new entry successfully', async () => {
-            // Set mocks
+            // /// Mock the Entry constructor and .save() method
+            // const mockEntryInstance = { save: jest.fn() };
+            // jest.mock('../../../models/Entry', () => ({
+            //     default: jest.fn(() => mockEntryInstance)
+            // }));
+
+            // Mock countDocuments Mongoose method to return 1
             const mockUser = { countDocuments: jest.fn().mockReturnValue(1) };
+
+            // Mock Evervault encryption
             const mockEvervault = { encrypt: jest.fn().mockResolvedValue('encryptedValue') };
+
+            // Mock event emitter
             const mockJournalServiceEvents = { emit: jest.fn() };
+
+            // Mock Winston logging
             const mockLogger = { info: jest.fn() };
 
-            // Set Mongoose mocks
-            Mockingoose(Entry);
-
-            // Mock User.countDocuments directly (no need for spy)
+            // Mock User.countDocuments() directly
             User.countDocuments = jest.fn().mockReturnValue(1);
 
-            // Mock the save method
-            Entry.prototype.save = jest.fn().mockResolvedValue({ _id: '123' });
+            // Mock creating a new entry
+            await mockingoose(Entry).toReturn({ _id: '123' }, 'save');
+
+
+            // Mock Entry.save() directly
+            // Entry.prototype.save = jest.fn().mockResolvedValue({ _id: '123' });
 
             // Set spies
             jest.spyOn(evervault, 'encrypt').mockImplementation(mockEvervault.encrypt);
@@ -121,4 +137,4 @@ describe('JournalService', () => {
             expect(mockLogger.info).toHaveBeenCalledWith(`New journal entry created successfully for user 12345`);
         });
     });
-})
+});

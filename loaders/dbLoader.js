@@ -12,9 +12,7 @@ exports.connectDB = async () => {
     // Establish connection to MongoDB Atlas
     await mongoose.connect(db, {
       useNewUrlParser: true,
-      useUnifiedTopology: true,
-      useCreateIndex: true,
-      useFindAndModify: false
+      useUnifiedTopology: true
     });
 
     logger.info('MongoDB: Connection Established ✅');
