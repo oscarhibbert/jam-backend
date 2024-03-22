@@ -11,6 +11,7 @@ const JournalService = require('../../../services/JournalService');
 const logger = require('../../../loaders/logger');
 const evervault = require('../../../loaders/evervault');
 const User = require('../../../models/User');
+const Entry = require('../../../models/Entry');
 const Categories = require('../../../models/Categories');
 const Activities = require('../../../models/Activities');
 const { JsonWebTokenError } = require('jsonwebtoken');
@@ -117,7 +118,7 @@ describe('JournalService', () => {
             });
         });
 
-        test('CreateEntry throws an error when userId is missing', async () => {
+        test('createEntry throws an error when userId is missing', async () => {
             // Setup: Create a JournalService instance without providing a userId
             const service = new JournalService({
                 // Omitting userId to simulate the missing parameter scenario
@@ -133,7 +134,7 @@ describe('JournalService', () => {
                 'Add journal entry failed - userId parameter empty. Must be supplied.');
         });
 
-        test('CreateEntry throws an error when entryMood is missing', async () => {
+        test('createEntry throws an error when entryMood is missing', async () => {
             // Setup: Create a JournalService instance without providing a userId
             const service = new JournalService({
                 // Omitting entryMood to simulate the missing parameter scenario
@@ -149,7 +150,7 @@ describe('JournalService', () => {
                 'Add journal entry failed - entryMood parameter empty. Must be supplied.');
         });
 
-        test('CreateEntry throws an error when entryEmotion is missing', async () => {
+        test('createEntry throws an error when entryEmotion is missing', async () => {
             // Setup: Create a JournalService instance without providing a userId
             const service = new JournalService({
                 // Omitting entryEmotion to simulate the missing parameter scenario
@@ -165,7 +166,7 @@ describe('JournalService', () => {
                 'Add journal entry failed - entryEmotion parameter empty. Must be supplied.');
         });
 
-        test('CreateEntry throws an error when entryText is missing', async () => {
+        test('createEntry throws an error when entryText is missing', async () => {
             // Setup: Create a JournalService instance without providing a userId
             const service = new JournalService({
                 // Omitting entryText to simulate the missing parameter scenario
@@ -181,7 +182,7 @@ describe('JournalService', () => {
                 'Add journal entry failed - entryText parameter empty. Must be supplied.');
         });
 
-        test('CreateEntry throws an error when trying to link to an entry whilst entryMood is pleasant', async () => {
+        test('createEntry throws an error when trying to link to an entry whilst entryMood is pleasant', async () => {
             // Setup: Create a JournalService instance without providing a userId
             const service = new JournalService({
                 // entryMood includes "pleasant"
@@ -199,7 +200,7 @@ describe('JournalService', () => {
                 'Add journal entry failed - cannot link an entry when current entry mood type is pleasant. 12345');
         });
 
-        test('CreateEntry throws an error when user is not found', async () => {
+        test('createEntry throws an error when user is not found', async () => {
             // Setup: Create a JournalService instance with a userId
             const service = new JournalService({
                 userId: '123456',
@@ -219,6 +220,93 @@ describe('JournalService', () => {
                 authorise: false,
                 msg: 'User not found', 
             });
+        });
+    });
+
+    describe('editEntry', () => {
+        test('editEntry edits an entry successfully', async () => {
+            // Set userId
+            const userId = '123456789'
+
+            // Create new entry directly in the database
+            const newEntry = {
+                user: userId,
+                mood: "Low Energy, Pleasant",
+                emotion: "Relaxed",
+                text: "This is a test journal entry.",
+                categories: [{ category: 'Category 1' }],
+                activities: [{ activity: 'Activity 2' }]
+            };
+
+            let saveEntry = new Entry(newEntry);
+
+            await saveEntry.save();
+
+            // Get the journalId for editEntry
+            const journalId = saveEntry._id.toString();
+
+            // Mock User.countDocuments() directly
+            User.countDocuments = jest.fn().mockReturnValue(1);
+            
+            // Mock Evervault encryption
+            const mockEvervault = { encrypt: jest.fn().mockResolvedValue('encryptedValue') };
+
+            // Set Evervault encryption spy
+            jest.spyOn(evervault, 'encrypt').mockImplementation(mockEvervault.encrypt);
+
+            // Attempt to edit the existing journal entry
+            const editEntry = new JournalService(
+                {
+                    userId: userId,
+                    journalId: journalId,
+                    entryMood: "High Energy, Pleasant",
+                    entryEmotion: "Excited",
+                    entryText: "Now I'm feeling excited.",
+                    entryActivities: [{ activity: 'Activity 2' }],
+                }
+            );
+
+            const response = await editEntry.editEntry();
+
+            // Assert response object
+            expect(response).toMatchObject({
+                success: true,
+                authorise: true,
+                msg: `Journal entry successfully updated with ID ${journalId}`,
+                data: {
+                    user: '123456789',
+                    mood: 'encryptedValue',
+                    emotion: 'encryptedValue',
+                    activities: [{ activity: 'Activity 2' }],
+                    text: 'encryptedValue'
+                }
+            });
+        });
+
+        test('editEntry throws an error when userId is missing', async () => {
+            // Setup: Create a JournalService instance without providing a userId
+            const service = new JournalService({
+                // Omitting userId to simulate the missing parameter scenario
+                entryMood: 'Low Energy, Pleasant',
+                entryEmotion: 'Relaxed',
+                entryText: 'This is a test journal entry.'
+            });
+
+            // Assertion
+            await expect(service.editEntry()).rejects.toThrow(
+                'Edit journal entry failed - userId parameter empty. Must be supplied.');
+        });
+
+        test('editEntry throws an error when journalId is missing', async () => {
+
+        });
+
+        test('editEntry throws an error when linkedEntry exists and entryMood does not exist', async () => {
+
+        });
+
+        test('editEntry throws an error when trying to link to an entry whilst entryMood is pleasant', async () => {
+
         });
     });
 });

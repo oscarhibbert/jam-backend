@@ -230,7 +230,7 @@ module.exports = class JournalService {
         try {
             // Check userId parameter exists
             if (!this._userId) {
-                throw new Error('Edit journal entry failed - userId parameter empty. Must be supplied');
+                throw new Error('Edit journal entry failed - userId parameter empty. Must be supplied.');
             };
 
             // Check journalId parameter exists
