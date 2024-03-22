@@ -181,29 +181,33 @@ describe('JournalService', () => {
                 'Add journal entry failed - entryText parameter empty. Must be supplied.');
         });
 
-        test('CreateEntry throws an error when user is not found', async () => {
+        test('CreateEntry throws an error when trying to link to an entry whilst entryMood is pleasant', async () => {
             // Setup: Create a JournalService instance without providing a userId
             const service = new JournalService({
-                // Omitting entryText to simulate the missing parameter scenario
+                // entryMood includes "pleasant"
                 userId: '12345',
                 entryMood: 'Low Energy, Pleasant',
                 entryEmotion: 'Relaxed',
                 entryCategories: [{ name: 'Category 1' }],
                 entryActivities: [{ name: 'Activity 1' }],
+                entryText: 'This is a journal entry test.',
+                linkedEntry: '83745934875'
             });
 
             // Assertion
             await expect(service.createEntry()).rejects.toThrow(
-                'Add journal entry failed - entryText parameter empty. Must be supplied.');
+                'Add journal entry failed - cannot link an entry when current entry mood type is pleasant. 12345');
         });
 
-        test('CreateEntry throws an error when trying to link to an entry whilst entryMood is pleasant', async () => {
+        test('CreateEntry throws an error when user is not found', async () => {
             // Setup: Create a JournalService instance with a userId
             const service = new JournalService({
                 userId: '123456',
                 entryMood: 'Low Energy, Pleasant',
                 entryEmotion: 'Relaxed',
-                entryText: 'This is a journal entry test.',
+                entryCategories: [{ name: 'Category 1' }],
+                entryActivities: [{ name: 'Activity 1' }],
+                entryText: 'This is a journal entry test.'
             });
 
             // Run the createEntry method with no user found
