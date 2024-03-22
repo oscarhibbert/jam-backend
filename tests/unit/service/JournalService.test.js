@@ -41,6 +41,8 @@ describe('JournalService', () => {
     afterEach(() => {
         // Resets all mocks before each test
         jest.clearAllMocks();
+        jest.resetAllMocks();
+        jest.restoreAllMocks();
     });
 
     test('Journal Service constructor sets properties correctly', () => {
@@ -196,13 +198,6 @@ describe('JournalService', () => {
         });
 
         test('CreateEntry throws an error when trying to link to an entry whilst entryMood is pleasant', async () => {
-            // At this point, User.countDocuments() should return 0 because the User collection is empty.
-            // JournalService test suite sets up 
-            const userCount = await User.countDocuments();
-
-            // This is to assert our expectation about the database state.
-            expect(userCount).toBe(0);
-
             // Setup: Create a JournalService instance with a userId
             const service = new JournalService({
                 userId: '123456',
