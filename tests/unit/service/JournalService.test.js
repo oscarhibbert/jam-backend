@@ -287,6 +287,7 @@ describe('JournalService', () => {
             // Setup: Create a JournalService instance without providing a userId
             const service = new JournalService({
                 // Omitting userId to simulate the missing parameter scenario
+                journalId: "983457938475",
                 entryMood: 'Low Energy, Pleasant',
                 entryEmotion: 'Relaxed',
                 entryText: 'This is a test journal entry.'
@@ -298,11 +299,22 @@ describe('JournalService', () => {
         });
 
         test('editEntry throws an error when journalId is missing', async () => {
+            // Setup: Create a JournalService instance without providing a userId
+            const service = new JournalService({
+                // Omitting journalId to simulate the missing parameter scenario
+                userId: "123456789",
+                entryMood: 'Low Energy, Pleasant',
+                entryEmotion: 'Relaxed',
+                entryText: 'This is a test journal entry.'
+            });
 
+            // Assertion
+            await expect(service.editEntry()).rejects.toThrow(
+                'Edit journal entry failed - journalId parameter empty. Must be supplied. 123456789');
         });
 
         test('editEntry throws an error when linkedEntry exists and entryMood does not exist', async () => {
-
+            
         });
 
         test('editEntry throws an error when trying to link to an entry whilst entryMood is pleasant', async () => {
