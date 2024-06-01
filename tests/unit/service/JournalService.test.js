@@ -18,6 +18,7 @@ const { JsonWebTokenError } = require('jsonwebtoken');
 
 // Fetch test data
 
+
 // Function to drop all database collections
 async function clearDatabase() {
   const collections = mongoose.connection.collections;
@@ -218,7 +219,7 @@ describe('JournalService', () => {
             expect(response).toMatchObject({
                 success: false,
                 authorise: false,
-                msg: 'User not found', 
+                msg: 'User not found',
             });
         });
     });
@@ -247,7 +248,7 @@ describe('JournalService', () => {
 
             // Mock User.countDocuments() directly
             User.countDocuments = jest.fn().mockReturnValue(1);
-            
+
             // Mock Evervault encryption
             const mockEvervault = { encrypt: jest.fn().mockResolvedValue('encryptedValue') };
 
@@ -314,7 +315,7 @@ describe('JournalService', () => {
         });
 
         test('editEntry throws an error when linkedEntry exists and entryMood does not exist', async () => {
-            
+
         });
 
         test('editEntry throws an error when trying to link to an entry whilst entryMood is pleasant', async () => {

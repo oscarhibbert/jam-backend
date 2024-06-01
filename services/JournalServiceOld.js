@@ -111,7 +111,7 @@ module.exports = class JournalService {
                 const newEntry = {};
 
                 // Add journal details to newEntry object
-                newEntry.user = userId; 
+                newEntry.user = userId;
                 newEntry.mood = await evervault.encrypt(entryMood);
                 newEntry.emotion = await evervault.encrypt(entryEmotion);
 
@@ -133,7 +133,7 @@ module.exports = class JournalService {
                 // Add journal entry to the database
                 let entry = new Entry(newEntry);
                 await entry.save();
-                
+
                 // Emit journalCreated event
                 journalServiceEvents.emit('journalEntryCreated');
 
@@ -155,7 +155,7 @@ module.exports = class JournalService {
                     linkedEntry: newEntry.linkedEntry
                     });
             };
-            
+
             // Build response
             response = {
                 success: success,
@@ -233,7 +233,7 @@ module.exports = class JournalService {
                 authorise = false;
                 msg = 'Journal entry not found'
             }
-            
+
             // Else, continue
             else {
 
@@ -380,7 +380,7 @@ module.exports = class JournalService {
 
             // Return response object
             return response;
-            
+
         } catch (err) {
             logger.error(err.message);
             throw err;
@@ -483,7 +483,7 @@ module.exports = class JournalService {
                 );
 
                 const entries = await Entry.aggregate(stages);
-                
+
                 // Emit journalEntriesFetched event
                 journalServiceEvents.emit('journalEntriesFetched');
 
@@ -505,10 +505,10 @@ module.exports = class JournalService {
                     .catch(err => {
                         logger.error("Error during decryption:", err);
                     });
-                    
+
                 // Log success
                 logger.info(`Journal entries retrieved successfully for user ${userId}`);
-                
+
                 // Set response
                 success = true;
                 authorise = true;
@@ -565,7 +565,7 @@ module.exports = class JournalService {
 
             // Return response object
             return response;
-            
+
         } catch (err) {
             logger.error(err.message);
             throw err;
@@ -683,7 +683,7 @@ module.exports = class JournalService {
                 .find({ user: userId })
                 .limit(1)
                 .sort({ dateCreated: -1 });
-            
+
             // Decrypt each journal entry field
             if (mostRecentEntry.mood) mostRecentEntry.mood =
                 await evervault.decrypt(mostRecentEntry.mood);
@@ -697,10 +697,10 @@ module.exports = class JournalService {
                 await evervault.decrypt(mostRecentEntry.text);
 
             logger.info(`Entry decryption completed for user ${userId}`);
-            
+
             // If mostRecentEntry is an empty array add an object with the user property
             if (mostRecentEntry.length === 0) mostRecentEntry = [{ user: userId }];
-            
+
             // Log success
             logger.info(`Most recent entry retrieved successfully for user ${userId}`);
 
@@ -829,10 +829,10 @@ module.exports = class JournalService {
             //     await evervault.decrypt(closestEntry.text);
 
             logger.info(`Entry decryption completed for user ${userId}`);
-            
+
             // Add userId to closestEntry object
             closestEntry.user = userId;
-            
+
             // Return data
             return {data: closestEntry, user: userId};
 
@@ -908,7 +908,7 @@ module.exports = class JournalService {
                 //     "type": { "$literal": ["ms", "cs", "dt"] }
                 // }
                 // },
-                
+
                 // // Unwind that array, creates three documents by "type"
                 // { "$unwind": "$type" },
 
@@ -980,7 +980,7 @@ module.exports = class JournalService {
                         {
                             copingActivityId: activity._id.toString(),
                             copingActivityName: activity.name,
-                            copingActivityType: activity.type, 
+                            copingActivityType: activity.type,
                             count: 0
                         }
                     )
@@ -1016,7 +1016,7 @@ module.exports = class JournalService {
                     // Continue
                     continue;
                 };
-                
+
                 // Continue
                 continue;
             };
@@ -1032,7 +1032,7 @@ module.exports = class JournalService {
             const moodStatsCalculated = percentRound(
                 moodCounts
             );
-            
+
             // Check that there is at least one mood count greater than 0
             let moodCountCheck = false;
 
@@ -1044,7 +1044,7 @@ module.exports = class JournalService {
 
             // Set highestMood to empty object
             let highestMood = {};
-            
+
             // If moodCountCheck is true
             if (moodCountCheck === true) {
                 // Get the index with the highest mood count
@@ -1110,7 +1110,7 @@ module.exports = class JournalService {
                 copingStats: counts.copingActivityCounts,
 
             };
-            
+
             // Return the stats object
             return { success: true, data: stats, user: userId };
 
