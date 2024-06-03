@@ -1,0 +1,61 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '16.3.4'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Lint code
+      run: npm run lint
+
+    - name: Run tests
+      run: npm run tests
+
+    - name: Build Docker image
+      run: docker build -t gcr.io/${{ secrets.GCP_PROJECT }}/your-app:$GITHUB_SHA .
+
+    - name: Push Docker image to Google Container Registry
+      env:
+        GCP_PROJECT: ${{ secrets.GCP_PROJECT }}
+        GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
+      run: |
+        echo $GCP_CREDENTIALS | base64 --decode > $HOME/gcp-key.json
+        gcloud auth activate-service-account --key-file=$HOME/gcp-key.json
+        gcloud config set project $GCP_PROJECT
+        gcloud auth configure-docker
+        docker push gcr.io/$GCP_PROJECT/your-app:$GITHUB_SHA
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - name: Deploy to Cloud Run
+      env:
+        GCP_PROJECT: ${{ secrets.GCP_PROJECT }}
+        GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
+      run: |
+        echo $GCP_CREDENTIALS | base64 --decode > $HOME/gcp-key.json
+        gcloud auth activate-service-account --key-file=$HOME/gcp-key.json
+        gcloud config set project $GCP_PROJECT
+        gcloud run deploy your-app --image gcr.io/$GCP_PROJECT/your-app:$GITHUB_SHA --platform managed --region us-central1 --allow-unauthenticated
