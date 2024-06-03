@@ -17,3 +17,4 @@ userMigration.js
 mixpanelTest.js
 createUser.js
 nodemon.json
+tests/mockdata
