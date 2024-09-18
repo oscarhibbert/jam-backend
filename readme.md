@@ -4,13 +4,14 @@ The Jam Mental Health Tracker backend API built on Node.js and Express designed 
 ### Features
 * Journalling endpoints for creating, updating, searching and retrieving, filtering and deleting complex mood and emotional health data as well as viewing mental health statistics over a searchable period of time.
 * Settings endpoints for managing user account and profile and managing mood health categories and activities.
-* MongoDB Atlas models and full client side field level encryption.
+* MongoDB Atlas models and full client side field level encryption with Evervault SDK replacing depreciated MongoDB CSFLE local drivers for encryption/decryption.
 * JWT and refresh token authentication supporting RBAC with Auth0 working in conjunction with passwordless user login authentication in the frontend.
 * Validation middleware across all endpoints.
 * User profile management and administration capability endpoints.
 * Sentry integration and logging.
 * Full Mixpanel events integration.
 * Detailed logging with Winston.
+* Unit and integration tests written with Jest, WIP.
 ### Installation Guide
 * Clone this repository [here](https://github.com/oscarhibbert/aura-backend).
 * Run npm install to install all dependencies.
@@ -51,7 +52,9 @@ The Jam Mental Health Tracker backend API built on Node.js and Express designed 
 * [ExpressJS](https://www.expresjs.org/) This is a NodeJS web application framework.
 * [MongoDB Atlas](https://www.mongodb.com/) MongoDB Atlas is an integrated suite of data services centered around a cloud database designed to accelerate and simplify how you build with data.
 * [Auth0](https://auth0.com/) Auth0 is a cloud-based identity authentication platform for developers working on web, mobile and legacy applications.
+* [Evervault](https://evervault.com/) Evervault is the data security and encryption platform built for developers.
 * [Mixpanel](https://mixpanel.com/) Mixpanel is an event analytics service that tracks user interactions with web and mobile applications.
+* [Jest](https://jestjs.io/) Jest is a JavaScript Testing Framework with a focus on simplicity for mocking, code coverage and test runs.
 
 ### License
 This project is available for use under the MIT License.
